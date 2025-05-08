@@ -1,0 +1,27 @@
+export const RouteNames = {
+  AuthRoutes: {
+    LoginScreen: 'LoginScreen',
+    OnBoardingScreen: 'OnBoardingScreen',
+    ForgotPasswordScreen: 'ForgotPasswordScreen',
+    OtpScreen: 'OtpScreen',
+    RegisterScreen: 'RegisterScreen',
+    Preferences: 'Preferences',
+  },
+  HomeRoutes: {
+    TabStack: 'TabStack',
+    LiveStream: 'LiveStream',
+    HomeScreen: 'HomeScreen',
+    NavigationScreen: 'NavigationScreen',
+    Settings: 'Settings',
+    EditProfileScreen: 'EditProfileScreen',
+    SubscriptionScreen: 'SubscriptionScreen',
+    // AddContacts: 'AddContacts',
+    EditPreferences: 'EditPreferences',
+    TermsAndPolicy: 'TermsAndPolicy',
+    FAQ: 'FAQ',
+    HelpCenter: 'HelpCenter',
+    Footages: 'Footages',
+    FootageDetails: 'FootageDetails',
+    Videos: 'Videos',
+  },
+};
