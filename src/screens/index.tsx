@@ -21,6 +21,7 @@ import {EditPreferences} from './HomeScreens/EditPreferences';
 import {Footages} from './HomeScreens/Footages';
 import {FootageDetails} from './HomeScreens/FootageDetails';
 import {Videos} from './HomeScreens/Videos';
+import {HeartRateMonitor} from './HomeScreens/HeartRateMonitor';
 
 export {
   // Auth Screens
@@ -44,4 +45,5 @@ export {
   Footages,
   FootageDetails,
   Videos,
+  HeartRateMonitor
 };

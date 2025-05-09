@@ -58,3 +58,5 @@ export type SafeZoneProps = {};
 export type FootagesProps = {};
 
 export type FootageDetailsProps = {};
+
+export type HeartRateMonitorProps = {};

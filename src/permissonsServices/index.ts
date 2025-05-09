@@ -6,6 +6,7 @@ import {
   checkMultiple,
 } from 'react-native-permissions';
 import {Platform, Linking, Alert} from 'react-native';
+import AppleHealthKit, {HealthKitPermissions} from 'react-native-health';
 
 export enum PermissionResult {
   GRANTED = 'granted',
@@ -196,3 +197,10 @@ export async function checkMicrophoneAndSpeechPermissions(): Promise<
     return [PermissionResult.DENIED, PermissionResult.DENIED];
   }
 }
+
+export const HealthPermissions = {
+  permissions: {
+    read: [AppleHealthKit.Constants.Permissions.HeartRate],
+    write: [AppleHealthKit.Constants.Permissions.Steps],
+  },
+} as HealthKitPermissions;

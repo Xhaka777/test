@@ -7,6 +7,7 @@ import {
   FAQ,
   FootageDetails,
   Footages,
+  HeartRateMonitor,
   LiveStream,
   TermsAndPolicy,
   Videos,
@@ -73,5 +74,10 @@ export const HomeStack: HomeScreenStacksTypes = [
     option: {
       ...TransitionPresets.ModalTransition,
     },
+  },
+  {
+    name: RouteNames.HomeRoutes.HeartRateMonitor,
+    component: HeartRateMonitor,
+    key: RouteNames.HomeRoutes.HeartRateMonitor,
   },
 ];

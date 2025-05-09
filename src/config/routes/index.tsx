@@ -23,5 +23,6 @@ export const RouteNames = {
     Footages: 'Footages',
     FootageDetails: 'FootageDetails',
     Videos: 'Videos',
+    HeartRateMonitor:"HeartRateMonitor"
   },
 };
