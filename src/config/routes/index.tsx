@@ -15,7 +15,7 @@ export const RouteNames = {
     Settings: 'Settings',
     EditProfileScreen: 'EditProfileScreen',
     SubscriptionScreen: 'SubscriptionScreen',
-    // AddContacts: 'AddContacts',
+    AddContacts: 'AddContacts',
     EditPreferences: 'EditPreferences',
     TermsAndPolicy: 'TermsAndPolicy',
     FAQ: 'FAQ',

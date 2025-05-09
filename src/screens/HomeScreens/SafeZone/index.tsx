@@ -27,6 +27,17 @@ import Geolocation from 'react-native-geolocation-service';
 import {HomeAPIS} from '../../../services/home';
 import {normalizeFont} from '../../../config/metrix';
 import {HomeActions} from '../../../redux/actions';
+import { GOOGLE_API_KEY } from '../../../services/config';
+
+const homePlace = {
+  description: 'Home',
+  geometry: { location: { lat: 37.4219983, lng: -122.084 } },
+};
+
+const workPlace = {
+  description: 'Work',
+  geometry: { location: { lat: 37.3318456, lng: -122.0296002 } },
+};
 
 export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const route = useRoute();
@@ -94,45 +105,45 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     getZones();
   }, [isFocus]);
 
-  useEffect(() => {
-    const loadSafeZones = async () => {
-      const hospitals = await fetchPlaces(
-        region?.latitude,
-        region?.longitude,
-        'hospital',
-      );
-      const policeStations = await fetchPlaces(
-        region?.latitude,
-        region?.longitude,
-        'police',
-      );
-      setSafeZones([...safeZones, ...hospitals, ...policeStations]);
-    };
+  // useEffect(() => {
+  //   const loadSafeZones = async () => {
+  //     const hospitals = await fetchPlaces(
+  //       region?.latitude,
+  //       region?.longitude,
+  //       'hospital',
+  //     );
+  //     const policeStations = await fetchPlaces(
+  //       region?.latitude,
+  //       region?.longitude,
+  //       'police',
+  //     );
+  //     setSafeZones([...safeZones, ...hospitals, ...policeStations]);
+  //   };
 
-    loadSafeZones();
-  }, []);
+  //   loadSafeZones();
+  // }, []);
 
-  const fetchPlaces = async (lat: any, lng: any, type: any) => {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${type}&key=AIzaSyCRszURtItQpdkINBuT0XzWXyu8Vxsg2Ho`,
-    );
-    const data = await response.json();
-    let array: any = [];
-    data?.results?.map((item: any) => {
-      array?.push({
-        id: item?.place_id,
-        name: item?.name,
-        image: Images.Target,
-        location: {
-          latitude: item?.geometry?.location?.lat,
-          longitude: item?.geometry?.location?.lng,
-        },
-        radius: 50,
-      });
-    });
+  // const fetchPlaces = async (lat: any, lng: any, type: any) => {
+  //   const response = await fetch(
+      // `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${type}&key=${GOOGLE_API_KEY}`,
+  //   );
+  //   const data = await response.json();
+  //   let array: any = [];
+  //   data?.results?.map((item: any) => {
+  //     array?.push({
+  //       id: item?.place_id,
+  //       name: item?.name,
+  //       image: Images.Target,
+  //       location: {
+  //         latitude: item?.geometry?.location?.lat,
+  //         longitude: item?.geometry?.location?.lng,
+  //       },
+  //       radius: 50,
+  //     });
+  //   });
 
-    return array;
-  };
+  //   return array;
+  // };
 
   function calculateDistance(lat1: any, lon1: any, lat2: any, lon2: any) {
     const R = 6371e3; // Radius of Earth in meters
@@ -486,14 +497,12 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         onClose={() => {
           setModalVisible(false);
         }}>
-        <View style={{flex: 1}}>
+        <ScrollView keyboardShouldPersistTaps={'handled'} >
           <GooglePlacesAutocomplete
             ref={inputRef}
             placeholder={'Search here'}
             keyboardShouldPersistTaps="always"
             minLength={3}
-            // autoFocus={true}
-            // returnKeyType={'search'}
             listViewDisplayed={true}
             fetchDetails={true}
             enablePoweredByContainer={false}
@@ -508,7 +517,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             keepResultsAfterBlur={true}
             enableHighAccuracyLocation={true}
             query={{
-              key: 'AIzaSyCRszURtItQpdkINBuT0XzWXyu8Vxsg2Ho',
+              key: GOOGLE_API_KEY,
               language: 'en',
             }}
             textInputProps={{
@@ -533,7 +542,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               },
             }}
           />
-        </View>
+        </ScrollView>
       </CustomModal>
 
       <CustomModal
@@ -602,7 +611,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             keepResultsAfterBlur={false}
             enableHighAccuracyLocation={true}
             query={{
-              key: 'AIzaSyCRszURtItQpdkINBuT0XzWXyu8Vxsg2Ho',
+              key: GOOGLE_API_KEY,
               language: 'en',
             }}
             textInputProps={{

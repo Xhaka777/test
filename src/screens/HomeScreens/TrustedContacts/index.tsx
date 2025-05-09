@@ -122,11 +122,10 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
-
-              // NavigationService.navigate(RouteNames.HomeRoutes.AddContacts, {
-              //   from: 'edit',
-              //   userInfo: item,
-              // });
+              NavigationService.navigate(RouteNames.HomeRoutes.AddContacts, {
+                from: 'edit',
+                userInfo: item,
+              });
             }}>
             <RoundImageContainer
               resizeMode="contain"
@@ -163,7 +162,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
           width={'97%'}
           customStyles={{alignSelf: 'center'}}
           onPress={() => {
-            // NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
+            NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
           }}
         />
         <FlatList

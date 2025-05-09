@@ -2,12 +2,12 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-//import GoogleMaps
+import GoogleMaps
 
 @main
 class AppDelegate: RCTAppDelegate {
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-//    GMSServices.provideAPIKey("AIzaSyCRszURtItQpdkINBuT0XzWXyu8Vxsg2Ho")
+    GMSServices.provideAPIKey("AIzaSyBcOBbH59pgJk_bmN6WavZCExwCGqCztaY")
     self.moduleName = "Rove"
     self.dependencyProvider = RCTAppDependencyProvider()
 

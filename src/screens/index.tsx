@@ -14,7 +14,7 @@ import {TermsAndPolicy} from './HomeScreens/TermsAndPolicy';
 import {EditProfile} from './HomeScreens/EditProfile';
 import {LiveStream} from './HomeScreens/LiveStream';
 import {TrustedContacts} from './HomeScreens/TrustedContacts';
-// import {AddContacts} from './HomeScreens/AddContact';
+import {AddContacts} from './HomeScreens/AddContact';
 import {FAQ} from './HomeScreens/FAQ';
 import {SafeZone} from './HomeScreens/SafeZone';
 import {EditPreferences} from './HomeScreens/EditPreferences';
@@ -37,7 +37,7 @@ export {
   TermsAndPolicy,
   LiveStream,
   TrustedContacts,
-  // AddContacts,
+  AddContacts,
   EditPreferences,
   FAQ,
   SafeZone,

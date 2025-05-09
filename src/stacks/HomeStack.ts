@@ -1,7 +1,7 @@
 import {TransitionPresets} from '@react-navigation/stack';
 import {RouteNames} from '../config';
 import {
-  // AddContacts,
+  AddContacts,
   EditPreferences,
   EditProfile,
   FAQ,
@@ -36,11 +36,11 @@ export const HomeStack: HomeScreenStacksTypes = [
     component: EditProfile,
     key: RouteNames.HomeRoutes.EditProfileScreen,
   },
-  // {
-  //   name: RouteNames.HomeRoutes.AddContacts,
-  //   component: AddContacts,
-  //   key: RouteNames.HomeRoutes.AddContacts,
-  // },
+  {
+    name: RouteNames.HomeRoutes.AddContacts,
+    component: AddContacts,
+    key: RouteNames.HomeRoutes.AddContacts,
+  },
   {
     name: RouteNames.HomeRoutes.TermsAndPolicy,
     component: TermsAndPolicy,
