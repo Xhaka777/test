@@ -27,16 +27,16 @@ import Geolocation from 'react-native-geolocation-service';
 import {HomeAPIS} from '../../../services/home';
 import {normalizeFont} from '../../../config/metrix';
 import {HomeActions} from '../../../redux/actions';
-import { GOOGLE_API_KEY } from '../../../services/config';
+import {GOOGLE_API_KEY} from '../../../services/config';
 
 const homePlace = {
   description: 'Home',
-  geometry: { location: { lat: 37.4219983, lng: -122.084 } },
+  geometry: {location: {lat: 37.4219983, lng: -122.084}},
 };
 
 const workPlace = {
   description: 'Work',
-  geometry: { location: { lat: 37.3318456, lng: -122.0296002 } },
+  geometry: {location: {lat: 37.3318456, lng: -122.0296002}},
 };
 
 export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
@@ -67,6 +67,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     longitude: userCoordinates?.longitude,
   });
   const [mapType, setMapType] = useState<any>('standard');
+  const [showSearchButton, setShowSearchButton] = useState(false);
   const buttons = [
     {
       id: '1',
@@ -105,45 +106,46 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     getZones();
   }, [isFocus]);
 
-  // useEffect(() => {
-  //   const loadSafeZones = async () => {
-  //     const hospitals = await fetchPlaces(
-  //       region?.latitude,
-  //       region?.longitude,
-  //       'hospital',
-  //     );
-  //     const policeStations = await fetchPlaces(
-  //       region?.latitude,
-  //       region?.longitude,
-  //       'police',
-  //     );
-  //     setSafeZones([...safeZones, ...hospitals, ...policeStations]);
-  //   };
+  useEffect(() => {
+    const loadSafeZones = async () => {
+      const hospitals = await fetchPlaces(
+        region?.latitude,
+        region?.longitude,
+        'hospital',
+      );
+      const policeStations = await fetchPlaces(
+        region?.latitude,
+        region?.longitude,
+        'police',
+      );
+      setSafeZones([...safeZones, ...hospitals, ...policeStations]);
+    };
 
-  //   loadSafeZones();
-  // }, []);
+    loadSafeZones();
+  }, []);
 
-  // const fetchPlaces = async (lat: any, lng: any, type: any) => {
-  //   const response = await fetch(
-      // `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${type}&key=${GOOGLE_API_KEY}`,
-  //   );
-  //   const data = await response.json();
-  //   let array: any = [];
-  //   data?.results?.map((item: any) => {
-  //     array?.push({
-  //       id: item?.place_id,
-  //       name: item?.name,
-  //       image: Images.Target,
-  //       location: {
-  //         latitude: item?.geometry?.location?.lat,
-  //         longitude: item?.geometry?.location?.lng,
-  //       },
-  //       radius: 50,
-  //     });
-  //   });
+  const fetchPlaces = async (lat: any, lng: any, type: any) => {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${type}&key=${GOOGLE_API_KEY}`,
+    );
+    const data = await response.json();
+    let array: any = [];
+    data?.results?.map((item: any) => {
+      array?.push({
+        id: item?.place_id,
+        name: item?.name,
+        image: Images.Target,
+        location: {
+          latitude: item?.geometry?.location?.lat,
+          longitude: item?.geometry?.location?.lng,
+        },
+        radius: 10,
+        type: type,
+      });
+    });
 
-  //   return array;
-  // };
+    return array;
+  };
 
   function calculateDistance(lat1: any, lon1: any, lat2: any, lon2: any) {
     const R = 6371e3; // Radius of Earth in meters
@@ -177,6 +179,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               longitude: parseFloat(item?.longitude),
             },
             radius: parseInt(item?.radius),
+            type: 'custom',
           });
         });
         // console.log('Safe Zoness====>', array);
@@ -251,6 +254,23 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         // console.log('Err', err?.response?.data);
         setLoading(false);
       });
+  };
+
+  const handleSearchInThisArea = async () => {
+    if (!region) return;
+    setShowSearchButton(false);
+    const hospitals = await fetchPlaces(
+      region.latitude,
+      region.longitude,
+      'hospital',
+    );
+    const policeStations = await fetchPlaces(
+      region.latitude,
+      region.longitude,
+      'police',
+    );
+
+    setSafeZones([...hospitals, ...policeStations]);
   };
 
   const requestLocationPermission = async () => {
@@ -388,6 +408,15 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             />
           </TouchableOpacity>
         </TouchableOpacity>
+        {showSearchButton && (
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={handleSearchInThisArea}>
+            <CustomText.RegularText customStyle={styles.searchBtnText}>
+              Search in this area
+            </CustomText.RegularText>
+          </TouchableOpacity>
+        )}
       </View>
 
       <MapView
@@ -397,14 +426,18 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         zoomEnabled={true}
         showsUserLocation={true}
         scrollEnabled={true}
-        region={{
+        // initialRegion={region}
+        initialRegion={{
           latitude: region.latitude,
           longitude: region.longitude,
           latitudeDelta: 0.04,
           longitudeDelta: 0.04,
         }}
         mapType={mapType}
-        onRegionChangeComplete={loc => {}}>
+        onRegionChangeComplete={region => {
+          setRegion(region);
+          setShowSearchButton(true);
+        }}>
         {searchedLocation && (
           <Marker
             coordinate={{
@@ -413,21 +446,17 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             }}
             title={searchedLocation}></Marker>
         )}
-        {/* <Circle
-          center={userCoordinates}
-          radius={1000} // 500 meters
-          strokeWidth={2}
-          strokeColor="rgba(0, 100, 255, 0.5)"
-          fillColor="rgba(0, 100, 255, 0.2)"
-        /> */}
-
         {safeZones?.map((item: any, index: number) => {
+          const image =
+            item?.type == 'custom'
+              ? Images.Delete
+              : item?.type == 'hospital'
+              ? Images.Hospital
+              : Images.Police;
           return (
             <View key={index?.toString()}>
               <Marker
-                onPress={() => {
-                  deleteAlert(item);
-                }}
+                onPress={() => deleteAlert(item)}
                 coordinate={item?.location}>
                 <View
                   style={{
@@ -436,15 +465,16 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
                   }}>
                   <View style={styles.deleteContainer}>
                     <Image
-                      source={Images.Delete}
+                      source={image}
                       resizeMode="contain"
                       style={{width: '100%', height: '100%'}}
                     />
                   </View>
+
                   <View style={styles.safezoneNameContainer}>
-                    <CustomText.RegularText customStyle={styles.safeZoneTxt}>
+                    <CustomText.SmallText customStyle={styles.safeZoneTxt}>
                       {item?.name}
-                    </CustomText.RegularText>
+                    </CustomText.SmallText>
                   </View>
                 </View>
               </Marker>
@@ -497,7 +527,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         onClose={() => {
           setModalVisible(false);
         }}>
-        <ScrollView keyboardShouldPersistTaps={'handled'} >
+        <ScrollView keyboardShouldPersistTaps={'handled'}>
           <GooglePlacesAutocomplete
             ref={inputRef}
             placeholder={'Search here'}
@@ -799,8 +829,19 @@ const styles = StyleSheet.create({
     marginTop: Metrix.VerticalSize(3),
   },
   safeZoneTxt: {
-    fontSize: normalizeFont(13),
     color: Utills.selectedThemeColors().Base,
-    fontWeight: '700',
+    fontWeight: '500',
+  },
+  searchButton: {
+    alignSelf: 'center',
+    paddingVertical: Metrix.VerticalSize(6),
+    paddingHorizontal: Metrix.VerticalSize(10),
+    borderRadius: Metrix.HorizontalSize(5),
+    backgroundColor: Utills.selectedThemeColors().Primary,
+    marginVertical: Metrix.VerticalSize(10),
+  },
+  searchBtnText: {
+    color: Utills.selectedThemeColors().PrimaryTextColor,
+    fontWeight: '600',
   },
 });

@@ -129,6 +129,8 @@ const Images = {
   Camera: require('../../assets/icons/camera.png'),
   EndCall: require('../../assets/icons/endCall.png'),
   Mic: require('../../assets/icons/mute.png'),
+  Hospital: require('../../assets/icons/hospital.png'),
+  Police: require('../../assets/icons/police.png'),
 };
 
 export default Images;
