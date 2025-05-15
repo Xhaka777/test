@@ -14,6 +14,7 @@ import {RootState} from '../redux/reducers';
 import Voice from '@react-native-community/voice';
 import {HomeActions} from '../redux/actions';
 import {Environments} from '../services/config';
+import {useHeartRateHook} from '../hooks';
 
 const Tab = createMaterialBottomTabNavigator();
 type TabStackType = {
@@ -51,12 +52,6 @@ const tabsData: TabStackType = [
 ];
 
 export const TabStack: React.FC = ({}) => {
-  const dispatch = useDispatch();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recognizedText, setRecognizedText] = useState('');
-
-  const [isListening, setIsListening] = useState(false);
   const selectedModel = useSelector(
     (state: RootState) => state.home.selectedModel,
   );
@@ -66,6 +61,8 @@ export const TabStack: React.FC = ({}) => {
   const safeWord = useSelector(
     (state: RootState) => state.home.safeWord?.safeWord,
   );
+  const averageHeartRate = 75; // Example average heart rate
+  const [isVisible, setIsVisible] = useState(false);
   const [isSafeWord, setIsSafeWord] = useState(sw);
   const [isSafeZone, setIsSafeZone] = useState(sz);
   const [currentModel, setCurrentModel] = useState(selectedModel);
@@ -79,19 +76,27 @@ export const TabStack: React.FC = ({}) => {
     '-' +
     safeWord;
   const ws = useRef<WebSocket | null>(null);
+  const {heartRate, loading, error, refresh} = useHeartRateHook();
 
-  console.log('Current state ML MODEL', currentModel);
-  console.log('Selected state ML MODEL', selectedModel);
+  console.log('heartRate', heartRate);
 
   useEffect(() => {
     setCurrentModel(selectedModel);
   }, [selectedModel]);
 
+  const threatDetected = () => {
+    console.log('Threat Detected');
+    onDisplayNotification(
+      'A New Threat Detected',
+      'Start your live stream now',
+    );
+    setIsVisible(true);
+  };
+
   const startListening = async () => {
     try {
       console.log('Starting voice recognition...');
       await Voice.start('en-US');
-      setIsListening(true);
     } catch (e) {
       console.error('Voice.start error:', e);
     }
@@ -100,7 +105,6 @@ export const TabStack: React.FC = ({}) => {
   const stopListening = async () => {
     try {
       await Voice.stop();
-      setIsListening(false);
     } catch (e) {
       console.error('Voice.stop error:', e);
     }
@@ -130,7 +134,6 @@ export const TabStack: React.FC = ({}) => {
       const latestWord = latestWordArray?.at(-1);
       console.log('Speech results:', latestWord);
       if (e.value) {
-        setRecognizedText(e.value[0]);
         if (latestWord?.toLowerCase() == safeWord?.toLowerCase()) {
           setIsSafeWord(true);
         }
@@ -181,28 +184,20 @@ export const TabStack: React.FC = ({}) => {
     socket.onmessage = event => {
       console.log('Message from server:', event.data);
       const parsedData = JSON.parse(event.data);
-      const isThreat = parsedData.threat_detected;
+      // const isThreat = parsedData.threat_detected;
       const isNegativeSentiment = parsedData?.sentiment == 'negative';
-      if (currentModel == Environments.Models.WHISPER_AND_SENTIMENT) {
-        if (isNegativeSentiment) {
-          console.log(
-            `${isNegativeSentiment} is a threatening word. in sentimental Model`,
-          );
-          onDisplayNotification(
-            'A New Threat Detected',
-            'Start your live stream now',
-          );
-          setIsVisible(true);
+      if (isNegativeSentiment) {
+        if (heartRate != undefined || heartRate != null) {
+          if (heartRate > averageHeartRate) {
+            console.log('Elevated Heart rate is normal');
+            threatDetected();
+          } else {
+            console.log('Heart rate is normal.so the threat did not detected');
+          }
         } else {
-          console.log('No threat detected.');
+          console.log('Heart rate data is not available.', heartRate);
+          threatDetected();
         }
-      } else if (isThreat) {
-        console.log(`${isThreat} is a threatening word.`);
-        onDisplayNotification(
-          'A New Threat Detected',
-          'Start your live stream now',
-        );
-        setIsVisible(true);
       } else {
         console.log('No threat detected.');
       }
@@ -228,27 +223,13 @@ export const TabStack: React.FC = ({}) => {
 
     LiveAudioStream.on('data', data => {
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        // console.log('Datttta Logging');
         ws.current.send(data);
       }
     });
 
     LiveAudioStream.start();
-    setIsRecording(true);
     console.log('Live audio streaming started');
-
-    // return () => {
-    //   if (ws.current) {
-    //     ws.current.close();
-    //   }
-    // };
   }, [currentModel]);
-
-  // useEffect(() => {
-  //   const cleanUp = setupWebSocket();
-  //   handleNotificationPress();
-  //   return cleanUp;
-  // }, [setupWebSocket]);
 
   // Add this useEffect to monitor `isSafeWord`
   useEffect(() => {
@@ -262,7 +243,6 @@ export const TabStack: React.FC = ({}) => {
         ws.current = null;
       }
       LiveAudioStream.stop(); // Stop audio stream
-      setIsRecording(false);
     }
 
     // Cleanup when component unmounts or `isSafeWord` changes
@@ -272,7 +252,6 @@ export const TabStack: React.FC = ({}) => {
         ws.current = null;
       }
       LiveAudioStream.stop();
-      setIsRecording(false);
     };
   }, [isSafeWord, isSafeZone, currentModel]);
 
@@ -313,7 +292,6 @@ export const TabStack: React.FC = ({}) => {
         });
 
         LiveAudioStream.start();
-        setIsRecording(true);
       };
 
       ws.current.onmessage = event => {
@@ -335,7 +313,6 @@ export const TabStack: React.FC = ({}) => {
 
       ws.current.onclose = () => {
         console.log('WebSocket connection closed');
-        setIsRecording(false);
       };
     };
 
