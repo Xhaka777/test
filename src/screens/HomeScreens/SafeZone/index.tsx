@@ -99,34 +99,9 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     },
   ];
 
-  // console.log('userCoordinates', safeZones);
-
-  useEffect(() => {
-    getCurrentLocation();
-    getZones();
-  }, [isFocus]);
-
-  useEffect(() => {
-    const loadSafeZones = async () => {
-      const hospitals = await fetchPlaces(
-        region?.latitude,
-        region?.longitude,
-        'hospital',
-      );
-      const policeStations = await fetchPlaces(
-        region?.latitude,
-        region?.longitude,
-        'police',
-      );
-      setSafeZones([...safeZones, ...hospitals, ...policeStations]);
-    };
-
-    loadSafeZones();
-  }, []);
-
   const fetchPlaces = async (lat: any, lng: any, type: any) => {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=${type}&key=${GOOGLE_API_KEY}`,
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&type=${type}&key=${GOOGLE_API_KEY}`,
     );
     const data = await response.json();
     let array: any = [];
@@ -146,6 +121,36 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
 
     return array;
   };
+
+  const loadSafeZones = async () => {
+    const hospitals = await fetchPlaces(
+      region?.latitude,
+      region?.longitude,
+      'hospital',
+    );
+    const policeStations = await fetchPlaces(
+      region?.latitude,
+      region?.longitude,
+      'police',
+    );
+    setSafeZones([...safeZones, ...hospitals, ...policeStations]);
+  };
+
+  // console.log('userCoordinates', safeZones);
+
+  useEffect(() => {
+    const initialize = async () => {
+      await getCurrentLocation();
+      getZones();
+    };
+    initialize();
+  }, [isFocus]);
+
+  useEffect(() => {
+    if (region?.latitude && region?.longitude) {
+      loadSafeZones();
+    }
+  }, [region]);
 
   function calculateDistance(lat1: any, lon1: any, lat2: any, lon2: any) {
     const R = 6371e3; // Radius of Earth in meters
@@ -256,23 +261,6 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       });
   };
 
-  const handleSearchInThisArea = async () => {
-    if (!region) return;
-    setShowSearchButton(false);
-    const hospitals = await fetchPlaces(
-      region.latitude,
-      region.longitude,
-      'hospital',
-    );
-    const policeStations = await fetchPlaces(
-      region.latitude,
-      region.longitude,
-      'police',
-    );
-
-    setSafeZones([...hospitals, ...policeStations]);
-  };
-
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
@@ -307,8 +295,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               {
                 latitude,
                 longitude,
-                latitudeDelta: 0.04,
-                longitudeDelta: 0.04,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               },
               1000,
             );
@@ -408,7 +396,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             />
           </TouchableOpacity>
         </TouchableOpacity>
-        {showSearchButton && (
+        {/* {showSearchButton && (
           <TouchableOpacity
             style={styles.searchButton}
             onPress={handleSearchInThisArea}>
@@ -416,7 +404,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               Search in this area
             </CustomText.RegularText>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
 
       <MapView
@@ -426,18 +414,13 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         zoomEnabled={true}
         showsUserLocation={true}
         scrollEnabled={true}
-        // initialRegion={region}
-        initialRegion={{
+        region={{
           latitude: region.latitude,
           longitude: region.longitude,
-          latitudeDelta: 0.04,
-          longitudeDelta: 0.04,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
         }}
-        mapType={mapType}
-        onRegionChangeComplete={region => {
-          setRegion(region);
-          setShowSearchButton(true);
-        }}>
+        mapType={mapType}>
         {searchedLocation && (
           <Marker
             coordinate={{
