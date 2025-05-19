@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {CustomText, FadeContainer, PrimaryButton} from '../../../components';
 import {
   Images,
@@ -132,6 +132,12 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
         // titleStyles={{color: 'blue',borderWidth:1}} // set default color for the title
 
         pages={[
+            {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: <ImageComp source={Images.OnBoard} />,
+            title: '',
+            subtitle: '',
+          },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard1} />,
@@ -148,6 +154,30 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard3} />,
             title: t('Onboarding_heading3'),
+            subtitle: '',
+          },
+           {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: <ImageComp source={Images.OnBoard4} />,
+            title: t('Onboarding_heading4'),
+            subtitle: '',
+          },
+          {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: <ImageComp source={Images.OnBoard5} />,
+            title: t('Onboarding_heading5'),
+            subtitle: '',
+          },
+          {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: <ImageComp source={Images.OnBoard6} />,
+            title: t('Onboarding_heading6'),
+            subtitle: '',
+          },
+           {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: <ImageComp source={Images.OnBoard7} />,
+            title: t('Onboarding_heading7'),
             subtitle: '',
           },
         ]}

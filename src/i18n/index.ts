@@ -1,5 +1,5 @@
 import i18n from 'i18next';
-import {initReactI18next, useTranslation} from 'react-i18next';
+import {initReactI18next} from 'react-i18next';
 import {I18nManager} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -9,14 +9,22 @@ export const resources = {
       // AUTH FLOW
 
       // OnboardingSCREEN
+      Onboarding_heading:
+        'Never walk alone',
       Onboarding_heading1:
-        'Our AI actively listens for signs of danger when you are moving. If a real threat is detected Rove will be activated.',
+        'When every second counts and adrenaline takes over, there’s often no time to reach for your phone or call for help. With Rove, you don’t need to act — we do it for you.',
       Onboarding_heading2:
-        'Your chosen contacts are only notified if an assault is detected. When Rove is triggered, your audio stream and live location is instantly shared so your trusted contacts can take action.',
+        'Rove continuously scans for signs of distress, even from your pocket. When an assault is detected, it instantly shares your live location and audio/ video. You choose what gets shared and with whom.',
       Onboarding_heading3:
-        'Live streaming can be an effective deterrence as you can show perpetrators  that they are not just being recorded - they are being watched.',
+        'Our AI recognizes real threats with 99% accuracy, filtering out false triggers like loud TV or arguments. You choose how it activates—automatically, manually, or with a safe word. You can set safe zones where AI detection is paused',
       Onboarding_heading4:
-        'Footage can only be deleted after 7 days so even if your phone is taken or smashed, your footage is safe and accessible to your trusted contacts. \n \n  If a someone tries to delete footage from your phone, the back camera will take a photo and share with your contacts - but it will look as if the footage is deleted.',
+        'Worn on a strap with the camera facing out, your phone starts streaming automatically when Rove identifies a threat - capturing everything in real time. ',
+      Onboarding_heading5:
+        'Showing the perpetrator that they are being livestreamed can trigger hesitation, fear of exposure, and a loss of control; powerful psychological levers that may stop an attack before it escalates.',
+      Onboarding_heading6:
+        'Even if your phone is taken or destroyed, everything is securely backed up in the cloud, keeping critical evidence safe for investigations.',
+      Onboarding_heading7:
+        'Rove doesn’t record or store anything unless a trigger is activated. Unlike voice assistants we only listen only for specific threat patterns. Nothing is saved, stored, or shared unless real danger is detected.',
       skip: 'Skip',
       next: 'Next',
     },
