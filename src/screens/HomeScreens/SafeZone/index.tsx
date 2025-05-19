@@ -114,7 +114,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
           latitude: item?.geometry?.location?.lat,
           longitude: item?.geometry?.location?.lng,
         },
-        radius: 10,
+        radius: 20,
         type: type,
       });
     });
@@ -139,11 +139,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   // console.log('userCoordinates', safeZones);
 
   useEffect(() => {
-    const initialize = async () => {
-      await getCurrentLocation();
-      getZones();
-    };
-    initialize();
+    getCurrentLocation();
+    getZones();
   }, [isFocus]);
 
   useEffect(() => {
@@ -430,12 +427,6 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             title={searchedLocation}></Marker>
         )}
         {safeZones?.map((item: any, index: number) => {
-          const image =
-            item?.type == 'custom'
-              ? Images.Delete
-              : item?.type == 'hospital'
-              ? Images.Hospital
-              : Images.Police;
           return (
             <View key={index?.toString()}>
               <Marker
@@ -448,16 +439,10 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
                   }}>
                   <View style={styles.deleteContainer}>
                     <Image
-                      source={image}
+                      source={Images.SafeZone}
                       resizeMode="contain"
                       style={{width: '100%', height: '100%'}}
                     />
-                  </View>
-
-                  <View style={styles.safezoneNameContainer}>
-                    <CustomText.SmallText customStyle={styles.safeZoneTxt}>
-                      {item?.name}
-                    </CustomText.SmallText>
                   </View>
                 </View>
               </Marker>
@@ -465,8 +450,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
                 center={item?.location}
                 radius={item?.radius}
                 strokeWidth={2}
-                strokeColor="rgba(0, 128, 0, 0.5)"
-                fillColor="rgba(0, 128, 0, 0.3)"
+                strokeColor="rgba(153, 153, 204, 0.7)"
+                fillColor="rgba(153, 153, 204, 0.5)"
               />
             </View>
           );
@@ -527,6 +512,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               setModalVisible(false);
               setSearchedLocation(details?.formatted_address);
             }}
+            predefinedPlaces={[]}
             keepResultsAfterBlur={true}
             enableHighAccuracyLocation={true}
             query={{
@@ -621,6 +607,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               });
               setSafeZoneAddress(details?.formatted_address);
             }}
+            predefinedPlaces={[]}
             keepResultsAfterBlur={false}
             enableHighAccuracyLocation={true}
             query={{

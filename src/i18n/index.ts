@@ -9,14 +9,13 @@ export const resources = {
       // AUTH FLOW
 
       // OnboardingSCREEN
-      Onboarding_heading:
-        'Never walk alone',
+      Onboarding_heading: 'Never walk alone',
       Onboarding_heading1:
         'When every second counts and adrenaline takes over, there’s often no time to reach for your phone or call for help. With Rove, you don’t need to act — we do it for you.',
       Onboarding_heading2:
         'Rove continuously scans for signs of distress, even from your pocket. When an assault is detected, it instantly shares your live location and audio/ video. You choose what gets shared and with whom.',
       Onboarding_heading3:
-        'Our AI recognizes real threats with 99% accuracy, filtering out false triggers like loud TV or arguments. You choose how it activates—automatically, manually, or with a safe word. You can set safe zones where AI detection is paused',
+        'Our tech recognizes real threats with 99% accuracy, filtering out false triggers like loud TV or arguments. You choose how it activates—automatically, manually, or with a safe word. You can set safe zones where detection is paused.',
       Onboarding_heading4:
         'Worn on a strap with the camera facing out, your phone starts streaming automatically when Rove identifies a threat - capturing everything in real time. ',
       Onboarding_heading5:

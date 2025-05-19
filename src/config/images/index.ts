@@ -47,8 +47,7 @@ const Images = {
   mail: require('../../assets/icons/mail.png'),
   smartphone: require('../../assets/icons/smartphone.png'),
   Search: require('../../assets/icons/Search.png'),
-
-  OnBoard: require('../../assets/images/Onboarding.png'), //Ner
+  OnBoard: require('../../assets/images/Onboarding.png'), //New
   OnBoard1: require('../../assets/images/Onboarding1.png'), //New
   OnBoard2: require('../../assets/images/Onboarding2.png'), //New
   OnBoard3: require('../../assets/images/Onboarding3.png'), //New
@@ -56,7 +55,6 @@ const Images = {
   OnBoard5: require('../../assets/images/Onboarding5.png'), //New
   OnBoard6: require('../../assets/images/Onboarding6.png'), //New
   OnBoard7: require('../../assets/images/Onboarding7.png'), //New
-
 
   HomeActive: require('../../assets/icons/homeFilled.png'),
   HomeInActive: require('../../assets/icons/Home.png'),
@@ -136,6 +134,7 @@ const Images = {
   Mic: require('../../assets/icons/mute.png'),
   Hospital: require('../../assets/icons/hospital.png'),
   Police: require('../../assets/icons/police.png'),
+  SafeZone: require('../../assets/icons/safe-zone.png'),
 };
 
 export default Images;

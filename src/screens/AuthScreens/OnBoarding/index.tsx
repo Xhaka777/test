@@ -132,12 +132,6 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
         // titleStyles={{color: 'blue',borderWidth:1}} // set default color for the title
 
         pages={[
-            {
-            backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard} />,
-            title: '',
-            subtitle: '',
-          },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard1} />,
@@ -156,7 +150,7 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
             title: t('Onboarding_heading3'),
             subtitle: '',
           },
-           {
+          {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard4} />,
             title: t('Onboarding_heading4'),
@@ -174,7 +168,7 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
             title: t('Onboarding_heading6'),
             subtitle: '',
           },
-           {
+          {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard7} />,
             title: t('Onboarding_heading7'),

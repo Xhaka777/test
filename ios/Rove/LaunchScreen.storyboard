@@ -16,17 +16,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Group 5" translatesAutoresizingMaskIntoConstraints="NO" id="Qnt-EY-z5j">
-                                <rect key="frame" x="50" y="109" width="293" height="659"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="splash" translatesAutoresizingMaskIntoConstraints="NO" id="Qnt-EY-z5j">
+                                <rect key="frame" x="0.0" y="59" width="393" height="759"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="Qnt-EY-z5j" secondAttribute="bottom" constant="50" id="2zc-47-pvS"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="Qnt-EY-z5j" secondAttribute="trailing" constant="50" id="i3S-ok-XJW"/>
-                            <constraint firstItem="Qnt-EY-z5j" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" constant="50" id="pd1-By-PPL"/>
-                            <constraint firstItem="Qnt-EY-z5j" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="50" id="tn8-l9-oiF"/>
+                            <constraint firstItem="Qnt-EY-z5j" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="CA9-o1-cIF"/>
+                            <constraint firstItem="Qnt-EY-z5j" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" id="JpH-QB-eLt"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="Qnt-EY-z5j" secondAttribute="bottom" id="e0n-QE-uRF"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="Qnt-EY-z5j" secondAttribute="trailing" id="nI9-jt-sAE"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -36,6 +36,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Group 5" width="341.33334350585938" height="341.33334350585938"/>
+        <image name="splash" width="1116" height="2400"/>
     </resources>
 </document>
