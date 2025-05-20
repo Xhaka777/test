@@ -18,6 +18,7 @@ import {EmptyState} from './EmptyState';
 import {NormalCardComponent} from './NormalCard';
 import {TextInputAlert} from './TextInputAlert';
 import {FootageGrid} from './FootageGrid';
+import {ModeSelector} from './ModeSelector';
 
 export {
   CustomText,
@@ -40,4 +41,5 @@ export {
   NormalCardComponent,
   TextInputAlert,
   FootageGrid,
+  ModeSelector,
 };

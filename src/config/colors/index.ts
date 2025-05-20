@@ -13,6 +13,7 @@ const DefaultColors = {
   WhiteTwentyOpacity: 'rgba(255, 255, 255, 0.2)',
   Primary: '#0f8ce9',
   Secondary: '#1B2043',
+  Yellow: '#FFC000',
   // Text Colors
   SecondaryTextColor: '#757575',
   TertiaryTextColor: '#FCB706',
@@ -22,7 +23,7 @@ const DefaultColors = {
   PrimaryOpacity: '#624CFD14',
   NotFocussed: '#888888',
   Danger: 'red',
-  Red: 'rgba(255, 59, 48, 1)',
+  Red: '#ED2939',
   Grey: '#00000020',
   Success: '#1cd50f',
   LightGreen: '#7eda8c',
@@ -31,7 +32,7 @@ const DefaultColors = {
   TextInputPlaceholserColor: '#BBBBBB',
   InActiveTabBar: '#A6A6A6',
   LineColor: '#20233C',
-  Transparent: 'rgba(255, 255, 255, 0)',
+  Transparent: 'transparent',
 };
 
 const DarkModeColors = {

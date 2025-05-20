@@ -31,20 +31,34 @@ import {
   Utills,
 } from '../../../config';
 import {LiveStreamProps} from '../../propTypes';
-import {CustomText, RoundImageContainer} from '../../../components';
+import {
+  CustomText,
+  ModeSelector,
+  RoundImageContainer,
+} from '../../../components';
 import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
 import {BlurView} from '@react-native-community/blur';
 import RNFS from 'react-native-fs';
-import Tooltip from 'react-native-walkthrough-tooltip';
 import {createThumbnail} from 'react-native-create-thumbnail';
+
+const threatModes = [
+  {
+    id: '1',
+    key: 'AUDIO',
+    onPress: () => {},
+  },
+  {
+    id: '2',
+    key: 'VIDEO',
+    onPress: () => {},
+  },
+];
 
 export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const userDetails = useSelector((state: RootState) => state.home.userDetails);
-  const formattedUid = userDetails?.user?.phone_number?.replace('+92', '');
-
   const [engine, setEngine] = useState<IRtcEngineEx | undefined>(undefined);
   const [startPreview, setStartPreview] = useState(false);
   const [joinChannelSuccess, setJoinChannelSuccess] = useState(false);
@@ -86,11 +100,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [seconds, setSeconds] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [hours, setHours] = useState(0);
+  const [mode, setMode] = useState(threatModes[1]?.key || '');
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isFlashlight, setIsFlashlight] = useState(false);
   const [isCircle, setIsCircle] = useState(true);
-  const [isBlur, setIsBlur] = useState(false);
-  const [walkthroughSteps, setWalkthroughSteps] = useState(0);
   const [recorder, setRecorder] = useState<any | null>(null);
   const [recorder2, setRecorder2] = useState<any | null>(null);
   const sizeAnim = useRef(new Animated.Value(70)).current;
@@ -99,8 +112,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const userCordinates = useSelector(
     (state: RootState) => state.home.userLocation,
   );
-
-  // console.log('Recorder====Recorder2====', recorder, recorder2);
 
   const headerOptions = [
     {
@@ -114,40 +125,9 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         engine?.setCameraTorchOn(!isFlashlight);
       },
     },
-    {
-      id: '2',
-      key: 'Blur',
-      icon: Images.Blur,
-      step: 1,
-      description: 'Apply blur or unblur effect from here',
-      onPress: () => {
-        setIsBlur(prev => !prev);
-      },
-    },
-    {
-      id: '3',
-      key: 'Dual Cam',
-      icon: Images.DualCam,
-      step: 2,
-      description: 'Enable or disable front camera view',
-      onPress: () => {
-        if (isStreaming) {
-          if (startSecondCamera) {
-            unpublishSecondCamera();
-          } else {
-            startSecondCameraCapture();
-            publishSecondCameraToStream(state.token2);
-          }
-        } else {
-          if (startSecondCamera) {
-            stopSecondCameraCapture();
-          } else {
-            startSecondCameraCapture();
-          }
-        }
-      },
-    },
   ];
+
+  console.log('mode', mode);
 
   const toggleShape = () => {
     if (isCircle) {
@@ -187,23 +167,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     const firstLetters = parts.map(part => part.charAt(0));
     const result = firstLetters.join('');
     return result;
-  };
-
-  const requestPermissions = async () => {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: 'Permission to access gallery',
-          message: 'We need your permission to show your gallery images',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    }
-    return true;
   };
 
   const fetchLastFootage = async () => {
@@ -300,12 +263,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             });
           });
           setViewers(array);
-          const dummyViewers = [
-            {id: '1', name: 'Mohit Nigga', color: '#AFE1AF'},
-            {id: '2', name: 'Mohit Nigga', color: '#ADD8E6'},
-            {id: '3', name: 'Mohit Nigga', color: '#FFFFC5'},
-          ];
-          setViewers((prevViewers: any) => [...prevViewers, ...dummyViewers]);
         })
         .catch(err => {
           // console.log('Err alert msg send', err.response?.data);
@@ -646,20 +603,45 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const renderViewers = () => {
     return (
       <View style={styles.viewerContainer}>
-        <View style={styles.liveContainer}>
-          <View style={styles.liveCircle}></View>
-          <CustomText.MediumText customStyle={{fontWeight: '700'}}>
-            Live
-          </CustomText.MediumText>
+        <View style={styles.liveBgContainer}>
+          <View style={styles.liveContainer}>
+            <View style={styles.liveCircle}></View>
+            <CustomText.RegularText customStyle={{fontWeight: '700'}}>
+              Live
+            </CustomText.RegularText>
+          </View>
+          <View style={styles.countContainer}>
+            <Image
+              source={Images.EyeAbleIcon}
+              style={styles.eyeIcon}
+              resizeMode="contain"
+            />
+            <CustomText.RegularText>{viewers?.length}</CustomText.RegularText>
+          </View>
         </View>
 
         {viewers?.map((item: any) => {
           return (
-            <View
-              key={item?.id}
-              style={[styles.circularContact, {backgroundColor: item?.color}]}>
-              <CustomText.RegularText customStyle={styles.userInitialText}>
-                {extractInitials(item?.name)}
+            <View key={item?.id} style={styles.viewersContainer}>
+              <View
+                key={item?.id}
+                style={[
+                  styles.circularContact,
+                  {backgroundColor: item?.color},
+                ]}>
+                <CustomText.RegularText customStyle={styles.userInitialText}>
+                  {extractInitials(item?.name)}
+                </CustomText.RegularText>
+              </View>
+              <CustomText.RegularText customStyle={styles.userNameText}>
+                {item?.name}
+                <CustomText.RegularText
+                  customStyle={[
+                    styles.userNameText,
+                    {fontWeight: '500', fontSize: normalizeFont(13)},
+                  ]}>
+                  {' joined'}
+                </CustomText.RegularText>
               </CustomText.RegularText>
             </View>
           );
@@ -668,110 +650,113 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     );
   };
 
+  const renderMode = () => {
+    return (
+      <ModeSelector threatModes={threatModes} mode={mode} setMode={setMode} />
+    );
+  };
+
   return (
     <View style={{flex: 1}}>
       <View style={styles.headerContainer}>
-        <View style={styles.topLeftContainer}>
-          {headerOptions?.map((item: any) => {
-            return (
-              // <Tooltip
-              //   isVisible={walkthroughSteps === item?.step}
-              //   allowChildInteraction={false}
-              //   closeOnContentInteraction={false}
-              //   placement="bottom"
-              //   onClose={() => setWalkthroughSteps(walkthroughSteps + 1)}
-              //   content={
-              //     <View>
-              //       <CustomText.SmallText customStyle={styles.tooltipContent}>
-              //         {item?.description}
-              //       </CustomText.SmallText>
-              //       <TouchableOpacity
-              //         onPress={() => {
-              //           setWalkthroughSteps(walkthroughSteps + 1);
-              //         }}
-              //         activeOpacity={0.9}
-              //         style={styles.nextTouchable}>
-              //         <CustomText.RegularText customStyle={styles.nextTxt}>
-              //           Next
-              //         </CustomText.RegularText>
-              //       </TouchableOpacity>
-              //     </View>
-              //   }>
-              <TouchableOpacity
-                key={item?.id}
-                activeOpacity={0.7}
-                onPress={item?.onPress}>
-                <RoundImageContainer
-                  imageStyle={{
-                    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
-                  }}
-                  backgroundColor="transparent"
-                  circleWidth={26}
-                  borderWidth={1.4}
-                  styles={{padding: item?.id == '1' ? 0 : 3}}
-                  borderColor={item?.id == '2' ? 'white' : 'white'}
-                  source={item?.icon}
-                />
-              </TouchableOpacity>
-              // </Tooltip>
-            );
-          })}
+        <View style={styles.headerMainContainer}>
+          <View style={styles.topLeftContainer}>
+            {headerOptions?.map((item: any) => {
+              return (
+                <TouchableOpacity
+                  key={item?.id}
+                  activeOpacity={0.7}
+                  onPress={item?.onPress}>
+                  <RoundImageContainer
+                    imageStyle={{
+                      tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+                    }}
+                    backgroundColor={Utills.selectedThemeColors().Transparent}
+                    circleWidth={29}
+                    borderWidth={1.4}
+                    styles={{padding: 2}}
+                    borderColor={item?.id == '2' ? 'white' : 'white'}
+                    source={item?.icon}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <View>
+            <CustomText.MediumText
+              customStyle={[
+                styles.timerText,
+                {
+                  backgroundColor: isStreaming
+                    ? Utills.selectedThemeColors().Red
+                    : Utills.selectedThemeColors().Transparent,
+                },
+              ]}>
+              {isStreaming
+                ? `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(
+                    seconds,
+                  )}`
+                : '00:00:00'}
+            </CustomText.MediumText>
+          </View>
+          <View style={{width: '28%', alignItems: 'flex-end'}}></View>
         </View>
-        <View>
-          <CustomText.MediumText
-            customStyle={[
-              styles.timerText,
-              {
-                backgroundColor: isStreaming
-                  ? Utills.selectedThemeColors().Red
-                  : 'transparent',
-              },
-            ]}>
-            {isStreaming
-              ? `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(
-                  seconds,
-                )}`
-              : '00:00:00'}
-          </CustomText.MediumText>
-        </View>
-        <View style={{width: '28%', alignItems: 'flex-end'}}></View>
       </View>
-
       <View style={{flex: 1}}>
-        {renderUsers()}
-        {isStreaming && renderViewers()}
-
-        <View style={styles.zoomControls}>
-          {[1, 2, 3].map((zoom, index) => (
-            <TouchableOpacity
-              key={index?.toString()}
-              onPress={() => adjustZoom(zoom)}
-              style={
-                zoom === zoomLevel ? styles.activeZoomButton : styles.zoomButton
-              }>
-              <CustomText.RegularText
-                customStyle={{
-                  fontWeight: '700',
-                  fontSize:
+        {mode == 'AUDIO' ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Image
+              source={Images.Audio}
+              style={{
+                width: Metrix.HorizontalSize(120),
+                height: Metrix.VerticalSize(120),
+                tintColor: 'white',
+              }}
+              resizeMode="contain"
+            />
+            {!isStreaming && renderMode()}
+          </View>
+        ) : (
+          <>
+            {renderUsers()}
+            {isStreaming && renderViewers()}
+            {!isStreaming && renderMode()}
+            <View style={styles.zoomControls}>
+              {[1, 2, 3].map((zoom, index) => (
+                <TouchableOpacity
+                  key={index?.toString()}
+                  onPress={() => adjustZoom(zoom)}
+                  style={
                     zoom === zoomLevel
-                      ? FontType.FontMedium
-                      : FontType.FontSmall,
-                  color:
-                    zoom === zoomLevel
-                      ? '#FFC000'
-                      : Utills.selectedThemeColors().PrimaryTextColor,
-                }}>
-                {zoom}
-                {zoom === zoomLevel ? 'x' : ''}
-              </CustomText.RegularText>
-            </TouchableOpacity>
-          ))}
-        </View>
+                      ? styles.activeZoomButton
+                      : styles.zoomButton
+                  }>
+                  <CustomText.RegularText
+                    customStyle={{
+                      fontWeight: '700',
+                      fontSize:
+                        zoom === zoomLevel
+                          ? FontType.FontRegular
+                          : FontType.FontSmall,
+                      color:
+                        zoom === zoomLevel
+                          ? Utills.selectedThemeColors().Yellow
+                          : Utills.selectedThemeColors().PrimaryTextColor,
+                    }}>
+                    {zoom == 1 ? '.5' : zoom}
+                    {zoom === zoomLevel ? 'x' : ''}
+                  </CustomText.RegularText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
       </View>
-      {isBlur && (
-        <BlurView style={styles.blurView} blurType={'light'} blurAmount={6} />
-      )}
-
       <View style={styles.bottomContainer}>
         <View style={styles.blankView}></View>
         <View>
@@ -789,7 +774,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                   borderRadius: borderRadiusAnim,
                   borderColor: isCircle
                     ? Utills.selectedThemeColors().Base
-                    : 'transparent',
+                    : Utills.selectedThemeColors().Transparent,
                 },
               ]}></Animated.View>
           </TouchableOpacity>
@@ -798,7 +783,13 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           </CustomText.RegularText>
         </View>
         <TouchableOpacity
-          style={{alignItems: 'center', justifyContent: 'center'}}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: Utills.selectedThemeColors().SecondaryTextColor,
+            borderRadius: Metrix.HorizontalSize(10),
+          }}
           onPress={() => {
             NavigationService.navigate(RouteNames.HomeRoutes.Footages);
           }}>
@@ -827,14 +818,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#00000080',
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: Metrix.HorizontalSize(10),
+    paddingHorizontal: Metrix.HorizontalSize(12),
     paddingBottom: Metrix.HorizontalSize(10),
     paddingTop: Metrix.HorizontalSize(45),
     justifyContent: 'space-between',
   },
+  headerMainContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   frontCamPreview: {
     height: Metrix.VerticalSize(150),
-    borderRadius: Metrix.HorizontalSize(10),
+    borderRadius: Metrix.HorizontalSize(5),
     width: '30%',
     backgroundColor: 'black',
     position: 'absolute',
@@ -851,7 +848,6 @@ const styles = StyleSheet.create({
   bottomContainer: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#00000080',
     flexDirection: 'row',
     justifyContent: 'space-between',
     position: 'absolute',
@@ -874,13 +870,12 @@ const styles = StyleSheet.create({
     borderRadius: Metrix.HorizontalSize(5),
   },
   circularContact: {
-    width: Metrix.HorizontalSize(35),
-    height: Metrix.VerticalSize(35),
+    width: Metrix.VerticalSize(32),
+    height: Metrix.VerticalSize(32),
     borderRadius: Metrix.HorizontalSize(100),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-    marginTop: Metrix.VerticalSize(-7),
   },
   liveStreamButton: {
     marginTop: Metrix.VerticalSize(10),
@@ -888,7 +883,7 @@ const styles = StyleSheet.create({
     width: Metrix.HorizontalSize(72),
     height: Metrix.HorizontalSize(72),
     borderRadius: Metrix.VerticalSize(100),
-    backgroundColor: 'transparent',
+    backgroundColor: Utills.selectedThemeColors().Transparent,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2.5,
@@ -904,7 +899,7 @@ const styles = StyleSheet.create({
   },
   zoomControls: {
     position: 'absolute',
-    bottom: '20%',
+    bottom: '19%',
     alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -937,7 +932,7 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: normalizeFont(18),
-    paddingHorizontal: Metrix.HorizontalSize(5),
+    paddingHorizontal: Metrix.HorizontalSize(8),
     borderRadius: Metrix.HorizontalSize(3),
     lineHeight: 30,
     overflow: 'hidden',
@@ -949,28 +944,43 @@ const styles = StyleSheet.create({
     top: '37%',
     left: '4%',
     position: 'absolute',
-    borderColor: 'red',
     zIndex: 99,
     paddingVertical: Metrix.HorizontalSize(10),
     justifyContent: 'center',
+    width: '100%',
+  },
+  liveBgContainer: {
+    flexDirection: 'row',
+    marginBottom: Metrix.VerticalSize(20),
+    backgroundColor: Utills.selectedThemeColors().Base,
+    padding: Metrix.HorizontalSize(3),
+    borderRadius: Metrix.HorizontalSize(3),
     width: '30%',
   },
   liveContainer: {
-    width: '100%',
+    width: '50%',
     height: Metrix.VerticalSize(30),
-    marginBottom: Metrix.VerticalSize(30),
     backgroundColor: Utills.selectedThemeColors().Red,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Metrix.HorizontalSize(5),
+    justifyContent: 'space-evenly',
+    borderRadius: Metrix.HorizontalSize(2),
     flexDirection: 'row',
   },
   liveCircle: {
-    width: Metrix.HorizontalSize(6),
-    height: Metrix.HorizontalSize(6),
+    width: Metrix.HorizontalSize(5),
+    height: Metrix.HorizontalSize(5),
     borderRadius: Metrix.HorizontalSize(100),
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-    right: Metrix.HorizontalSize(5),
+  },
+  countContainer: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  eyeIcon: {
+    width: Metrix.HorizontalSize(18),
+    height: Metrix.VerticalSize(18),
   },
   blurView: {
     width: deviceWidth,
@@ -990,13 +1000,22 @@ const styles = StyleSheet.create({
     marginTop: Metrix.VerticalSize(8),
     alignSelf: 'flex-end',
   },
-  nextTxt: {
-    color: Utills.selectedThemeColors().Success,
-    fontWeight: '700',
+  viewersContainer: {
+    marginTop: Metrix.VerticalSize(5),
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
   },
   userInitialText: {
     fontWeight: '600',
     color: Utills.selectedThemeColors().Base,
+    fontSize: normalizeFont(13),
+  },
+  userNameText: {
+    fontWeight: '700',
+    color: Utills.selectedThemeColors().PrimaryTextColor,
+    left: Metrix.HorizontalSize(8),
+    fontSize: normalizeFont(14),
   },
   playBtn: {
     width: Metrix.HorizontalSize(30),
