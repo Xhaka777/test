@@ -432,18 +432,12 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               <Marker
                 onPress={() => deleteAlert(item)}
                 coordinate={item?.location}>
-                <View
-                  style={{
-                    paddingHorizontal: Metrix.HorizontalSize(5),
-                    alignItems: 'center',
-                  }}>
-                  <View style={styles.deleteContainer}>
-                    <Image
-                      source={Images.SafeZone}
-                      resizeMode="contain"
-                      style={{width: '100%', height: '100%'}}
-                    />
-                  </View>
+                <View style={styles.deleteContainer}>
+                  <Image
+                    source={Images.SafeZone}
+                    resizeMode="contain"
+                    style={{width: '100%', height: '100%'}}
+                  />
                 </View>
               </Marker>
               <Circle
@@ -785,11 +779,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   deleteContainer: {
-    width: Metrix.HorizontalSize(32),
-    height: Metrix.VerticalSize(32),
+    width: Metrix.HorizontalSize(28),
+    height: Metrix.VerticalSize(28),
     borderRadius: Metrix.VerticalSize(100),
-    // backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-    padding: Metrix.HorizontalSize(4),
   },
   safezoneNameContainer: {
     paddingHorizontal: Metrix.HorizontalSize(15),

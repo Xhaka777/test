@@ -42,14 +42,22 @@ export const FootageDetails: React.FC<FootageDetailsProps> = ({}) => {
   const [stream, setStream] = useState<any>([]);
   const [thumbnail, setThumbnail] = useState('');
   const isOlderThan7Days = moment().diff(moment(data?.createdAt), 'days') >= 7;
+
   const getVideoFiles = async (incidentNumber: any) => {
     try {
       const files = await RNFS.readDir(RNFS.DocumentDirectoryPath);
-      const videoFiles = files.filter(file =>
-        file.name.endsWith(`-${incidentNumber}.mp4`),
+      const audioFiles = files.filter(file =>
+        file.name.endsWith(`-${incidentNumber}-AUDIO.mp4`),
       );
-      setStream(videoFiles);
-      generateThumbnail(videoFiles?.[1]?.path);
+      const videoFiles = files.filter(file =>
+        file.name.endsWith(`-${incidentNumber}-VIDEO.mp4`),
+      );
+      if (videoFiles) {
+        setStream(videoFiles);
+        generateThumbnail(videoFiles?.[1]?.path);
+      } else {
+        setStream(audioFiles);
+      }
     } catch (error) {
       console.error('Error fetching video files:', error);
     }
@@ -134,11 +142,13 @@ export const FootageDetails: React.FC<FootageDetailsProps> = ({}) => {
                 resizeMode={'cover'}
                 style={styles.playBtn}
               />
-              <Image
-                source={{uri: thumbnail}}
-                resizeMode={'cover'}
-                style={{width: '100%', height: '100%'}}
-              />
+              {thumbnail && (
+                <Image
+                  source={{uri: thumbnail}}
+                  resizeMode={'cover'}
+                  style={{width: '100%', height: '100%'}}
+                />
+              )}
             </TouchableOpacity>
           </View>
         )}

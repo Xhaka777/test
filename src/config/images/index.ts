@@ -50,7 +50,7 @@ const Images = {
   OnBoard: require('../../assets/images/Onboarding.png'), //New
   OnBoard1: require('../../assets/images/Onboarding1.png'), //New
   OnBoard2: require('../../assets/images/Onboarding2.png'), //New
-  OnBoard3: require('../../assets/images/Onboarding3.png'), //New
+  OnBoard3: require('../../assets/images/Onboarding3.jpg'), //New
   OnBoard4: require('../../assets/images/Onboarding4.png'), //Ner
   OnBoard5: require('../../assets/images/Onboarding5.png'), //New
   OnBoard6: require('../../assets/images/Onboarding6.png'), //New

@@ -123,14 +123,7 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
         SkipButtonComponent={Skip}
         DoneButtonComponent={Done}
         bottomBarHighlight={false}
-        // imageContainerStyles={{borderWidth:2}}
         showPagination
-        // containerStyles={{
-        //   borderWidth:2,
-        //   borderColor:'red'
-        // }}
-        // titleStyles={{color: 'blue',borderWidth:1}} // set default color for the title
-
         pages={[
           {
             backgroundColor: Utills.selectedThemeColors().Base,

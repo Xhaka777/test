@@ -39,7 +39,7 @@ export const FootageGrid: React.FC<FootageGridProps> = ({item}) => {
   // Generate thumbnail only if footages and item are available
   useEffect(() => {
     const videoFiles = footages.filter((file: any) =>
-      file.name.endsWith(`-${item?.id}.mp4`),
+      file.name.endsWith(`-${item?.id}-VIDEO.mp4`),
     );
 
     if (videoFiles.length > 1 && !thumbnail) {
@@ -66,19 +66,28 @@ export const FootageGrid: React.FC<FootageGridProps> = ({item}) => {
       }}
       key={item?.id}
       style={styles.gridCard}>
-      <Image
-        source={Images.PlayBtn}
-        resizeMode={'cover'}
-        style={styles.playBtn}
-      />
       {thumbnail ? (
-        <Image
-          source={{uri: thumbnail}}
-          resizeMode={'cover'}
-          style={{width: '100%', height: '100%'}}
-        />
+        <>
+          <Image
+            source={Images.PlayBtn}
+            resizeMode={'cover'}
+            style={styles.playBtn}
+          />
+          <Image
+            source={{uri: thumbnail}}
+            resizeMode={'cover'}
+            style={{width: '100%', height: '100%'}}
+          />
+        </>
       ) : (
-        <CustomText.SmallText>No Video Found...</CustomText.SmallText>
+        <Image
+          source={Images.Audio}
+          resizeMode="contain"
+          style={{
+            width: Metrix.HorizontalSize(55),
+            height: Metrix.VerticalSize(55),
+          }}
+        />
       )}
       {/* {isOlderThan7Days && (
         <View style={styles.editBox}>

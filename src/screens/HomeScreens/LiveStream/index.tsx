@@ -179,6 +179,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     try {
       const files = await RNFS.readDir(RNFS.DocumentDirectoryPath);
       // Filter for video files only, e.g., `.mp4`
+
       const videoFiles = files.filter(file => file.name.endsWith('.mp4'));
       if (videoFiles.length === 0) {
         console.log('No video files found.');
@@ -194,10 +195,19 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       const thumbnail = await createThumbnail({
         url: lastVideoFile.path,
       });
-      setLastImage({
-        video: lastVideoFile,
-        thumbnail: thumbnail.path,
-      });
+      console.log('lastVideoFile', lastVideoFile);
+
+      if (lastVideoFile?.path?.endsWith('AUDIO.mp4')) {
+        setLastImage({
+          video: null,
+          thumbnail: null,
+        });
+      } else {
+        setLastImage({
+          video: lastVideoFile,
+          thumbnail: thumbnail.path,
+        });
+      }
     } catch (error) {
       console.error('Error fetching video or creating thumbnail:', error);
     }
@@ -250,6 +260,8 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         lng: userCordinates?.longitude,
       })
         .then(async res => {
+          console.log('Response alert msg send', res);
+
           let array: any = [];
           if (!isStreaming) {
             setSeconds(0);
@@ -271,7 +283,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           setViewers(array);
         })
         .catch(err => {
-          // console.log('Err alert msg send', err.response?.data);
+          console.log('Err alert msg send', err.response?.data);
         });
     } catch (error) {
       console.error('Error post message ', error);
@@ -360,7 +372,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     });
     recorderInstanceBack?.setMediaRecorderObserver({
       onRecorderInfoUpdated: (channelId, uid, info) => {
-        console.log('Recorder Info Updated', channelId, uid, info);
+        // console.log('Recorder Info Updated', channelId, uid, info);
       },
       onRecorderStateChanged: (channelId, uid, recorderState, error) => {
         console.log('Recorder State Changed', recorderState, error);
@@ -375,7 +387,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     });
     recorderInstanceFront?.setMediaRecorderObserver({
       onRecorderInfoUpdated: (channelId, uid, info) => {
-        console.log('Recorder Info Updated Front', channelId, uid, info);
+        // console.log('Recorder Info Updated Front', channelId, uid, info);
       },
       onRecorderStateChanged: (channelId, uid, recorderState, error) => {
         console.log('Recorder State Changed Front', recorderState, error);
@@ -535,7 +547,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       let uid = Math.floor(10 + Math.random() * 90);
       console.log('Running Start Recording 1', uid);
       recorder?.startRecording({
-        storagePath: `${state.storagePath}/${uid}-${incidentId}.mp4`,
+        storagePath: `${state.storagePath}/${uid}-${incidentId}-${mode}.mp4`,
         containerFormat: state.containerFormat,
         streamType: state.streamType,
         maxDurationMs: state.maxDurationMs,
@@ -551,7 +563,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       let uid = Math.floor(10 + Math.random() * 90);
       console.log('Running Start Recording 2', uid);
       recorder2?.startRecording({
-        storagePath: `${state.storagePath2}/${uid}-${incidentId}.mp4`,
+        storagePath: `${state.storagePath2}/${uid}-${incidentId}-${mode}.mp4`,
         containerFormat: state.containerFormat,
         streamType: state.streamType2,
         maxDurationMs: state.maxDurationMs,
@@ -799,6 +811,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             {isStreaming ? 'STREAMING' : 'LIVESTREAM'}
           </CustomText.RegularText>
         </View>
+
         <TouchableOpacity
           style={{
             alignItems: 'center',
@@ -810,16 +823,27 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           onPress={() => {
             NavigationService.navigate(RouteNames.HomeRoutes.Footages);
           }}>
-          <Image
-            source={Images.PlayBtn}
-            resizeMode={'cover'}
-            style={styles.playBtn}
-          />
-          <Image
-            source={{uri: lastImage?.thumbnail}}
-            style={styles.footageImg}
-            resizeMode="cover"
-          />
+          {lastImage && (
+            <Image
+              source={Images.PlayBtn}
+              resizeMode={'cover'}
+              style={styles.playBtn}
+            />
+          )}
+
+          {lastImage ? (
+            <Image
+              source={{uri: lastImage?.thumbnail}}
+              style={styles.footageImg}
+              resizeMode="cover"
+            />
+          ) : (
+            <Image
+              source={Images.Audio}
+              style={styles.footageImg}
+              resizeMode="cover"
+            />
+          )}
         </TouchableOpacity>
       </View>
     </View>
