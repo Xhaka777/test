@@ -19,7 +19,6 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  PermissionsAndroid,
   Animated,
 } from 'react-native';
 import {
@@ -40,7 +39,6 @@ import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
-import {BlurView} from '@react-native-community/blur';
 import RNFS from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
 
@@ -118,13 +116,21 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       id: '1',
       key: 'Flashlight',
       icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
-      step: 0,
-      description: 'Enable or disable the flashlight from here',
       onPress: () => {
         setIsFlashlight(prev => !prev);
         engine?.setCameraTorchOn(!isFlashlight);
       },
     },
+    // {
+    //   id: '2',
+    //   key: 'Mode Type',
+    //   icon: mode == 'AUDIO' ? Images.Ear : Images.FlashOff,
+    // },
+    // {
+    //   id: '3',
+    //   key: 'Stream Preference',
+    //   icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
+    // },
   ];
 
   console.log('mode', mode);
@@ -667,7 +673,18 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                   key={item?.id}
                   activeOpacity={0.7}
                   onPress={item?.onPress}>
-                  <RoundImageContainer
+                  <Image
+                    source={item?.icon}
+                    style={{
+                      width: Metrix.HorizontalSize(29),
+                      height: Metrix.HorizontalSize(29),
+                      borderRadius: 100,
+                      borderWidth: 1.5,
+                      borderColor: 'white',
+                    }}
+                    resizeMode="contain"
+                  />
+                  {/* <RoundImageContainer
                     imageStyle={{
                       tintColor: Utills.selectedThemeColors().PrimaryTextColor,
                     }}
@@ -677,7 +694,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                     styles={{padding: 2}}
                     borderColor={item?.id == '2' ? 'white' : 'white'}
                     source={item?.icon}
-                  />
+                  /> */}
                 </TouchableOpacity>
               );
             })}

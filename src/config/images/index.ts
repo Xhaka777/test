@@ -136,6 +136,7 @@ const Images = {
   Police: require('../../assets/icons/police.png'),
   SafeZone: require('../../assets/icons/safe-zone.png'),
   Audio: require('../../assets/images/audio.png'),
+  Ear: require('../../assets/icons/ear.png'),
 };
 
 export default Images;
