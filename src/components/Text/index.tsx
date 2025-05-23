@@ -1,14 +1,6 @@
 import React, {ReactNode} from 'react';
-import {
-  Text,
-  StyleSheet,
-  StyleProp,
-  TextStyle,
-  TextProps,
-  I18nManager,
-} from 'react-native';
-import {Metrix, Colors, Fonts, FontType, Images, Utills} from '../../config';
-import {normalizeFont} from '../../config/metrix';
+import {Text, StyleSheet, StyleProp, TextStyle, TextProps} from 'react-native';
+import {Fonts, FontType, Utills} from '../../config';
 
 type CustomTextProps = TextProps & {
   children: ReactNode;
@@ -196,37 +188,36 @@ const styles = StyleSheet.create({
   ExtraLargeBoldText: {
     fontFamily: Fonts['Bold'],
     fontSize: FontType.FontExtraLarge,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
   LargeBoldText: {
-    // textAlign: I18nManager.forceRTL ? "left" : "right",
     fontFamily: Fonts['Bold'],
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
     fontSize: FontType.FontLarge,
+    letterSpacing: 0.5,
   },
   LargeSemiBoldText: {
     fontFamily: Fonts['Semi-Bold'],
     fontSize: FontType.FontLarge,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
   MediumText: {
     fontFamily: Fonts['Medium'],
     fontSize: FontType.FontMedium,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
   RegularText: {
     fontFamily: Fonts['Regular'],
     fontSize: FontType.FontRegular,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
   SmallText: {
     fontFamily: Fonts['Regular'],
     fontSize: FontType.FontSmall,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
   ExtraSmallText: {
     fontFamily: Fonts['Regular'],
     fontSize: FontType.FontExtraSmall,
-    textAlign: I18nManager.forceRTL ? 'left' : 'right',
+    letterSpacing: 0.5,
   },
 });

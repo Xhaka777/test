@@ -1,10 +1,10 @@
 const Fonts = {
-  Bold: 'Manrope-Bold',
-  'Semi-Bold': 'Manrope-SemiBold',
-  Medium: 'Manrope-Medium',
-  Regular: 'Manrope-Regular',
-  //   "Light": "Inter-Light",
-  //   "Extra-Light": "Inter-Thin",
+  Bold: 'SF-Pro-Display-Bold',
+  'Semi-Bold': 'SF-Pro-Display-Semibold',
+  Regular: 'SF-Pro-Display-Regular',
+  Medium: 'SF-Pro-Display-Medium',
+  LightItalic: 'SF-Pro-Display-LightItalic',
+  Light: 'SF-Pro-Display-Light',
 };
 
 export default Fonts;

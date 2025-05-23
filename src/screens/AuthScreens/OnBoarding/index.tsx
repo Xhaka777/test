@@ -18,6 +18,7 @@ import {
 import {OnBoardingProps} from '../../propTypes';
 import Onboarding from 'react-native-onboarding-swiper';
 import {t} from 'i18next';
+import {normalizeFont} from '../../../config/metrix';
 
 const handleOnSkipAndDone = () => {
   NavigationService.navigate(RouteNames.AuthRoutes.LoginScreen);
@@ -128,44 +129,138 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard1} />,
-            title: t('Onboarding_heading1'),
-            subtitle: '',
+            title: '',
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                When every second counts and adrenaline takes over, there's
+                often no time to reach for your phone or call for help. With
+                Rove, you don’t have to—we act for you.
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard2} />,
-            title: t('Onboarding_heading2'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                Automatic Trigger
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Rove continuously monitors for signs of distress,{' '}
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  even from your pocket.{' '}
+                </CustomText.MediumText>
+                If an assault is detected, it instantly shares your live
+                location and audio/video. You're always in control of what’s
+                shared and with whom.
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard3} />,
-            title: t('Onboarding_heading3'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                You’re in control
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Our technology accurately detects real threats with 99%
+                accuracy,{' '}
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  filtering out false triggers
+                </CustomText.MediumText>{' '}
+                like loud TVs or heated arguments. You decide how it
+                activates—automatically, manually, or through a safe word—and
+                can set safe zones where detection is temporarily disabled.
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard4} />,
-            title: t('Onboarding_heading4'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                Bodycam Capability
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Worn on a strap with the camera facing outward, your phone
+                begins streaming automatically the moment Rove detects a threat—{' '}
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  capturing everything in real time.
+                </CustomText.MediumText>
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard5} />,
-            title: t('Onboarding_heading5'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                LiveStream Deterrence
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Alerting the perpetrator that they are being livestreamed can
+                induce hesitation, fear of exposure, and a loss of
+                control—powerful psychological triggers that{' '}
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  may prevent an attack{' '}
+                </CustomText.MediumText>{' '}
+                from escalating.
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard6} />,
-            title: t('Onboarding_heading6'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                Secure Evidence
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Even if your phone is lost or destroyed, all critical evidence
+                is{' '}
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  securely backed up
+                </CustomText.MediumText>{' '}
+                in the cloud, ensuring it remains safe for investigations.
+              </CustomText.MediumText>
+            ),
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: <ImageComp source={Images.OnBoard7} />,
-            title: t('Onboarding_heading7'),
-            subtitle: '',
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+                Privacy First
+              </CustomText.MediumText>
+            ),
+            subtitle: (
+              <CustomText.MediumText customStyle={styles.textSubheading}>
+                Rove doesn’t record or store anything unless a trigger is
+                activated. Unlike voice assistants, we listen only for specific
+                threat patterns—
+                <CustomText.MediumText
+                  customStyle={[styles.textSubheading, styles.highlightedText]}>
+                  nothing is saved, stored, or shared
+                </CustomText.MediumText>{' '}
+                unless real danger is detected.
+              </CustomText.MediumText>
+            ),
           },
         ]}
       />
@@ -192,5 +287,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  textHeading: {
+    fontSize: normalizeFont(22),
+    letterSpacing: 0.7,
+    fontWeight: '600',
+  },
+  textSubheading: {
+    fontSize: normalizeFont(15),
+    letterSpacing: 0.7,
+    fontWeight: '300',
+  },
+  highlightedText: {
+    fontWeight: '600',
+    color: Utills.selectedThemeColors().Blue,
   },
 });

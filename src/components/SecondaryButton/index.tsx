@@ -96,8 +96,6 @@ export const SecondaryButton: FC<PrimaryButtonProps> = ({
           }}>
           {title}
         </CustomText.MediumText>
-
-        {/* // <Text style={{ color: textColor }}>{title}</Text> */}
       </View>
     )}
   </TouchableOpacity>

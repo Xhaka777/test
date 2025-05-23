@@ -76,8 +76,6 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         setSmallModalVisible(true);
       },
     },
-    {id: '2', image: Images.Bell, onPress: () => {}},
-    {id: '3', image: Images.Info, onPress: () => {}},
     {
       id: '4',
       image: Images.Layers,

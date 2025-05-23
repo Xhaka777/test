@@ -41,6 +41,7 @@ import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
 import RNFS from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
+import Lottie from 'lottie-react-native';
 
 const threatModes = [
   {
@@ -106,13 +107,13 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [recorder2, setRecorder2] = useState<any | null>(null);
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
-
   const userCordinates = useSelector(
     (state: RootState) => state.home.userLocation,
   );
+  const microphoneAnimation = require('../../../assets/animations/microphone.json');
 
   const headerOptions = [
-    {
+    mode == 'VIDEO' && {
       id: '1',
       key: 'Flashlight',
       icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
@@ -121,17 +122,17 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         engine?.setCameraTorchOn(!isFlashlight);
       },
     },
-    // {
-    //   id: '2',
-    //   key: 'Mode Type',
-    //   icon: mode == 'AUDIO' ? Images.Ear : Images.FlashOff,
-    // },
-    // {
-    //   id: '3',
-    //   key: 'Stream Preference',
-    //   icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
-    // },
-  ];
+    {
+      id: '2',
+      key: 'Mode Type',
+      icon: mode == 'AUDIO' ? Images.Ear : Images.EyeCircle,
+    },
+    {
+      id: '3',
+      key: 'Stream Preference',
+      icon: mode == 'AUDIO' ? Images.Automatic : Images.AutoAndManual,
+    },
+  ].filter(Boolean);
 
   console.log('mode', mode);
 
@@ -684,34 +685,28 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                 <TouchableOpacity
                   key={item?.id}
                   activeOpacity={0.7}
-                  onPress={item?.onPress}>
+                  onPress={item?.onPress}
+                  style={{marginHorizontal: 3}}>
                   <Image
                     source={item?.icon}
                     style={{
                       width: Metrix.HorizontalSize(29),
                       height: Metrix.HorizontalSize(29),
                       borderRadius: 100,
-                      borderWidth: 1.5,
+                      borderWidth: 1,
                       borderColor: 'white',
                     }}
                     resizeMode="contain"
                   />
-                  {/* <RoundImageContainer
-                    imageStyle={{
-                      tintColor: Utills.selectedThemeColors().PrimaryTextColor,
-                    }}
-                    backgroundColor={Utills.selectedThemeColors().Transparent}
-                    circleWidth={29}
-                    borderWidth={1.4}
-                    styles={{padding: 2}}
-                    borderColor={item?.id == '2' ? 'white' : 'white'}
-                    source={item?.icon}
-                  /> */}
                 </TouchableOpacity>
               );
             })}
           </View>
-          <View>
+          <View
+            style={{
+              width: '40%',
+              alignItems: 'center',
+            }}>
             <CustomText.MediumText
               customStyle={[
                 styles.timerText,
@@ -728,7 +723,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                 : '00:00:00'}
             </CustomText.MediumText>
           </View>
-          <View style={{width: '28%', alignItems: 'flex-end'}}></View>
+          <View
+            style={{
+              width: '30%',
+              alignItems: 'flex-end',
+            }}></View>
         </View>
       </View>
       <View style={{flex: 1}}>
@@ -744,10 +743,22 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
               style={{
                 width: Metrix.HorizontalSize(120),
                 height: Metrix.VerticalSize(120),
-                tintColor: 'white',
+                tintColor: Utills.selectedThemeColors().PrimaryTextColor,
               }}
               resizeMode="contain"
             />
+            {/* <Lottie
+              source={microphoneAnimation}
+              autoPlay
+              loop={true}
+              style={{
+                width: '45%',
+                alignSelf: 'center',
+                backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
+              }}
+              resizeMode="cover"
+              speed={0.4}
+            /> */}
             {!isStreaming && renderMode()}
           </View>
         ) : (
@@ -883,7 +894,7 @@ const styles = StyleSheet.create({
   topLeftContainer: {
     flexDirection: 'row',
     width: '30%',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
   },
 
   bottomContainer: {

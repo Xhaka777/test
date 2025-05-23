@@ -14,6 +14,7 @@ const DefaultColors = {
   Primary: '#0f8ce9',
   Secondary: '#1B2043',
   Yellow: '#FFC000',
+  Blue: '#0096C7',
   // Text Colors
   SecondaryTextColor: '#757575',
   TertiaryTextColor: '#FCB706',
