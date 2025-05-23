@@ -162,7 +162,9 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
           width={'97%'}
           customStyles={{alignSelf: 'center'}}
           onPress={() => {
-            NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
+            // To show test error
+            NavigationService.navigate(RouteNames.HomeRoutes.Room);
+            // NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
           }}
         />
         <FlatList

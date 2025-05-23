@@ -7352,6 +7352,11 @@ react-native-background-actions@^4.0.1:
   dependencies:
     eventemitter3 "^4.0.7"
 
+react-native-bugsee@^5.5.3:
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/react-native-bugsee/-/react-native-bugsee-5.5.3.tgz#94e52ceef6ab0151025dd03d2db4ade8ee248fd2"
+  integrity sha512-QLXoRNcQ6EYP6npbtC4cSyd8qxcz3WzpeQ6aMqQvfZ+UEkM28hFtmztrgUu3J4zwcoFjw1tiisw6CEuF8kwvlg==
+
 react-native-circular-progress-indicator@^4.4.2:
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/react-native-circular-progress-indicator/-/react-native-circular-progress-indicator-4.4.2.tgz#5475d045950e6fcc622e54fb63863b274790fb8e"

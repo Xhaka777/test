@@ -7,7 +7,7 @@
 import 'react-native-gesture-handler';
 import React, {useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {Metrix, NavigationService, Utills} from './src/config';
 import {MainStack} from './src/stacks/MainStack';
@@ -18,6 +18,7 @@ import Toast, {
 } from 'react-native-toast-message';
 import SplashScreen from 'react-native-splash-screen';
 import './src/i18n';
+import Bugsee from 'react-native-bugsee';
 
 function App(): JSX.Element {
   const toastConfig = {
@@ -77,8 +78,17 @@ function App(): JSX.Element {
   };
 
   useEffect(() => {
-    SplashScreen.hide();
-  }, []);
+  // Hide splash screen
+  SplashScreen.hide();
+
+  // LaunchBugsee
+  const launchBugsee = async () => {
+    let appToken = Platform.OS === 'ios' ? '36c1101e-8278-4b0c-a65b-ec367335af31' : '<ANDROID-APP-TOKEN>';
+    await Bugsee.launch(appToken);
+  };
+
+  launchBugsee();
+}, []);
 
   return (
     <NavigationContainer

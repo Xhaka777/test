@@ -48,6 +48,7 @@ PODS:
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
   - boost (1.84.0)
+  - Bugsee (5.5.6)
   - BVLinearGradient (2.8.3):
     - React-Core
   - DoubleConversion (1.1.6)
@@ -1352,6 +1353,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-bugsee (5.5.3):
+    - Bugsee (= 5.5.6)
+    - React
   - react-native-cameraroll (7.10.0):
     - DoubleConversion
     - glog
@@ -2338,6 +2342,7 @@ DEPENDENCIES:
   - react-native-agora (from `../node_modules/react-native-agora`)
   - react-native-background-actions (from `../node_modules/react-native-background-actions`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - react-native-bugsee (from `../node_modules/react-native-bugsee`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-contacts (from `../node_modules/react-native-contacts`)
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
@@ -2409,6 +2414,7 @@ SPEC REPOS:
     - AgoraIrisRTC_iOS
     - AgoraRtcEngine_iOS
     - AppAuth
+    - Bugsee
     - Google-Maps-iOS-Utils
     - GoogleMaps
     - GoogleSignIn
@@ -2506,6 +2512,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-background-actions"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-bugsee:
+    :path: "../node_modules/react-native-bugsee"
   react-native-cameraroll:
     :path: "../node_modules/@react-native-camera-roll/camera-roll"
   react-native-contacts:
@@ -2641,6 +2649,7 @@ SPEC CHECKSUMS:
   AgoraRtcEngine_iOS: 5092a058c7b2842db39d8ca614d451af6f84969a
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  Bugsee: ffb2706d316e724419be07e5334e821adca08dd5
   BVLinearGradient: 880f91a7854faff2df62518f0281afb1c60d49a3
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
@@ -2689,6 +2698,7 @@ SPEC CHECKSUMS:
   react-native-agora: 334c91fd7df6260e6876317a1a248a18d2b3b32f
   react-native-background-actions: ea5bab231a28710eea614acb9ca595594415a5ec
   react-native-blur: b37343d4df1af48a17444156b674b26d5aec2425
+  react-native-bugsee: ba2b5fa510bf1b4c56737556cb6cfebc070e65b1
   react-native-cameraroll: cf8479c8b1d3a968e570c55d3d4e340ddbe17904
   react-native-contacts: 3f7181d28307a044feed524abc34351585bc99c1
   react-native-create-thumbnail: daaa5d465360c5015b02026bd0978abf16b36ea9
@@ -2758,4 +2768,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 647aa71c6e9e334107f28ac6b56f8ed8bc33e71e
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
