@@ -156,17 +156,18 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
       <CustomText.ExtraLargeBoldText>
         {t('Trusted Contacts')}
       </CustomText.ExtraLargeBoldText>
-      <View style={{flex: 1, marginTop: Metrix.VerticalSize(20)}}>
-        <PrimaryButton
-          title={'Add Contact'}
-          width={'97%'}
-          customStyles={{alignSelf: 'center'}}
-          onPress={() => {
-            // To show test error
-            NavigationService.navigate(RouteNames.HomeRoutes.Room);
-            // NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
-          }}
-        />
+        <View style={{flex: 1, marginTop: Metrix.VerticalSize(20)}}>
+          <PrimaryButton
+            title={'Add Contact'}
+            width={'97%'}
+            customStyles={{alignSelf: 'center'}}
+            onPress={() => {
+              // 🚨 Deliberate crash for testing
+              // throw new Error('Test crash: Intentional crash from Add Contact button');
+
+              NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
+            }}
+          />
         <FlatList
           data={data}
           renderItem={renderContactListItem}

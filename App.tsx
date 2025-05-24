@@ -83,7 +83,7 @@ function App(): JSX.Element {
 
   // LaunchBugsee
   const launchBugsee = async () => {
-    let appToken = Platform.OS === 'ios' ? '36c1101e-8278-4b0c-a65b-ec367335af31' : '<ANDROID-APP-TOKEN>';
+    let appToken = '36c1101e-8278-4b0c-a65b-ec367335af31';
     await Bugsee.launch(appToken);
   };
 
