@@ -39,7 +39,7 @@ import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
-import RNFS from 'react-native-fs';
+import RNFS, { stat } from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import Lottie from 'lottie-react-native';
 
@@ -90,11 +90,14 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     maxDurationMs: 120000,
     recorderInfoUpdateInterval: 1000,
     startRecording: false,
+
   });
   const [lastImage, setLastImage] = useState<any>({
     video: null,
     thumbnail: null,
   });
+  const [resource_id, setResource_id] = useState('');
+  const [sid, setSid] = useState('');
   const [viewers, setViewers] = useState<any>([]);
   const [seconds, setSeconds] = useState(0);
   const [minutes, setMinutes] = useState(0);
@@ -253,6 +256,51 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     };
   }, []);
 
+  const startRecordingAPI = async () => {
+    const body = {
+      channel_name: state.channelId,
+      recorder_uid: '123456',
+    };
+    try {
+      HomeAPIS.startRecording(body)
+        .then(async res => {
+          console.log('Recording API Res', res?.data);
+          setResource_id(res?.data?.startRecordingResponse?.resourceId);
+          setSid(res?.data?.startRecordingResponse?.sid);
+          console.log('Recording API Res state', state);
+        })
+        .catch(err => {
+          console.log('Err Recording API', err.response?.data);
+        });
+    } catch (error) {
+      console.error('Error Recording API Res ', error);
+    }
+  };
+
+  const stopRecordingAPI = async () => {
+    const body = {
+      channel_name: state.channelId,
+      recorder_uid: '123456',
+      resource_id: resource_id,
+      sid: sid,
+
+    };
+
+    console.log('stopRecordingAPI body', body);
+    console.log('state', state);
+    try {
+      HomeAPIS.stopRecording(body)
+        .then(async res => {
+          console.log('STOP Recording API Res', res?.data);
+        })
+        .catch(err => {
+          console.log('Err STOP Recording API', err.response?.data);
+        });
+    } catch (error) {
+      console.error('Error STOP Recording API Res ', error);
+    }
+  };
+
   const postMessage = async (token: any, incidentId: any) => {
     try {
       HomeAPIS.postMsg({
@@ -262,6 +310,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       })
         .then(async res => {
           console.log('Response alert msg send', res);
+          startRecordingAPI();
 
           let array: any = [];
           if (!isStreaming) {
@@ -314,7 +363,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
 
   const AgoraToken = async () => {
     const body = {
-      uid: '0',
+      uid: '0316000',
       channel_name: state.channelId,
       role: 'publisher',
     };
@@ -536,6 +585,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     if (isStreaming) {
       leaveChannel();
       toggleShape();
+      stopRecordingAPI();
       stopRecording();
       stopRecording2();
     } else {

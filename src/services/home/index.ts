@@ -48,6 +48,14 @@ const postIncidents = (body: any) => {
   return httpService().post('incidents/incidents/', body);
 };
 
+const startRecording = (body: any) => {
+  return httpService().post('incidents/start-recording/', body);
+};
+
+const stopRecording = (body: any) => {
+  return httpService().post('incidents/stop-recording/', body);
+};
+
 const getIncidents = () => {
   return httpService().get('incidents/incidents/');
 };
@@ -77,4 +85,6 @@ export const HomeAPIS = {
   getIncidents,
   deleteIncident,
   getIncidentDetail,
+  startRecording,
+  stopRecording,
 };

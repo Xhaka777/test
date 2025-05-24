@@ -13,6 +13,7 @@ const customAxios = (contentType: string = 'application/json') => {
     var token = util.getCurrentUserAccessToken();
 
     console.log('TOKEN---', token);
+    console.log('Base Urll =====', BASE_URL);
     console.log('urlllll=====', config?.url);
 
     if (token) {
