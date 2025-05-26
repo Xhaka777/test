@@ -1,4 +1,4 @@
-export const BASE_URL: string = 'http://192.168.100.44:8000/';
+export const BASE_URL: string = 'https:api.rovesafe.com/';
 export const BASE_PATH: string = 'api/';
 export const SOCKET_URL: string = 'http://161.35.120.195:9001/';
 export const V1_BASE_URL: string = '';
