@@ -39,7 +39,7 @@ import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
-import RNFS, { stat } from 'react-native-fs';
+import RNFS, {stat} from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import Lottie from 'lottie-react-native';
 
@@ -90,7 +90,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     maxDurationMs: 120000,
     recorderInfoUpdateInterval: 1000,
     startRecording: false,
-
   });
   const [lastImage, setLastImage] = useState<any>({
     video: null,
@@ -256,10 +255,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     };
   }, []);
 
-  const startRecordingAPI = async () => {
+  const startRecordingAPI = async (token: any) => {
     const body = {
       channel_name: state.channelId,
-      recorder_uid: '123456',
+      recorder_uid: '0',
+      token: token,
     };
     try {
       HomeAPIS.startRecording(body)
@@ -280,10 +280,9 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const stopRecordingAPI = async () => {
     const body = {
       channel_name: state.channelId,
-      recorder_uid: '123456',
+      recorder_uid: '0',
       resource_id: resource_id,
       sid: sid,
-
     };
 
     console.log('stopRecordingAPI body', body);
@@ -307,10 +306,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         stream_token: token,
         lat: userCordinates?.latitude,
         lng: userCordinates?.longitude,
+        type: mode,
       })
         .then(async res => {
           console.log('Response alert msg send', res);
-          startRecordingAPI();
+          startRecordingAPI(token);
 
           let array: any = [];
           if (!isStreaming) {
@@ -363,7 +363,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
 
   const AgoraToken = async () => {
     const body = {
-      uid: '0316000',
+      uid: '0',
       channel_name: state.channelId,
       role: 'publisher',
     };
