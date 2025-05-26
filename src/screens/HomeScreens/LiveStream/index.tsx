@@ -258,7 +258,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const startRecordingAPI = async (token: any) => {
     const body = {
       channel_name: state.channelId,
-      recorder_uid: '0',
+      recorder_uid: '316000',
       token: token,
     };
     try {
@@ -280,7 +280,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const stopRecordingAPI = async () => {
     const body = {
       channel_name: state.channelId,
-      recorder_uid: '0',
+      recorder_uid: '316000',
       resource_id: resource_id,
       sid: sid,
     };
