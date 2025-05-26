@@ -65,6 +65,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [startSecondCamera, setStartSecondCamera] = useState(false);
   const [publishSecondCamera, setPublishSecondCamera] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [incident_id, setIncident_id] = useState("");
   const [state, setState] = useState({
     appId: Config.appId,
     enableVideo: true,
@@ -283,6 +284,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       recorder_uid: '316000',
       resource_id: resource_id,
       sid: sid,
+      incident_id: incident_id ,
     };
 
     console.log('stopRecordingAPI body', body);
@@ -291,6 +293,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       HomeAPIS.stopRecording(body)
         .then(async res => {
           console.log('STOP Recording API Res', res?.data);
+          setIncident_id('');
         })
         .catch(err => {
           console.log('Err STOP Recording API', err.response?.data);
@@ -352,6 +355,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         .then(async res => {
           // console.log('Response Post incidents', res?.data);
           postMessage(token, res?.data?.id);
+          setIncident_id(res?.data?.id);
         })
         .catch(err => {
           console.log('Err Post incidents', err.response?.data);
