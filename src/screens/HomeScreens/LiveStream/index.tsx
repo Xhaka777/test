@@ -65,7 +65,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [startSecondCamera, setStartSecondCamera] = useState(false);
   const [publishSecondCamera, setPublishSecondCamera] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [incident_id, setIncident_id] = useState("");
+  const [incident_id, setIncident_id] = useState('');
   const [state, setState] = useState({
     appId: Config.appId,
     enableVideo: true,
@@ -103,7 +103,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [minutes, setMinutes] = useState(0);
   const [hours, setHours] = useState(0);
   const [mode, setMode] = useState(threatModes[1]?.key || '');
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(0.5);
   const [isFlashlight, setIsFlashlight] = useState(false);
   const [isCircle, setIsCircle] = useState(true);
   const [recorder, setRecorder] = useState<any | null>(null);
@@ -113,7 +113,9 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const userCordinates = useSelector(
     (state: RootState) => state.home.userLocation,
   );
-  const microphoneAnimation = require('../../../assets/animations/microphone.json');
+  const isSafeWord = useSelector(
+    (state: RootState) => state?.home?.safeWord?.isSafeWord,
+  );
 
   const headerOptions = [
     mode == 'VIDEO' && {
@@ -133,7 +135,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     {
       id: '3',
       key: 'Stream Preference',
-      icon: mode == 'AUDIO' ? Images.Automatic : Images.AutoAndManual,
+      icon: isSafeWord ? Images.AutoAndManual : Images.Automatic,
     },
   ].filter(Boolean);
 
@@ -284,7 +286,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       recorder_uid: '316000',
       resource_id: resource_id,
       sid: sid,
-      incident_id: incident_id ,
+      incident_id: incident_id,
     };
 
     console.log('stopRecordingAPI body', body);
@@ -460,6 +462,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
 
     agoraEngine.enableVideo();
     agoraEngine.startPreview();
+    agoraEngine?.setCameraZoomFactor(0.5);
     setStartPreview(true);
     agoraEngine?.enableMultiCamera(true, {cameraDirection: 0});
     agoraEngine?.startCameraCapture(
@@ -801,19 +804,8 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
               }}
               resizeMode="contain"
             />
-            {/* <Lottie
-              source={microphoneAnimation}
-              autoPlay
-              loop={true}
-              style={{
-                width: '45%',
-                alignSelf: 'center',
-                backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-              }}
-              resizeMode="cover"
-              speed={0.4}
-            /> */}
             {!isStreaming && renderMode()}
+            {/* {isStreaming && renderViewers()} */}
           </View>
         ) : (
           <>
@@ -821,7 +813,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             {isStreaming && renderViewers()}
             {!isStreaming && renderMode()}
             <View style={styles.zoomControls}>
-              {[1, 2, 3].map((zoom, index) => (
+              {[0.5, 2, 3].map((zoom, index) => (
                 <TouchableOpacity
                   key={index?.toString()}
                   onPress={() => adjustZoom(zoom)}
@@ -842,7 +834,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                           ? Utills.selectedThemeColors().Yellow
                           : Utills.selectedThemeColors().PrimaryTextColor,
                     }}>
-                    {zoom == 1 ? '.5' : zoom}
+                    {zoom == 0.5 ? '.5' : zoom}
                     {zoom === zoomLevel ? 'x' : ''}
                   </CustomText.RegularText>
                 </TouchableOpacity>

@@ -130,14 +130,6 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         handleLogout();
       },
     },
-    {
-      id: '8',
-      image: Images.Out,
-      text: 'Heart Rate Monitor',
-      onPress: () => {
-        NavigationService.navigate(RouteNames.HomeRoutes.HeartRateMonitor);
-      },
-    },
   ];
 
   useEffect(() => {

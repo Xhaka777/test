@@ -4,7 +4,6 @@ import {
   View,
   Platform,
   PermissionsAndroid,
-  TextInput,
   Alert,
   ScrollView,
 } from 'react-native';
@@ -17,27 +16,11 @@ import {RootState} from '../../../redux/reducers';
 import {Images, Metrix, Utills} from '../../../config';
 import {Image} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import {
-  CustomModal,
-  CustomText,
-  Loader,
-  PrimaryButton,
-} from '../../../components';
+import {CustomModal, CustomText, Loader} from '../../../components';
 import Geolocation from 'react-native-geolocation-service';
 import {HomeAPIS} from '../../../services/home';
-import {normalizeFont} from '../../../config/metrix';
 import {HomeActions} from '../../../redux/actions';
 import {GOOGLE_API_KEY} from '../../../services/config';
-
-const homePlace = {
-  description: 'Home',
-  geometry: {location: {lat: 37.4219983, lng: -122.084}},
-};
-
-const workPlace = {
-  description: 'Work',
-  geometry: {location: {lat: 37.3318456, lng: -122.0296002}},
-};
 
 export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const route = useRoute();
@@ -52,28 +35,20 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const [loading, setLoading] = useState(false);
   const [inSZ, setInSZ] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [smallModalVisible, setSmallModalVisible] = useState(false);
   const [searchedLocation, setSearchedLocation] = useState<any>('');
   const [safeZones, setSafeZones] = useState<any[]>([]);
-  const [safeZoneData, setSafeZoneData] = useState<any>({
-    latitude: '',
-    longitude: '',
-  });
   const [safeZoneAddress, setSafeZoneAddress] = useState<any>('');
-  const [radius, setRadius] = useState('');
-  const [safeZoneTitle, setSafeZoneTitle] = useState('');
   const [region, setRegion] = useState({
     latitude: userCoordinates?.latitude,
     longitude: userCoordinates?.longitude,
   });
   const [mapType, setMapType] = useState<any>('standard');
-  const [showSearchButton, setShowSearchButton] = useState(false);
   const buttons = [
     {
       id: '1',
       image: Images.Marker,
       onPress: () => {
-        setSmallModalVisible(true);
+        createSafeZone(region?.latitude, region?.longitude, 'address');
       },
     },
     {
@@ -120,30 +95,13 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     return array;
   };
 
-  const loadSafeZones = async () => {
-    const hospitals = await fetchPlaces(
-      region?.latitude,
-      region?.longitude,
-      'hospital',
-    );
-    const policeStations = await fetchPlaces(
-      region?.latitude,
-      region?.longitude,
-      'police',
-    );
-    setSafeZones([...safeZones, ...hospitals, ...policeStations]);
-  };
-
-  // console.log('userCoordinates', safeZones);
-
   useEffect(() => {
     getCurrentLocation();
-    getZones();
   }, [isFocus]);
 
   useEffect(() => {
     if (region?.latitude && region?.longitude) {
-      loadSafeZones();
+      getZones();
     }
   }, [region]);
 
@@ -167,7 +125,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const getZones = () => {
     setLoading(true);
     HomeAPIS.getSafeZones()
-      .then(res => {
+      .then(async res => {
         let array: any = [];
         res?.data?.map((item: any) => {
           array?.push({
@@ -182,7 +140,16 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             type: 'custom',
           });
         });
-        // console.log('Safe Zoness====>', array);
+        const hospitals = await fetchPlaces(
+          region?.latitude,
+          region?.longitude,
+          'hospital',
+        );
+        const policeStations = await fetchPlaces(
+          region?.latitude,
+          region?.longitude,
+          'police',
+        );
         const isInSafeZone = array.find((zone: any) => {
           const distance = calculateDistance(
             userCoordinates?.latitude,
@@ -199,7 +166,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
           setInSZ(false);
           dispatch(HomeActions.setInSafeZone(false));
         }
-        setSafeZones(array);
+        setSafeZones([...array, ...hospitals, ...policeStations]);
         setLoading(false);
       })
       .catch(err => {
@@ -208,29 +175,20 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       });
   };
 
-  const createSafeZone = () => {
-    setLoading(true);
+  const createSafeZone = (lat: any, lng: any, address: any) => {
     const body = {
-      name: safeZoneTitle,
-      latitude: safeZoneData?.latitude?.toFixed(6),
-      longitude: safeZoneData?.longitude?.toFixed(6),
-      radius: radius,
-      address: safeZoneAddress,
+      name: 'safezone',
+      latitude: lat?.toFixed(6),
+      longitude: lng?.toFixed(6),
+      radius: 20,
+      address: address,
       is_active: true,
       zone_type: 'home',
       user: userData?.user?.id,
     };
     HomeAPIS.createSafeZones(body)
       .then(res => {
-        setSmallModalVisible(false);
-        setLoading(false);
-        setSafeZoneData({
-          latitude: '',
-          longitude: '',
-        });
-        setSafeZoneAddress('');
-        setRadius('');
-        setSafeZoneTitle('');
+        setSearchedLocation('');
         setTimeout(() => {
           getZones();
         }, 1000);
@@ -279,6 +237,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       Geolocation.getCurrentPosition(
         position => {
           const {latitude, longitude} = position.coords;
+          console.log('Position', position);
+
           setRegion({
             latitude: latitude,
             longitude: longitude,
@@ -312,7 +272,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const deleteAlert = (item: any) => {
     Alert.alert(
       'Delete Safe Zone!',
-      `Are you sure you want to delete ${item?.name?.toUpperCase()} as safe zone ?`,
+      `Are you sure you want to delete this safe zone ?`,
       [
         {
           text: 'YES',
@@ -469,8 +429,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       {inSZ && (
         <View style={styles.bottomBanner}>
           <CustomText.SmallText customStyle={styles.bannerText}>
-            Audio Transmission to the ML model has been paused as you have been
-            located in the safe zone !
+            You are in a safe zone, audio transmission paused.
           </CustomText.SmallText>
         </View>
       )}
@@ -497,12 +456,17 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             fetchDetails={true}
             enablePoweredByContainer={false}
             onPress={(data, details = null) => {
+              createSafeZone(
+                details?.geometry?.location?.lat,
+                details?.geometry?.location?.lng,
+                details?.formatted_address,
+              );
               setRegion({
                 latitude: details?.geometry?.location?.lat,
                 longitude: details?.geometry?.location?.lng,
               });
-              setModalVisible(false);
               setSearchedLocation(details?.formatted_address);
+              setModalVisible(false);
             }}
             predefinedPlaces={[]}
             keepResultsAfterBlur={true}
@@ -535,111 +499,6 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
           />
         </ScrollView>
       </CustomModal>
-
-      <CustomModal
-        smallModal
-        visible={smallModalVisible}
-        onClose={() => {
-          setSmallModalVisible(false);
-        }}
-        smallContainerStyles={{
-          height: '80%',
-          bottom: '3%',
-          width: '90%',
-          backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-        }}>
-        <View style={{flex: 1, width: '100%'}}>
-          <CustomText.MediumText customStyle={styles.safeZoneTitle}>
-            Add Your Safe Zones
-          </CustomText.MediumText>
-          <View style={styles.container}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your safe zone radius"
-              keyboardType="numeric"
-              value={radius}
-              onChangeText={text => {
-                setRadius(text);
-              }}
-              placeholderTextColor={
-                Utills.selectedThemeColors().SecondaryTextColor
-              }
-              returnKeyType={'done'}
-            />
-            <CustomText.SmallText customStyle={styles.milesText}>
-              {radius ? radius + ' Meters' : ''}
-            </CustomText.SmallText>
-          </View>
-
-          <TextInput
-            style={styles.safeZoneTitleInput}
-            placeholder="Enter your safe zone title"
-            keyboardType="default"
-            value={safeZoneTitle}
-            onChangeText={text => {
-              setSafeZoneTitle(text);
-            }}
-            placeholderTextColor={
-              Utills.selectedThemeColors().SecondaryTextColor
-            }
-            returnKeyType={'done'}
-          />
-          <GooglePlacesAutocomplete
-            ref={inputRef}
-            placeholder={'Search for safe zones'}
-            keyboardShouldPersistTaps="always"
-            minLength={3}
-            listViewDisplayed={true}
-            fetchDetails={true}
-            enablePoweredByContainer={false}
-            onPress={(data, details = null) => {
-              setSafeZoneData({
-                latitude: details?.geometry?.location?.lat,
-                longitude: details?.geometry?.location?.lng,
-              });
-              setSafeZoneAddress(details?.formatted_address);
-            }}
-            predefinedPlaces={[]}
-            keepResultsAfterBlur={false}
-            enableHighAccuracyLocation={true}
-            query={{
-              key: GOOGLE_API_KEY,
-              language: 'en',
-            }}
-            textInputProps={{
-              placeholderTextColor:
-                Utills.selectedThemeColors().SecondaryTextColor,
-            }}
-            renderRow={renderSuggestionRows}
-            styles={{
-              textInput: {
-                fontSize: 16,
-                paddingHorizontal: Metrix.HorizontalSize(20),
-                // height: Metrix.VerticalSize(45),
-                borderWidth: 1,
-                borderColor: Utills.selectedThemeColors().TextInputBorderColor,
-                borderRadius: Metrix.HorizontalSize(10),
-                backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-                color: Utills.selectedThemeColors().Base,
-                width: '70%',
-              },
-              separator: {
-                backgroundColor:
-                  Utills.selectedThemeColors().TextInputBorderColor,
-              },
-            }}
-          />
-          <PrimaryButton
-            customStyles={{backgroundColor: Utills.selectedThemeColors().Base}}
-            customTextStyle={{
-              color: Utills.selectedThemeColors().PrimaryTextColor,
-            }}
-            onPress={createSafeZone}
-            title={'Add Safe Zone'}
-          />
-        </View>
-      </CustomModal>
-
       <Loader isLoading={loading} />
     </View>
   );
@@ -677,10 +536,10 @@ const styles = StyleSheet.create({
     bottom: '5%',
     width: '90%',
     alignSelf: 'center',
-    height: Metrix.VerticalSize(50),
+    height: Metrix.VerticalSize(45),
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
     borderRadius: Metrix.HorizontalSize(10),
-    paddingHorizontal: Metrix.HorizontalSize(20),
+    paddingHorizontal: Metrix.HorizontalSize(10),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
