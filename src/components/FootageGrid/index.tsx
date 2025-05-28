@@ -17,17 +17,30 @@ type FootageGridProps = {
 };
 
 export const FootageGrid: React.FC<FootageGridProps> = ({item}) => {
-  const [footages, setFootages] = useState<any>([]);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
-
-  const isOlderThan7Days = moment().diff(moment(item?.createdAt), 'days') >= 7;
 
   // Fetch video files once when the component is mounted
   useEffect(() => {
     const getVideoFiles = async () => {
       try {
         const files = await RNFS.readDir(RNFS.DocumentDirectoryPath);
-        setFootages(files);
+        const videoFile = files.filter((file: any) =>
+          file.name.endsWith(`${item?.id}-VIDEO.mp4`),
+        );
+        console.log('Item file', videoFile);
+
+        // if (videoFile?.length > 1 && videoFile?.[1].path?.endsWith(`-VIDEO.mp4`)) {
+        //   createThumbnail({
+        //     url: videoFile?.[1].path,
+        //     timeStamp: 10000,
+        //   })
+        //     .then(response => {
+        //       setThumbnail(response?.path);
+        //     })
+        //     .catch(error => {
+        //       console.error('Error creating thumbnail:', error);
+        //     });
+        // }
       } catch (error) {
         console.error('Error fetching video files:', error);
       }
@@ -35,26 +48,6 @@ export const FootageGrid: React.FC<FootageGridProps> = ({item}) => {
 
     getVideoFiles();
   }, []);
-
-  // Generate thumbnail only if footages and item are available
-  useEffect(() => {
-    const videoFiles = footages.filter((file: any) =>
-      file.name.endsWith(`-${item?.id}-VIDEO.mp4`),
-    );
-
-    if (videoFiles.length > 1 && !thumbnail) {
-      createThumbnail({
-        url: videoFiles[1].path,
-        timeStamp: 10000,
-      })
-        .then(response => {
-          setThumbnail(response?.path);
-        })
-        .catch(error => {
-          console.error('Error creating thumbnail:', error);
-        });
-    }
-  }, [footages, item?.id, thumbnail]);
 
   return (
     <TouchableOpacity

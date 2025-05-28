@@ -78,8 +78,6 @@ export const TabStack: React.FC = ({}) => {
   const ws = useRef<WebSocket | null>(null);
   const {heartRate, loading, error, refresh} = useHeartRateHook();
 
-  console.log('heartRate', heartRate);
-
   useEffect(() => {
     setCurrentModel(selectedModel);
   }, [selectedModel]);
@@ -222,13 +220,14 @@ export const TabStack: React.FC = ({}) => {
     });
 
     LiveAudioStream.on('data', data => {
+      console.log('Live audio is streaming========>>>');
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
         ws.current.send(data);
       }
     });
 
     LiveAudioStream.start();
-    console.log('Live audio streaming started');
+    // console.log('Live audio streaming started');
   }, [currentModel]);
 
   // Add this useEffect to monitor `isSafeWord`
@@ -286,6 +285,7 @@ export const TabStack: React.FC = ({}) => {
         });
 
         LiveAudioStream.on('data', data => {
+          console.log('Live audio is streaming========>>> 1');
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(data);
           }
@@ -319,6 +319,7 @@ export const TabStack: React.FC = ({}) => {
     if (isSafeWord && !isSafeZone) {
       await BackgroundService.start(backgroundTask, options);
     } else {
+      console.log('In BG');
       await BackgroundService.stop();
     }
     const isServiceActive = await BackgroundService.isRunning();

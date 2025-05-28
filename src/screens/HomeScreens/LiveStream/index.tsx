@@ -139,7 +139,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     },
   ].filter(Boolean);
 
-  console.log('mode', mode);
+  // console.log('Location', userCordinates?.latitude?.toFixed(6));
 
   const toggleShape = () => {
     if (isCircle) {
@@ -595,6 +595,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       stopRecordingAPI();
       stopRecording();
       stopRecording2();
+      fetchLastFootage();
     } else {
       AgoraToken();
     }

@@ -33,6 +33,8 @@ export const Footages: React.FC<FootagesProps> = ({}) => {
     setLoading(true);
     HomeAPIS.getIncidents()
       .then(res => {
+        console.log("Location Reponse",res?.data);
+        
         let array: any = [];
         res?.data?.map((item: any) => {
           array?.push({
