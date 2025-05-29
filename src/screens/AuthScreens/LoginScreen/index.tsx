@@ -227,16 +227,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
         password: '',
       }}
       onSubmit={values => {
-        if (values?.email?.length == 0) {
-          Utills.showToast('Enter email');
-        } else if (values?.password?.length == 0) {
-          Utills.showToast('Enter password');
-        } else {
-          loginUser({email: values?.email, password: values?.password});
-        }
+        loginUser({email: values?.email, password: values?.password});
       }}
-      // validationSchema={Schema.LoginSchema}
-    >
+      validationSchema={Schema.LoginSchema}>
       {({
         values,
         errors,

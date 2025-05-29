@@ -37,11 +37,12 @@ import {
 } from '../../../components';
 import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
 import RNFS, {stat} from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
 import Lottie from 'lottie-react-native';
+import {HomeActions} from '../../../redux/actions';
 
 const threatModes = [
   {
@@ -57,6 +58,7 @@ const threatModes = [
 ];
 
 export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
+  const dispatch = useDispatch();
   const userDetails = useSelector((state: RootState) => state.home.userDetails);
   const [engine, setEngine] = useState<IRtcEngineEx | undefined>(undefined);
   const [startPreview, setStartPreview] = useState(false);
@@ -116,6 +118,9 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const isSafeWord = useSelector(
     (state: RootState) => state?.home?.safeWord?.isSafeWord,
   );
+  const safeWord = useSelector(
+    (state: RootState) => state?.home?.safeWord?.safeWord,
+  );
 
   const headerOptions = [
     mode == 'VIDEO' && {
@@ -135,11 +140,28 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     {
       id: '3',
       key: 'Stream Preference',
-      icon: isSafeWord ? Images.AutoAndManual : Images.Automatic,
+      icon: isSafeWord ? Images.Automatic : Images.AutoAndManual,
+      onPress: () => {
+        if (isSafeWord) {
+          dispatch(
+            HomeActions.setSafeWord({
+              isSafeWord: false,
+              safeWord: safeWord,
+            }),
+          );
+        } else {
+          dispatch(
+            HomeActions.setSafeWord({
+              isSafeWord: true,
+              safeWord: safeWord,
+            }),
+          );
+        }
+      },
     },
   ].filter(Boolean);
 
-  // console.log('Location', userCordinates?.latitude?.toFixed(6));
+  console.log('safeWord', isSafeWord);
 
   const toggleShape = () => {
     if (isCircle) {
@@ -747,13 +769,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                   style={{marginHorizontal: 3}}>
                   <Image
                     source={item?.icon}
-                    style={{
-                      width: Metrix.HorizontalSize(29),
-                      height: Metrix.HorizontalSize(29),
-                      borderRadius: 100,
-                      borderWidth: 1,
-                      borderColor: 'white',
-                    }}
+                    style={styles.headerIcons}
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
@@ -812,7 +828,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           <>
             {renderUsers()}
             {isStreaming && renderViewers()}
-            {!isStreaming && renderMode()}
+
             <View style={styles.zoomControls}>
               {[0.5, 2, 3].map((zoom, index) => (
                 <TouchableOpacity
@@ -841,6 +857,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
                 </TouchableOpacity>
               ))}
             </View>
+            {!isStreaming && renderMode()}
           </>
         )}
       </View>
@@ -943,7 +960,13 @@ const styles = StyleSheet.create({
     width: '30%',
     // justifyContent: 'space-between',
   },
-
+  headerIcons: {
+    width: Metrix.HorizontalSize(29),
+    height: Metrix.HorizontalSize(29),
+    borderRadius: Metrix.HorizontalSize(100),
+    borderWidth: 1,
+    borderColor: 'white',
+  },
   bottomContainer: {
     width: '100%',
     alignItems: 'center',
@@ -998,7 +1021,7 @@ const styles = StyleSheet.create({
   },
   zoomControls: {
     position: 'absolute',
-    bottom: '19%',
+    bottom: '24%',
     alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',

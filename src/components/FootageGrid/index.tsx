@@ -29,18 +29,22 @@ export const FootageGrid: React.FC<FootageGridProps> = ({item}) => {
         );
         console.log('Item file', videoFile);
 
-        // if (videoFile?.length > 1 && videoFile?.[1].path?.endsWith(`-VIDEO.mp4`)) {
-        //   createThumbnail({
-        //     url: videoFile?.[1].path,
-        //     timeStamp: 10000,
-        //   })
-        //     .then(response => {
-        //       setThumbnail(response?.path);
-        //     })
-        //     .catch(error => {
-        //       console.error('Error creating thumbnail:', error);
-        //     });
-        // }
+        if (
+          videoFile?.length > 0 &&
+          videoFile?.[0]?.path?.endsWith(`${item?.id}-VIDEO.mp4`)
+        ) {
+          console.log('In If');
+          createThumbnail({
+            url: videoFile?.[0].path,
+            timeStamp: 10000,
+          })
+            .then(response => {
+              setThumbnail(response?.path);
+            })
+            .catch(error => {
+              console.error('Error creating thumbnail:', error);
+            });
+        }
       } catch (error) {
         console.error('Error fetching video files:', error);
       }

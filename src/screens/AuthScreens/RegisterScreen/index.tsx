@@ -30,6 +30,7 @@ import {AuthAPIS} from '../../../services/auth/index';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PhoneInput from 'react-native-phone-number-input';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import Schema from '../../../formik';
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
   const dispatch = useDispatch();
@@ -40,8 +41,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
   const [phoneNo, setPhoneNo] = useState('');
   const phoneInput = useRef(null);
 
-  let fNameRef = useRef<TextInput>(null!);
-  let lNameref = useRef<TextInput>(null!);
+  let firstNameRef = useRef<TextInput>(null!);
+  let lastNameref = useRef<TextInput>(null!);
   let emailref = useRef<TextInput>(null!);
   let passwordRef = useRef<TextInput>(null!);
 
@@ -129,32 +130,26 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
   return (
     <Formik
       initialValues={{
-        fName: '',
-        lName: '',
+        firstName: '',
+        lastName: '',
         email: '',
+        phoneNumber: '',
         password: '',
       }}
+      validationSchema={Schema.SignupSchema}
       onSubmit={values => {
         const body = {
           password: values?.password,
           email: values?.email,
-          first_name: values?.fName,
-          last_name: values?.lName,
-          full_name: values?.fName + ' ' + values?.lName,
+          first_name: values?.firstName,
+          last_name: values?.lastName,
+          full_name: values?.firstName + ' ' + values?.lastName,
           phone_number: phoneNo,
         };
         console.log('SignupBody', body);
 
-        if (values?.fName?.length === 0) {
-          Utills.showToast('Enter first name');
-        } else if (values?.lName?.length === 0) {
-          Utills.showToast('Enter last name');
-        } else if (values?.email?.length === 0) {
-          Utills.showToast('Enter email');
-        } else if (phoneNo?.length === 0) {
+        if (phoneNo?.length === 0) {
           Utills.showToast('Please enter a valid phone number in E.164 format');
-        } else if (values?.password?.length === 0) {
-          Utills.showToast('Enter password');
         } else if (check === false) {
           setModalPostVisible(true);
         } else {
@@ -175,38 +170,35 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
             title={t('Create my account')}
             isLogo={true}
             isBtn
-            onPress={() => handleSubmit()}
-            onBottomTextPress={() =>
-              NavigationService.navigate(RouteNames.AuthRoutes.SignUpScreen)
-            }>
+            onPress={() => handleSubmit()}>
             {/* <ScrollView showsVerticalScrollIndicator={false}> */}
             <CustomInput
               heading={t('First Name')}
               placeholder={t('Enter your first name')}
-              onChangeText={handleChange('fName')}
-              onBlur={() => setFieldTouched('fName')}
-              value={values?.fName}
-              error={errors?.fName}
-              touched={touched?.fName}
+              onChangeText={handleChange('firstName')}
+              onBlur={() => setFieldTouched('firstName')}
+              value={values?.firstName}
+              error={errors?.firstName}
+              touched={touched?.firstName}
               autoCapitalize="none"
               returnKeyType="next"
               keyboardType="default"
-              onSubmitEditing={() => lNameref.current.focus()}
-              inputRef={fNameRef}
+              onSubmitEditing={() => lastNameref.current.focus()}
+              inputRef={firstNameRef}
             />
             <CustomInput
               heading={t('Last Name')}
               placeholder={t('Enter your last name')}
-              onChangeText={handleChange('lName')}
-              onBlur={() => setFieldTouched('lName')}
-              value={values?.lName}
-              error={errors?.lName}
-              touched={touched?.lName}
+              onChangeText={handleChange('lastName')}
+              onBlur={() => setFieldTouched('lastName')}
+              value={values?.lastName}
+              error={errors?.lastName}
+              touched={touched?.lastName}
               autoCapitalize="none"
               returnKeyType="next"
               keyboardType="default"
               onSubmitEditing={() => emailref.current.focus()}
-              inputRef={lNameref}
+              inputRef={lastNameref}
             />
             <CustomInput
               heading={t('Email')}

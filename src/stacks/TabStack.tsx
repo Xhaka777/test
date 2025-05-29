@@ -52,6 +52,7 @@ const tabsData: TabStackType = [
 ];
 
 export const TabStack: React.FC = ({}) => {
+  const dispatch = useDispatch();
   const selectedModel = useSelector(
     (state: RootState) => state.home.selectedModel,
   );
@@ -88,7 +89,8 @@ export const TabStack: React.FC = ({}) => {
       'A New Threat Detected',
       'Start your live stream now',
     );
-    setIsVisible(true);
+    setIsVisible(true)
+    // dispatch(HomeActions.setThreatDetected(true));
   };
 
   const startListening = async () => {
@@ -184,7 +186,8 @@ export const TabStack: React.FC = ({}) => {
       const parsedData = JSON.parse(event.data);
       // const isThreat = parsedData.threat_detected;
       const isNegativeSentiment = parsedData?.sentiment == 'negative';
-      if (isNegativeSentiment) {
+      const threatScore = parsedData?.threat_level > 0.7 ? true : false;
+      if (isNegativeSentiment && threatScore) {
         if (heartRate != undefined || heartRate != null) {
           if (heartRate > averageHeartRate) {
             console.log('Elevated Heart rate is normal');
@@ -415,16 +418,16 @@ const styles = StyleSheet.create({
     // paddingHorizontal: Metrix.VerticalSize(20),
     // borderTopRightRadius: Metrix.VerticalSize(40),
     // borderTopLeftRadius: Metrix.VerticalSize(40),
-    shadowColor: Utills.selectedThemeColors().PrimaryTextColor,
-    shadowOffset: {
-      width: Metrix.HorizontalSize(3),
-      height: Metrix.VerticalSize(2),
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
 
-    elevation: Metrix.VerticalSize(20),
-    // ...Metrix.createShadow,
+    // shadowColor: Utills.selectedThemeColors().PrimaryTextColor,
+    // shadowOffset: {
+    //   width: Metrix.HorizontalSize(3),
+    //   height: Metrix.VerticalSize(2),
+    // },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 20,
+
+    // elevation: Metrix.VerticalSize(20),
   },
   modalButtonContainer: {
     width: '75%',

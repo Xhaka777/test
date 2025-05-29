@@ -1,5 +1,5 @@
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React from 'react';
 import {PreferencesProps} from '../../propTypes';
 import {
   BackHeader,
@@ -7,9 +7,7 @@ import {
   MainContainer,
   PrimaryButton,
 } from '../../../components';
-import {t} from 'i18next';
-import {FontType, Metrix, NavigationService, Utills} from '../../../config';
-import {normalizeFont} from '../../../config/metrix';
+import {Metrix, Utills} from '../../../config';
 import {useDispatch, useSelector} from 'react-redux';
 import {AuthActions, HomeActions} from '../../../redux/actions';
 import {RootState} from '../../../redux/reducers';

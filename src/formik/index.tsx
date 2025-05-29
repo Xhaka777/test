@@ -1,11 +1,19 @@
 import * as Yup from 'yup';
 
+const phoneRegex =
+  /^(\+?\d{1,4}[-.\s]?)?(\(?\d{2,4}\)?[-.\s]?)?\d{3,4}[-.\s]?\d{4}$/;
 const emailRegex =
   /^[A-Za-z0-9._%+-]*[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const fullNameRegex = /^[A-Za-z\s]+$/;
 
 const SignupSchema = Yup.object().shape({
-  name: Yup.string()
+  firstName: Yup.string()
+    .min(3, 'Too Short!')
+    .max(50, 'Too Long!')
+    .matches(fullNameRegex, 'Invalid name')
+    .required('Please enter your full name.'),
+
+  lastName: Yup.string()
     .min(3, 'Too Short!')
     .max(50, 'Too Long!')
     .matches(fullNameRegex, 'Invalid name')
@@ -13,6 +21,11 @@ const SignupSchema = Yup.object().shape({
   email: Yup.string()
     .matches(emailRegex, 'Invalid email')
     .required('Please enter your email address.'),
+
+  phoneNumber: Yup.string()
+    .matches(phoneRegex, 'Invalid phone number')
+    .required('Please enter your phone number.'),
+
   password: Yup.string()
     .min(8)
     .required('Please enter your password.')
@@ -50,8 +63,7 @@ const ResetPasswordSchema = Yup.object().shape({
 });
 
 const GoogleSignUpSchema = Yup.object().shape({
-  name: Yup.string()
-    .required('Please enter your email address.'),
+  name: Yup.string().required('Please enter your email address.'),
   email: Yup.string()
     .matches(emailRegex, 'Invalid email')
     .required('Please enter your email address.'),

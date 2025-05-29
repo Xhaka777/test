@@ -102,14 +102,14 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         });
       },
     },
-    {
-      id: '5',
-      image: Images.Preference,
-      text: 'Preferences',
-      onPress: () => {
-        NavigationService.navigate(RouteNames.HomeRoutes.EditPreferences);
-      },
-    },
+    // {
+    //   id: '5',
+    //   image: Images.Preference,
+    //   text: 'Preferences',
+    //   onPress: () => {
+    //     NavigationService.navigate(RouteNames.HomeRoutes.EditPreferences);
+    //   },
+    // },
     {
       id: '6',
       image: Images.SafeWord,
@@ -333,7 +333,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
             keyExtractor={item => item?.id}
           />
         </View>
-        <CustomText.RegularText
+        {/* <CustomText.RegularText
           customStyle={{
             alignSelf: 'center',
           }}>
@@ -343,7 +343,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
           onPress={genderSelection}
           customStyle={styles.genderTxt}>
           {model}
-        </CustomText.SmallText>
+        </CustomText.SmallText> */}
       </View>
       <TextInputAlert
         heading={'Safe Word'}
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     backgroundColor: Utills.selectedThemeColors().Base,
     marginTop: Metrix.VerticalSize(20),
     marginBottom: Metrix.VerticalSize(10),
-    ...createShadow,
+    // ...createShadow,
   },
   cardLeftContainer: {
     width: '80%',

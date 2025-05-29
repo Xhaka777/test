@@ -7,6 +7,7 @@ export default class Action {
   static USER_LOCATION = 'USER_LOCATION';
   static SELECTED_MODEL = 'SELECTED_MODEL';
   static IN_SAFE_ZONE = 'IN_SAFE_ZONE';
+  static THREAT_DETECTED = 'THREAT_DETECTED';
 
   //Actions
   static setDarkMode() {
@@ -46,6 +47,12 @@ export default class Action {
   static setInSafeZone(payload: any) {
     return {
       type: Action.IN_SAFE_ZONE,
+      payload,
+    };
+  }
+  static setThreatDetected(payload: boolean) {
+    return {
+      type: Action.THREAT_DETECTED,
       payload,
     };
   }

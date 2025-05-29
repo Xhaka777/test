@@ -149,7 +149,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderColor: Utills.selectedThemeColors().TextInputBorderColor,
     padding: Metrix.VerticalSize(20),
-    ...Metrix.createShadow,
   },
   smallModalBackdrop: {
     width: '100%',

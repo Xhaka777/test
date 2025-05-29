@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   modeContainer: {
     position: 'absolute',
     zIndex: 99,
-    bottom: '27%',
+    bottom: '18%',
     alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
