@@ -25,7 +25,7 @@ import {
 } from '../../../config';
 import {t} from 'i18next';
 import {RootState} from '../../../redux/reducers';
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import {AuthActions, HomeActions} from '../../../redux/actions';
 import {createShadow} from '../../../config/metrix';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -161,12 +161,12 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
     AsyncStorage.removeItem('userData');
     dispatch(HomeActions.setUserDetails({}));
     dispatch(HomeActions.setUserLocation({}));
-    dispatch(
-      HomeActions.setSafeWord({
-        isSafeWord: true,
-        safeWord: 'Activate',
-      }),
-    );
+    // dispatch(
+    //   HomeActions.setSafeWord({
+    //     isSafeWord: true,
+    //     safeWord: 'Activate',
+    //   }),
+    // );
     dispatch(AuthActions.loginSuccess(false));
   };
 
@@ -183,12 +183,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
   const genderSelection = () =>
     ActionSheetIOS.showActionSheetWithOptions(
       {
-        options: [
-          'Whisper + Sentiment',
-          'Vit',
-          'Trigger Word Whisper',
-          'Cancel',
-        ],
+        options: ['Whisper + Sentiment', 'Trigger Word Whisper', 'Cancel'],
         destructiveButtonIndex: 3,
         cancelButtonIndex: 3,
         title: 'Select ML Model',
@@ -202,8 +197,6 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
             ),
           );
         } else if (buttonIndex === 1) {
-          dispatch(HomeActions.setSelectedModel(Environments.Models.VIT));
-        } else if (buttonIndex === 2) {
           dispatch(
             HomeActions.setSelectedModel(
               Environments.Models.TRIGGER_WORD_WHISPER,
@@ -333,7 +326,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
             keyExtractor={item => item?.id}
           />
         </View>
-        {/* <CustomText.RegularText
+        <CustomText.RegularText
           customStyle={{
             alignSelf: 'center',
           }}>
@@ -343,7 +336,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
           onPress={genderSelection}
           customStyle={styles.genderTxt}>
           {model}
-        </CustomText.SmallText> */}
+        </CustomText.SmallText>
       </View>
       <TextInputAlert
         heading={'Safe Word'}

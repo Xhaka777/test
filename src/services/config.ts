@@ -10,6 +10,7 @@ export const Environments = {
   Models: {
     WHISPER_AND_SENTIMENT: 'wss://threat-detection.rovesafe.com/ws/audio',
     VIT: 'wss://threat-detection.rovesafe.com/ws/audio',
-    TRIGGER_WORD_WHISPER: 'wss://threat-detection.rovesafe.com/ws/audio',
+    TRIGGER_WORD_WHISPER:
+      'wss://gcp-whisperonly-917390125611.us-central1.run.app/ws/audio',
   },
 };

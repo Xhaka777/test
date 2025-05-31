@@ -104,7 +104,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [seconds, setSeconds] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [hours, setHours] = useState(0);
-  const [mode, setMode] = useState(threatModes[1]?.key || '');
+  const [mode, setMode] = useState(threatModes[0]?.key || '');
   const [zoomLevel, setZoomLevel] = useState(0.5);
   const [isFlashlight, setIsFlashlight] = useState(false);
   const [isCircle, setIsCircle] = useState(true);
