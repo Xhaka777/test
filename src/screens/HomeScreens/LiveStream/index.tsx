@@ -768,29 +768,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     );
   };
 
-  const renderScene = SceneMap({
-    first: () => {
-      return <View style={{borderWidth: 2, borderColor: 'red'}}></View>;
-    },
-    second: () => {
-      return <View style={{borderWidth: 2, borderColor: 'green'}}></View>;
-    },
-  });
-
-  const renderTabBar = (props: any) => (
-    <TabBar
-      {...props}
-      indicatorStyle={{backgroundColor: 'red'}}
-      style={{backgroundColor: Utills.selectedThemeColors().Transparent}}
-      // contentContainerStyle={{backgroundColor:"orange"}}
-    />
-  );
-
-  const routes = [
-    {key: 'first', title: 'First'},
-    {key: 'second', title: 'Second'},
-  ];
-
   const renderMode = () => {
     return (
       <ModeSelector
@@ -799,36 +776,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         setMode={setMode}
         setModeMsg={setModeMsg}
       />
-      // <View
-      //   style={{
-      //     borderWidth: 5,
-      //     borderColor: 'green',
-      //     paddingHorizontal: 20,
-      //     backgroundColor: 'white',
-      //     justifyContent: 'flex-end',
-      //     flex: 1,
-      //   }}>
-      // <View
-      //   style={{
-      //     height: Metrix.VerticalSize(45),
-      //     position: 'absolute',
-      //     zIndex: 99,
-      //     bottom: '18%',
-      //     alignSelf: 'center',
-      //     flexDirection: 'row',
-      //     justifyContent: 'space-around',
-      //     alignItems: 'center',
-      //     width: '70%',
-      //   }}>
-      //   <TabView
-      //     navigationState={{index, routes}}
-      //     renderScene={renderScene}
-      //     renderTabBar={renderTabBar}
-      //     onIndexChange={setIndex}
-      //     initialLayout={{width: layout.width}}
-      //   />
-      // </View>
-      // </View>
     );
   };
 
