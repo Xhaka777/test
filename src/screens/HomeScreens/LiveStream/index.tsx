@@ -20,6 +20,7 @@ import {
   Image,
   Platform,
   Animated,
+  useWindowDimensions,
 } from 'react-native';
 import {
   FontType,
@@ -30,19 +31,16 @@ import {
   Utills,
 } from '../../../config';
 import {LiveStreamProps} from '../../propTypes';
-import {
-  CustomText,
-  ModeSelector,
-  RoundImageContainer,
-} from '../../../components';
+import {CustomText, ModeSelector} from '../../../components';
 import {deviceHeight, deviceWidth, normalizeFont} from '../../../config/metrix';
 import {HomeAPIS} from '../../../services/home';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../../../redux/reducers';
-import RNFS, {stat} from 'react-native-fs';
+import RNFS from 'react-native-fs';
 import {createThumbnail} from 'react-native-create-thumbnail';
-import Lottie from 'lottie-react-native';
 import {HomeActions} from '../../../redux/actions';
+import {useIsFocused} from '@react-navigation/native';
+import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 
 const threatModes = [
   {
@@ -59,6 +57,10 @@ const threatModes = [
 
 export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const dispatch = useDispatch();
+  const isFocus = useIsFocused();
+  const layout = useWindowDimensions();
+  const slideAnim = useRef(new Animated.Value(-50)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const userDetails = useSelector((state: RootState) => state.home.userDetails);
   const [engine, setEngine] = useState<IRtcEngineEx | undefined>(undefined);
   const [startPreview, setStartPreview] = useState(false);
@@ -76,7 +78,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     uid: Config.uid,
     token2: Config.token,
     uid2: 99,
-    // storagePath: '../../../assets/',
     storagePath: `${
       Platform.OS === 'android'
         ? RNFS.ExternalCachesDirectoryPath
@@ -98,6 +99,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     video: null,
     thumbnail: null,
   });
+  const [index, setIndex] = React.useState(0);
   const [resource_id, setResource_id] = useState('');
   const [sid, setSid] = useState('');
   const [viewers, setViewers] = useState<any>([]);
@@ -110,6 +112,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [isCircle, setIsCircle] = useState(true);
   const [recorder, setRecorder] = useState<any | null>(null);
   const [recorder2, setRecorder2] = useState<any | null>(null);
+  const [modeMsg, setModeMsg] = useState('Recipients will get: Audio Stream');
+  const [preferenceMsg, setPreferenceMsg] = useState(
+    'Stream activates via: Auto Detection',
+  );
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
   const userCordinates = useSelector(
@@ -121,6 +127,8 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const safeWord = useSelector(
     (state: RootState) => state?.home?.safeWord?.safeWord,
   );
+
+  console.log('Loggin Redux states', state);
 
   const headerOptions = [
     mode == 'VIDEO' && {
@@ -143,6 +151,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       icon: isSafeWord ? Images.Automatic : Images.AutoAndManual,
       onPress: () => {
         if (isSafeWord) {
+          setPreferenceMsg('Stream activates via: Auto Detection + Safe word');
           dispatch(
             HomeActions.setSafeWord({
               isSafeWord: false,
@@ -150,6 +159,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             }),
           );
         } else {
+          setPreferenceMsg('Stream activates via: Auto Detection');
           dispatch(
             HomeActions.setSafeWord({
               isSafeWord: true,
@@ -268,17 +278,27 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const formatTime = (unit: any) => (unit < 10 ? `0${unit}` : unit);
 
   useEffect(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  useEffect(() => {
     fetchLastFootage();
   }, []);
 
   useEffect(() => {
-    initRtcEngine().then(() => {
-      startSecondCameraCapture();
-    });
-    return () => {
-      releaseRtcEngine();
-    };
-  }, []);
+    initRtcEngine();
+  }, [isFocus]);
 
   const startRecordingAPI = async (token: any) => {
     const body = {
@@ -474,14 +494,12 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           recorderState === RecorderState.RecorderStateStop
         ) {
           console.log('Stopping in create media recorder initializer Front');
-
           stopRecording2();
         }
       },
     });
     setRecorder(recorderInstanceBack);
     setRecorder2(recorderInstanceFront);
-
     agoraEngine.enableVideo();
     agoraEngine.startPreview();
     agoraEngine?.setCameraZoomFactor(0.5);
@@ -677,6 +695,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           style={{flex: 1, width: '100%'}}
           canvas={{
             uid: 0,
+            sourceType: VideoSourceType.VideoSourceCameraPrimary,
             renderMode: RenderModeType.RenderModeHidden,
           }}
         />
@@ -749,9 +768,67 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     );
   };
 
+  const renderScene = SceneMap({
+    first: () => {
+      return <View style={{borderWidth: 2, borderColor: 'red'}}></View>;
+    },
+    second: () => {
+      return <View style={{borderWidth: 2, borderColor: 'green'}}></View>;
+    },
+  });
+
+  const renderTabBar = (props: any) => (
+    <TabBar
+      {...props}
+      indicatorStyle={{backgroundColor: 'red'}}
+      style={{backgroundColor: Utills.selectedThemeColors().Transparent}}
+      // contentContainerStyle={{backgroundColor:"orange"}}
+    />
+  );
+
+  const routes = [
+    {key: 'first', title: 'First'},
+    {key: 'second', title: 'Second'},
+  ];
+
   const renderMode = () => {
     return (
-      <ModeSelector threatModes={threatModes} mode={mode} setMode={setMode} />
+      <ModeSelector
+        threatModes={threatModes}
+        mode={mode}
+        setMode={setMode}
+        setModeMsg={setModeMsg}
+      />
+      // <View
+      //   style={{
+      //     borderWidth: 5,
+      //     borderColor: 'green',
+      //     paddingHorizontal: 20,
+      //     backgroundColor: 'white',
+      //     justifyContent: 'flex-end',
+      //     flex: 1,
+      //   }}>
+      // <View
+      //   style={{
+      //     height: Metrix.VerticalSize(45),
+      //     position: 'absolute',
+      //     zIndex: 99,
+      //     bottom: '18%',
+      //     alignSelf: 'center',
+      //     flexDirection: 'row',
+      //     justifyContent: 'space-around',
+      //     alignItems: 'center',
+      //     width: '70%',
+      //   }}>
+      //   <TabView
+      //     navigationState={{index, routes}}
+      //     renderScene={renderScene}
+      //     renderTabBar={renderTabBar}
+      //     onIndexChange={setIndex}
+      //     initialLayout={{width: layout.width}}
+      //   />
+      // </View>
+      // </View>
     );
   };
 
@@ -803,6 +880,20 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
               alignItems: 'flex-end',
             }}></View>
         </View>
+
+        <Animated.View
+          style={{
+            width: '100%',
+            marginTop: Metrix.VerticalSize(8),
+            alignItems: 'center',
+            justifyContent: 'center',
+            transform: [{translateY: slideAnim}],
+            opacity: fadeAnim,
+          }}>
+          <CustomText.SmallText>{preferenceMsg}</CustomText.SmallText>
+
+          <CustomText.SmallText>{modeMsg}</CustomText.SmallText>
+        </Animated.View>
       </View>
       <View style={{flex: 1}}>
         {mode == 'AUDIO' ? (
@@ -932,8 +1023,6 @@ const styles = StyleSheet.create({
     top: '0%',
     width: '100%',
     backgroundColor: '#00000080',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
     paddingHorizontal: Metrix.HorizontalSize(12),
     paddingBottom: Metrix.HorizontalSize(10),
     paddingTop: Metrix.HorizontalSize(45),
@@ -951,7 +1040,7 @@ const styles = StyleSheet.create({
     width: '30%',
     backgroundColor: 'black',
     position: 'absolute',
-    top: '14%',
+    top: '19%',
     left: '4%',
     overflow: 'hidden',
   },

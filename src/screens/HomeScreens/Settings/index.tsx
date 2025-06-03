@@ -102,14 +102,14 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         });
       },
     },
-    // {
-    //   id: '5',
-    //   image: Images.Preference,
-    //   text: 'Preferences',
-    //   onPress: () => {
-    //     NavigationService.navigate(RouteNames.HomeRoutes.EditPreferences);
-    //   },
-    // },
+    {
+      id: '5',
+      image: Images.Preference,
+      text: 'Preferences',
+      onPress: () => {
+        NavigationService.navigate(RouteNames.HomeRoutes.HeartRateMonitor);
+      },
+    },
     {
       id: '6',
       image: Images.SafeWord,

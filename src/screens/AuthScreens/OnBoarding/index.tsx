@@ -52,7 +52,7 @@ const Square: React.FC<{isLight: any; selected: any}> = ({
         width: Metrix.HorizontalSize(selected ? 10 : 10),
         height: Metrix.VerticalSize(10),
         borderRadius: Metrix.VerticalSize(100),
-        marginHorizontal: 10,
+        marginHorizontal: 5,
         backgroundColor: selected
           ? Utills.selectedThemeColors().PrimaryTextColor
           : Utills.selectedThemeColors().DotGrey,
@@ -95,7 +95,6 @@ const Next: React.FC<{isLight: any}> = ({isLight, ...props}) => {
 const ImageComp: React.FC<{source: ImageProps['source']}> = ({source}) => (
   <View
     style={{
-      // borderWidth: 1,
       width: '100%',
       height: '100%',
     }}>
@@ -289,12 +288,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textHeading: {
-    fontSize: normalizeFont(22),
+    fontSize: normalizeFont(18),
     letterSpacing: 0.7,
     fontWeight: '600',
+    lineHeight: 20,
   },
   textSubheading: {
-    fontSize: normalizeFont(15),
+    fontSize: normalizeFont(14),
     letterSpacing: 0.7,
     fontWeight: '300',
   },

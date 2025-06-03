@@ -1,7 +1,11 @@
-import {FlatList, ScrollView, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {FlatList, ScrollView, View, useWindowDimensions} from 'react-native';
 import {HeartRateMonitorProps} from '../../propTypes';
-import {BackHeader, CustomText, MainContainer} from '../../../components';
+import {
+  BackHeader,
+  CustomText,
+  MainContainer,
+  ModeSelector,
+} from '../../../components';
 import {useRoute} from '@react-navigation/native';
 import AppleHealthKit, {
   HealthValue,
@@ -11,65 +15,26 @@ import {HealthPermissions} from '../../../permissonsServices';
 import moment from 'moment';
 import {Metrix, Utills} from '../../../config';
 
+import * as React from 'react';
+import {TabView, SceneMap} from 'react-native-tab-view';
+
+const renderScene = SceneMap({
+  first: () => {
+    return <View style={{borderWidth: 2, borderColor: 'red'}}></View>;
+  },
+  second: () => {
+    return <View style={{borderWidth: 2, borderColor: 'green'}}></View>;
+  },
+});
+
+const routes = [
+  {key: 'first', title: 'First'},
+  {key: 'second', title: 'Second'},
+];
+
 export const HeartRateMonitor: React.FC<HeartRateMonitorProps> = ({}) => {
-  const [hearRateData, setHearRateData] = useState<HealthValue[]>([]);
-  const getHearRate = () => {
-    AppleHealthKit.initHealthKit(HealthPermissions, (error: string) => {
-      if (error) {
-        console.log('[ERROR] Cannot grant permissions!');
-      }
+  const layout = useWindowDimensions();
+  const [index, setIndex] = React.useState(0);
 
-      const options = {
-        startDate: new Date(2020, 1, 1).toISOString(),
-      };
-      AppleHealthKit.getHeartRateSamples(
-        options,
-        (callbackError: string, results: HealthValue[]) => {
-          if (callbackError) {
-            console.log('[ERROR] Cannot read heart rate samples!');
-          }
-          console.log('Heart Rate Samples: ', results);
-          setHearRateData(results);
-        },
-      );
-    });
-  };
-
-  console.log('hearRateData', hearRateData?.[0]?.value);
-
-  useEffect(() => {
-    getHearRate();
-  }, []);
-
-  const renderItem = ({item}: any) => {
-    return (
-      <View
-        style={{
-          padding: 10,
-          borderBottomWidth: 1,
-          borderColor: Utills.selectedThemeColors().SecondaryTextColor,
-          alignItems: 'center',
-        }}>
-        <CustomText.MediumText>
-          {`Heart Rate: ${item?.value} BPM`}
-        </CustomText.MediumText>
-        <CustomText.RegularText>
-          {`Date: ${moment(item?.startDate).format('DD-MMM-YYYY HH:mm:ss A')}`}
-        </CustomText.RegularText>
-      </View>
-    );
-  };
-
-  return (
-    <MainContainer isFlatList>
-      <BackHeader heading={'Heart Rate Monitoring'} />
-      <View style={{flex: 1}}>
-        <FlatList
-          data={hearRateData}
-          renderItem={renderItem}
-          contentContainerStyle={{paddingVertical: Metrix.VerticalSize(20)}}
-        />
-      </View>
-    </MainContainer>
-  );
+  return <ModeSelector />;
 };
