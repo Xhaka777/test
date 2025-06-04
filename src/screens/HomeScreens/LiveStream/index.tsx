@@ -99,7 +99,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     video: null,
     thumbnail: null,
   });
-  const [index, setIndex] = React.useState(0);
+  const [step, setStep] = useState(0);
   const [resource_id, setResource_id] = useState('');
   const [sid, setSid] = useState('');
   const [viewers, setViewers] = useState<any>([]);
@@ -112,10 +112,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [isCircle, setIsCircle] = useState(true);
   const [recorder, setRecorder] = useState<any | null>(null);
   const [recorder2, setRecorder2] = useState<any | null>(null);
-  const [modeMsg, setModeMsg] = useState('Recipients will get: Audio Stream');
-  const [preferenceMsg, setPreferenceMsg] = useState(
-    'Stream activates via: Auto Detection',
-  );
+  const [isModeText, setIsModeText] = useState(false);
+  const [modeMsg, setModeMsg] = useState('');
+  const [preferenceMsg, setPreferenceMsg] = useState('Monitoring for assault');
+  const opacity = useRef(new Animated.Value(0)).current;
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
   const userCordinates = useSelector(
@@ -128,8 +128,55 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     (state: RootState) => state?.home?.safeWord?.safeWord,
   );
 
-  console.log('Loggin Redux states', state);
+  console.log('preferenceMsg', preferenceMsg);
 
+  const handlePress = () => {
+    switch (step) {
+      case 0:
+        // Do something...
+        if (safeWord) {
+          setPreferenceMsg('Monitoring for assault');
+          dispatch(
+            HomeActions.setSafeWord({
+              isSafeWord: false,
+              safeWord: safeWord,
+            }),
+          );
+        }
+        break;
+      case 1:
+        // Do something else...
+        if (!safeWord) {
+          setPreferenceMsg('Monitoring for assaultttt');
+          dispatch(
+            HomeActions.setSafeWord({
+              isSafeWord: true,
+              safeWord: safeWord,
+            }),
+          );
+        }
+
+        break;
+      case 2:
+        setPreferenceMsg('Monitoring off');
+        break;
+    }
+
+    // Move to the next step (and reset after third)
+    setStep(prev => (prev + 1) % 3);
+  };
+
+  const getImage = () => {
+    switch (step) {
+      case 0:
+        return Images.Automatic;
+      case 1:
+        return Images.AutoAndManual;
+      case 2:
+        return Images.MicBtn;
+    }
+    // setStep(prev => (prev + 1) % 3);
+  };
   const headerOptions = [
     mode == 'VIDEO' && {
       id: '1',
@@ -148,10 +195,13 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
     {
       id: '3',
       key: 'Stream Preference',
+      // icon: getImage(),
       icon: isSafeWord ? Images.Automatic : Images.AutoAndManual,
       onPress: () => {
+        showText();
+        // handlePress();
         if (isSafeWord) {
-          setPreferenceMsg('Stream activates via: Auto Detection + Safe word');
+          setPreferenceMsg('Monitoring for assault');
           dispatch(
             HomeActions.setSafeWord({
               isSafeWord: false,
@@ -159,7 +209,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             }),
           );
         } else {
-          setPreferenceMsg('Stream activates via: Auto Detection');
+          setPreferenceMsg('Monitoring for assault');
           dispatch(
             HomeActions.setSafeWord({
               isSafeWord: true,
@@ -250,6 +300,31 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       console.error('Error fetching video or creating thumbnail:', error);
     }
   };
+
+  const showText = () => {
+    // Fade in
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 400, // fade-in duration
+      useNativeDriver: true,
+    }).start(() => {
+      // After fade-in completes, wait and fade out
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 400,
+        delay: 2000, // keep visible for 2 seconds
+        useNativeDriver: true,
+      }).start(() => {
+        // Reset state after fade-out finishes
+        setPreferenceMsg('');
+        setIsModeText(false);
+      });
+    });
+  };
+
+  useEffect(() => {
+    setIsModeText(true);
+  }, [modeMsg]);
 
   useEffect(() => {
     let interval: any = null;
@@ -775,6 +850,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         mode={mode}
         setMode={setMode}
         setModeMsg={setModeMsg}
+        callback={showText}
       />
     );
   };
@@ -828,7 +904,18 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
             }}></View>
         </View>
 
-        <Animated.View
+        <Animated.View style={[styles.fadeContainer, {opacity}]}>
+          <CustomText.SmallText
+            customStyle={{color: '#FDD128', textAlign: 'center'}}>
+            {modeMsg}
+          </CustomText.SmallText>
+          <CustomText.SmallText
+            customStyle={{color: '#FDD128', textAlign: 'center'}}>
+            {preferenceMsg}
+          </CustomText.SmallText>
+        </Animated.View>
+
+        {/* <Animated.View
           style={{
             width: '100%',
             marginTop: Metrix.VerticalSize(8),
@@ -840,7 +927,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           <CustomText.SmallText>{preferenceMsg}</CustomText.SmallText>
 
           <CustomText.SmallText>{modeMsg}</CustomText.SmallText>
-        </Animated.View>
+        </Animated.View> */}
       </View>
       <View style={{flex: 1}}>
         {mode == 'AUDIO' ? (
@@ -1181,5 +1268,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 10,
     tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+  },
+  fadeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    // marginVertical: 10,
   },
 });

@@ -19,7 +19,7 @@ import {NormalCardComponent} from './NormalCard';
 import {TextInputAlert} from './TextInputAlert';
 import {FootageGrid} from './FootageGrid';
 import {ModeSelector} from './ModeSelector';
-
+ 
 export {
   CustomText,
   PrimaryButton,

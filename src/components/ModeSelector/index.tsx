@@ -117,6 +117,7 @@ type ModeSelectorProps = {
   mode: any;
   setMode: any;
   setModeMsg: any;
+  callback: () => void;
 };
 
 export const ModeSelector: React.FC<ModeSelectorProps> = ({
@@ -124,6 +125,7 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
   mode,
   setMode,
   setModeMsg,
+  callback = () => {},
 }) => {
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -149,7 +151,7 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
           style={{
             width: MODE_WIDTH,
             alignItems: 'center',
-            transform: [{translateX: slideAnim}],
+            // transform: [{translateX: slideAnim}],
           }}
           onPress={() => {
             // LayoutAnimation.configureNext(
@@ -157,8 +159,9 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
             // );
             setMode(item.key);
             item?.key == 'AUDIO'
-              ? setModeMsg('Recipients will get: Audio Stream')
-              : setModeMsg('Recipients will get: Video Stream');
+              ? setModeMsg('Audio Stream')
+              : setModeMsg('Video Stream');
+            callback();
           }}>
           <CustomText.RegularText
             customStyle={{
