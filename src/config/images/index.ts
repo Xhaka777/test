@@ -15,7 +15,7 @@ const Images = {
   Cross: require('../../assets/icons/cross.png'),
   // TestingImage: require('../../assets/images/testingMockupImage.png'),
   PlayBtn: require('../../assets/icons/playBtn.png'),
-  MicBtn: require('../../assets/icons/mic.png'),
+  MicBtn: require('../../assets/icons/microphone.png'),
   // TestingAvatar: require('../../assets/images/testingAvatar.png'),
   MicOpenBtn: require('../../assets/icons/micOpenCirlce.png'),
   SpeakerBtn: require('../../assets/icons/speakerBtn.png'),

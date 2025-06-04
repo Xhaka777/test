@@ -19,7 +19,8 @@ import {NormalCardComponent} from './NormalCard';
 import {TextInputAlert} from './TextInputAlert';
 import {FootageGrid} from './FootageGrid';
 import {ModeSelector} from './ModeSelector';
-
+import {FadingText} from './FadingText'
+ 
 export {
   CustomText,
   PrimaryButton,
@@ -42,4 +43,5 @@ export {
   TextInputAlert,
   FootageGrid,
   ModeSelector,
+  FadingText
 };

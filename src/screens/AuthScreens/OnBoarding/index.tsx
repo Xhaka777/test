@@ -92,16 +92,24 @@ const Next: React.FC<{isLight: any}> = ({isLight, ...props}) => {
   );
 };
 
-const ImageComp: React.FC<{source: ImageProps['source']}> = ({source}) => (
+const ImageComp: React.FC<{
+  source: ImageProps['source'];
+  resizeMode: any;
+  bottom?: number;
+}> = ({source, resizeMode, bottom = Metrix.VerticalSize(20)}) => (
   <View
     style={{
       width: '100%',
       height: '100%',
+      bottom: bottom,
     }}>
     <Image
       source={source}
-      resizeMode="cover"
-      style={{width: '100%', height: '100%'}}
+      resizeMode={resizeMode}
+      style={{
+        width: '100%',
+        height: '100%',
+      }}
     />
   </View>
 );
@@ -127,8 +135,20 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
         pages={[
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard1} />,
+            image: <ImageComp resizeMode={'cover'} source={Images.OnBoard} />,
             title: '',
+            subtitle: '',
+          },
+          {
+            backgroundColor: Utills.selectedThemeColors().Base,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard1} />
+            ),
+            title: (
+              <CustomText.MediumText customStyle={styles.textHeading}>
+               Intro
+              </CustomText.MediumText>
+            ),
             subtitle: (
               <CustomText.MediumText customStyle={styles.textSubheading}>
                 When every second counts and adrenaline takes over, there's
@@ -139,7 +159,9 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard2} />,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard2} />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 Automatic Trigger
@@ -160,7 +182,13 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard3} />,
+            image: (
+              <ImageComp
+                resizeMode={'cover'}
+                source={Images.OnBoard3}
+                bottom={0}
+              />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 You’re in control
@@ -182,7 +210,9 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard4} />,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard4} />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 Bodycam Capability
@@ -201,7 +231,9 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard5} />,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard5} />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 LiveStream Deterrence
@@ -222,7 +254,9 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard6} />,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard6} />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 Secure Evidence
@@ -242,7 +276,9 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           },
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp source={Images.OnBoard7} />,
+            image: (
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard7} />
+            ),
             title: (
               <CustomText.MediumText customStyle={styles.textHeading}>
                 Privacy First
