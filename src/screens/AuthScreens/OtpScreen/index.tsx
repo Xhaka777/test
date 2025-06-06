@@ -38,7 +38,6 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
   const dispatch = useDispatch();
   const userDetails = useSelector((state: RootState) => state.home.userDetails);
   const [code, setCode] = useState('');
-  const [modalPostVisible, setModalPostVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
   console.log('User==>>', userDetails);
@@ -58,8 +57,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
         .then(res => {
           setLoading(false);
           console.log('Res OTP Verify', res?.data);
-          // dispatch(AuthActions.loginSuccess(true));
-          NavigationService.navigate(RouteNames.AuthRoutes.Preferences);
+          dispatch(AuthActions.loginSuccess(true));
           // setModalPostVisible(true);
         })
         .catch(err => {
@@ -91,13 +89,6 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
       });
   };
 
-  const handleOnClosePost = () => {
-    setModalPostVisible(false);
-    setTimeout(() => {
-      dispatch(AuthActions.loginSuccess(true));
-    }, 200);
-  };
-
   return (
     <>
       <AuthHeader
@@ -105,19 +96,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
         title={t('Continue')}
         customStyles={{marginTop: Metrix.VerticalSize(20)}}
         isBtn
-        onPress={handleOtp}
-        // onTextPress={() => {
-        //   const body = {
-        //     email,
-        //     purpose:
-        //       from == 'forgotPswd' ? 'FORGOT_PASSWORD' : 'EMAIL_VERIFICATION',
-        //   };
-
-        //   dispatch(AuthActions.setResendPassword(body));
-        //   setTextDisable(true);
-        //   setTimeout(() => setTextDisable(false), 5000);
-        // }}
-      >
+        onPress={handleOtp}>
         <View style={styles.container}>
           <CustomText.RegularText
             isSecondaryColor
@@ -139,15 +118,10 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
             selectionColor={Utills.selectedThemeColors().PrimaryTextColor}
           />
-
-          <View
-            style={{
-              flexDirection: 'row',
-            }}>
+          <View style={{flexDirection: 'row'}}>
             <CustomText.RegularText>
               {t('Didnt get OTP  ?')}
             </CustomText.RegularText>
-
             <TouchableOpacity activeOpacity={0.7} onPress={resendOtp}>
               <CustomText.RegularText
                 customStyle={{
@@ -161,17 +135,6 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({route}) => {
         </View>
         <Loader isLoading={loading} />
       </AuthHeader>
-      <CustomModal onClose={handleOnClosePost} visible={modalPostVisible}>
-        <PlaceholderComponent
-          heading={t('Logged in successfully')}
-          image={Images.Wow}
-          title={t('Go to Home')}
-          onPress={() => {
-            handleOnClosePost();
-          }} // onBottombtnPress={() => {}}
-          // bottomBtnText="Skip now"
-        />
-      </CustomModal>
     </>
   );
 };

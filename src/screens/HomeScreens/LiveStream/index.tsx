@@ -41,6 +41,7 @@ import {createThumbnail} from 'react-native-create-thumbnail';
 import {HomeActions} from '../../../redux/actions';
 import {useIsFocused} from '@react-navigation/native';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
+import {Environments} from '../../../services/config';
 
 const threatModes = [
   {
@@ -107,6 +108,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [minutes, setMinutes] = useState(0);
   const [hours, setHours] = useState(0);
   const [mode, setMode] = useState(threatModes[0]?.key || '');
+  const [selectedMode, setSelectedMode] = useState('AUDIO');
   const [zoomLevel, setZoomLevel] = useState(0.5);
   const [isFlashlight, setIsFlashlight] = useState(false);
   const [isCircle, setIsCircle] = useState(true);
@@ -115,6 +117,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const [isModeText, setIsModeText] = useState(false);
   const [modeMsg, setModeMsg] = useState('');
   const [preferenceMsg, setPreferenceMsg] = useState('Monitoring for assault');
+  const [pressedIndex, setPressedIndex] = useState(0);
   const opacity = useRef(new Animated.Value(0)).current;
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
@@ -127,56 +130,12 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
   const safeWord = useSelector(
     (state: RootState) => state?.home?.safeWord?.safeWord,
   );
+  const isThreatDetected = useSelector(
+    (state: RootState) => state?.home?.threatDetected,
+  );
+  console.log('isThreatDetected', isThreatDetected);
 
-  console.log('preferenceMsg', preferenceMsg);
 
-  const handlePress = () => {
-    switch (step) {
-      case 0:
-        // Do something...
-        if (safeWord) {
-          setPreferenceMsg('Monitoring for assault');
-          dispatch(
-            HomeActions.setSafeWord({
-              isSafeWord: false,
-              safeWord: safeWord,
-            }),
-          );
-        }
-        break;
-      case 1:
-        // Do something else...
-        if (!safeWord) {
-          setPreferenceMsg('Monitoring for assaultttt');
-          dispatch(
-            HomeActions.setSafeWord({
-              isSafeWord: true,
-              safeWord: safeWord,
-            }),
-          );
-        }
-
-        break;
-      case 2:
-        setPreferenceMsg('Monitoring off');
-        break;
-    }
-
-    // Move to the next step (and reset after third)
-    setStep(prev => (prev + 1) % 3);
-  };
-
-  const getImage = () => {
-    switch (step) {
-      case 0:
-        return Images.Automatic;
-      case 1:
-        return Images.AutoAndManual;
-      case 2:
-        return Images.MicBtn;
-    }
-    // setStep(prev => (prev + 1) % 3);
-  };
   const headerOptions = [
     mode == 'VIDEO' && {
       id: '1',
@@ -191,6 +150,14 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       id: '2',
       key: 'Mode Type',
       icon: mode == 'AUDIO' ? Images.Ear : Images.EyeCircle,
+      onPress: () => {
+        showText();
+        if (mode == 'AUDIO') {
+          setPreferenceMsg('Recipient will get audio stream');
+        } else {
+          setPreferenceMsg('Recipient will get video stream');
+        }
+      },
     },
     {
       id: '3',
@@ -203,6 +170,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
         if (isSafeWord) {
           setPreferenceMsg('Monitoring for assault');
           dispatch(
+            HomeActions.setSelectedModel(
+              Environments.Models.TRIGGER_WORD_WHISPER,
+            ),
+          );
+          dispatch(
             HomeActions.setSafeWord({
               isSafeWord: false,
               safeWord: safeWord,
@@ -210,6 +182,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
           );
         } else {
           setPreferenceMsg('Monitoring for assault');
+          dispatch(
+            HomeActions.setSelectedModel(
+              Environments.Models.WHISPER_AND_SENTIMENT,
+            ),
+          );
           dispatch(
             HomeActions.setSafeWord({
               isSafeWord: true,
@@ -220,8 +197,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       },
     },
   ].filter(Boolean);
-
-  console.log('safeWord', isSafeWord);
 
   const toggleShape = () => {
     if (isCircle) {
@@ -366,6 +341,12 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    if (isThreatDetected) {
+      startAndStopStream();
+    }
+  }, [isThreatDetected]);
 
   useEffect(() => {
     fetchLastFootage();
@@ -711,6 +692,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({}) => {
       stopRecording();
       stopRecording2();
       fetchLastFootage();
+      dispatch(HomeActions.setThreatDetected(false));
     } else {
       AgoraToken();
     }
@@ -1186,7 +1168,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
   },
   viewerContainer: {
-    top: '37%',
+    top: '41%',
     left: '4%',
     position: 'absolute',
     zIndex: 99,

@@ -10,6 +10,7 @@ interface AppState {
   isFirstTime?: boolean;
   isSafeZone?: boolean;
   threatDetected: boolean;
+  streamStopped?: any;
 }
 
 const initialState: ImmutableObject<AppState> = Immutable<AppState>({
@@ -20,11 +21,11 @@ const initialState: ImmutableObject<AppState> = Immutable<AppState>({
     safeWord: 'Activate',
   },
   userLocation: {},
-  selectedModel:
-    'wss://threat-detection-gcp-917390125611.us-central1.run.app/ws/audio',
+  selectedModel: 'wss://threat-detection.rovesafe.com/ws/audio',
   isFirstTime: false,
   isSafeZone: false,
   threatDetected: false,
+  streamStopped: false,
 });
 
 export default (state = initialState, action: {type: any; payload: any}) => {
@@ -70,6 +71,11 @@ export default (state = initialState, action: {type: any; payload: any}) => {
     case Action.THREAT_DETECTED: {
       return Immutable(state).merge({
         threatDetected: action.payload,
+      });
+    }
+    case Action.STREAM_STOPPED: {
+      return Immutable(state).merge({
+        streamStopped: action.payload,
       });
     }
 

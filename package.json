@@ -20,6 +20,7 @@
     "@react-native-community/voice": "^1.1.9",
     "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-native-masked-view/masked-view": "^0.2.9",
+    "@react-native-voice/voice": "^3.2.4",
     "@react-navigation/drawer": "^6.6.3",
     "@react-navigation/material-bottom-tabs": "^6.2.16",
     "@react-navigation/native": "^6.1.7",

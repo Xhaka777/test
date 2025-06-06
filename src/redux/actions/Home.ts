@@ -8,6 +8,7 @@ export default class Action {
   static SELECTED_MODEL = 'SELECTED_MODEL';
   static IN_SAFE_ZONE = 'IN_SAFE_ZONE';
   static THREAT_DETECTED = 'THREAT_DETECTED';
+  static STREAM_STOPPED = 'STREAM_STOPPED';
 
   //Actions
   static setDarkMode() {
@@ -53,6 +54,12 @@ export default class Action {
   static setThreatDetected(payload: boolean) {
     return {
       type: Action.THREAT_DETECTED,
+      payload,
+    };
+  }
+  static setStreamStopped(payload: boolean) {
+    return {
+      type: Action.STREAM_STOPPED,
       payload,
     };
   }
