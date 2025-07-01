@@ -4,14 +4,11 @@ import {
   PermissionsAndroid,
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {
-  Colors,
   FontType,
   Metrix,
   NavigationService,
@@ -33,6 +30,15 @@ import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+import appleAuth, {
+  AppleAuthRequestOperation,
+  AppleAuthRequestScope,
+  AppleAuthCredentialState,
+} from '@invertase/react-native-apple-authentication';
+
+// Feature flags - Update these when backends are ready
+const GOOGLE_SIGNIN_ENABLED = true;
+const APPLE_SIGNIN_ENABLED = true; // Set to true when Kira enables Apple Developer Console
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
   const dispatch = useDispatch();
@@ -48,6 +54,46 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
   useEffect(() => {
     getPermission();
   }, []);
+
+  useEffect(() => {
+    const checkAppleSignInStatus = async () => {
+      console.log('=== APPLE SIGN-IN DEBUG INFO ===');
+      console.log('Platform:', Platform.OS);
+      console.log('iOS Version:', Platform.Version);
+      console.log('Apple Auth isSupported:', appleAuth.isSupported);
+      
+      // Check if running on simulator
+      if (Platform.OS === 'ios') {
+        try {
+          // This will help identify if it's a simulator issue
+          const isSimulator = Platform.isPad || Platform.isTVOS || 
+                             (Platform.OS === 'ios' && !Platform.isTV && 
+                              (await import('react-native')).Platform.constants.simulator);
+          console.log('Is Simulator:', isSimulator);
+        } catch (e) {
+          console.log('Could not determine if simulator');
+        }
+      }
+      
+      // Check Apple Sign-In availability in detail
+      if (Platform.OS === 'ios') {
+        console.log('Apple Sign-In Module Available:', !!appleAuth);
+        console.log('Apple Auth performRequest Available:', typeof appleAuth.performRequest);
+        
+        // Try to check if the capability is properly configured
+        try {
+          // This will fail if Apple Sign-In capability is not properly set up
+          const testCheck = await appleAuth.isAvailableAsync();
+          console.log('Apple Sign-In isAvailableAsync:', testCheck);
+        } catch (error) {
+          console.log('Apple Sign-In isAvailableAsync Error:', error);
+        }
+      }
+    };
+    
+    checkAppleSignInStatus();
+  }, []);
+  
 
   const getPermission = async () => {
     if (Platform.OS == 'ios') {
@@ -78,7 +124,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
               },
             ],
           );
-          console.log('not grantedddd');
         }
       } catch (err) {
         Alert.alert(
@@ -98,7 +143,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
             },
           ],
         );
-        console.log('not granted', err);
       }
     }
   };
@@ -122,12 +166,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
         );
       },
       error => {
-        // console.log('notppppppp=====granted', error);
+        // Handle location error
       },
       {
         enableHighAccuracy: true,
-        // timeout: 99000000,
-        // timeout: 15000,
         maximumAge: 10000,
       },
     );
@@ -137,11 +179,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
     setLoading(true);
     AuthAPIS.userLogin(body)
       .then(res => {
-        console.log('Logging login ovject', res);
+        console.log('Login response', res);
         getToken(body, res?.data?.data?.user);
       })
       .catch(err => {
-        console.log('Err', err);
+        console.log('Login error', err);
         Utills.showToast(err?.response?.data?.errors?.[0]?.message);
         setLoading(false);
       });
@@ -150,46 +192,66 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
   const getToken = (body: Object, obj: any) => {
     AuthAPIS.getAccessToken(body)
       .then(res => {
-        console.log('Res Token', res?.data);
+        console.log('Token response', res?.data);
         dispatch(
           HomeActions.setUserDetails({
             user: obj,
             token: res?.data?.access,
             isSocialLogin: false,
           }),
-        ),
-          setLoading(false);
+        );
+        setLoading(false);
         dispatch(AuthActions.loginSuccess(true));
       })
       .catch(err => {
-        console.log('Err token', err);
+        console.log('Token error', err);
         Utills.showToast(err?.response?.data?.errors?.[0]?.message);
         setLoading(false);
       });
   };
 
+  // Google Sign-In Handler
   const handleGoogleLogin = () => {
+    if (!GOOGLE_SIGNIN_ENABLED) {
+      Utills.showToast('Google Sign-In temporarily disabled');
+      return;
+    }
+
     GoogleSignin.configure({
-      // androidClientId: 'ADD_YOUR_ANDROID_CLIENT_ID_HERE',
       iosClientId:
         '295191056691-erq304na575h0t5lr0phicdo1ofendl8.apps.googleusercontent.com',
     });
+    
     GoogleSignin.hasPlayServices()
       .then(hasPlayService => {
         if (hasPlayService) {
           GoogleSignin.signIn()
             .then(userInfo => {
-              // console.log('Google cred', JSON.stringify(userInfo));
+              console.log('Google Sign-In Success');
               postGoogleCred(userInfo?.data?.idToken);
             })
             .catch(e => {
-              // console.log('ERROR IS: ' + JSON.stringify(e));
+              handleGoogleError(e);
             });
         }
       })
       .catch(e => {
-        // console.log('ERROR IS: ' + JSON.stringify(e));
+        console.log('Google Play Services Error:', e);
+        Utills.showToast('Google Play Services error');
       });
+  };
+
+  const handleGoogleError = (error: any) => {
+    console.log('Google Sign-In Error:', error);
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      Utills.showToast('Google Sign-In was cancelled');
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      Utills.showToast('Google Sign-In is in progress');
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      Utills.showToast('Google Play Services not available');
+    } else {
+      Utills.showToast('Google Sign-In failed');
+    }
   };
 
   const postGoogleCred = (token: any) => {
@@ -205,6 +267,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
             user: userData,
             token: userData?.access_token,
             isSocialLogin: true,
+            isGoogleLogin: true,
           }),
         );
         setLoading(false);
@@ -218,6 +281,113 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
         Utills.showToast(err?.response?.data?.errors?.[0]?.message);
         setLoading(false);
       });
+  };
+
+  // Apple Sign-In Handler
+  const handleAppleLogin = async () => {
+    console.log('=== APPLE LOGIN ATTEMPT ===');
+    console.log('APPLE_SIGNIN_ENABLED:', APPLE_SIGNIN_ENABLED);
+    console.log('Platform.OS:', Platform.OS);
+    console.log('appleAuth.isSupported:', appleAuth.isSupported);
+    
+    // Temporary bypass for debugging
+    if (Platform.OS === 'ios' && !appleAuth.isSupported) {
+      console.log('Apple Sign-In not supported - possible causes:');
+      console.log('1. iOS version below 13');
+      console.log('2. Running on unsupported simulator');
+      console.log('3. Apple Sign-In capability not enabled in Developer Console');
+      console.log('4. App not properly signed with development team');
+      
+      // Show more detailed error
+      Alert.alert(
+        'Apple Sign-In Debug Info',
+        `Platform: ${Platform.OS}\niOS Version: ${Platform.Version}\nSupported: ${appleAuth.isSupported}\n\nPossible issues:\n• iOS version < 13\n• Simulator limitations\n• Apple Developer Console not configured\n• App signing issues`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    if (!APPLE_SIGNIN_ENABLED) {
+      Utills.showToast('Apple Sign-In integration pending - waiting for backend setup');
+      return;
+    }
+  
+    try {
+      if (!appleAuth.isSupported) {
+        Utills.showToast('Apple Sign-In is not supported on this device');
+        return;
+      }
+  
+      const appleAuthRequestResponse = await appleAuth.performRequest({
+        requestedOperation: AppleAuthRequestOperation.LOGIN,
+        requestedScopes: [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
+      });
+  
+      const credentialState = await appleAuth.getCredentialStateForUser(
+        appleAuthRequestResponse.user,
+      );
+  
+      if (credentialState === AppleAuthCredentialState.AUTHORIZED) {
+        console.log('Apple Sign-In Success');
+        postAppleCred(appleAuthRequestResponse);
+      } else {
+        Utills.showToast('Apple Sign-In failed');
+      }
+    } catch (error) {
+      console.error('Apple Sign-In Error:', error);
+      if (error.code === appleAuth.Error.CANCELED) {
+        Utills.showToast('Apple Sign-In was canceled');
+      } else {
+        Utills.showToast(`Apple Sign-In failed: ${error.message || error.code}`);
+      }
+    }
+  };
+
+  const postAppleCred = (appleResponse: any) => {
+    setLoading(true);
+    
+    const payload = {
+      identityToken: appleResponse.identityToken,
+      authorizationCode: appleResponse.authorizationCode,
+      user: appleResponse.user,
+      email: appleResponse.email,
+      fullName: appleResponse.fullName,
+      realUserStatus: appleResponse.realUserStatus,
+    };
+
+    // TODO: Uncomment when backend creates apple-sign-in endpoint
+    console.log('Apple Sign-In Payload (for backend):', payload);
+    Utills.showToast('Apple Sign-In integration pending backend implementation');
+    setLoading(false);
+    
+    /* 
+    // UNCOMMENT WHEN BACKEND IS READY:
+    AuthAPIS.appleLogin(payload)
+      .then(res => {
+        const userData = res?.data?.data;
+        const firstLogin = !isFirstTime;
+        dispatch(AuthActions.setFirstTime(true));
+        dispatch(
+          HomeActions.setUserDetails({
+            user: userData,
+            token: userData?.access_token,
+            isSocialLogin: true,
+            isAppleLogin: true,
+          }),
+        );
+        
+        setLoading(false);
+        if (firstLogin) {
+          NavigationService.navigate(RouteNames.AuthRoutes.Preferences);
+        } else {
+          dispatch(AuthActions.loginSuccess(true));
+        }
+      })
+      .catch(err => {
+        Utills.showToast(err?.response?.data?.errors?.[0]?.message);
+        setLoading(false);
+      });
+    */
   };
 
   return (
@@ -244,13 +414,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
           title={t('Login')}
           customStyles={{marginTop: Metrix.VerticalSize(20)}}
           isBtn
-          onSecPress={() => handleGoogleLogin()}
+          // Google Sign-In props
+          isSecondaryBtn={true}
+          onSecPress={handleGoogleLogin}
+          googleSignInEnabled={GOOGLE_SIGNIN_ENABLED}
+          // Apple Sign-In props
+          isAppleBtn={true}
+          onApplePress={handleAppleLogin}
+          appleSignInEnabled={APPLE_SIGNIN_ENABLED}
+          // Bottom navigation
           isbottomText={'SignUp'}
           onBottomTextPress={() =>
             NavigationService.navigate(RouteNames.AuthRoutes.RegisterScreen)
           }
-          isSecondaryBtn
-          onPress={() => handleSubmit()}>
+          onPress={handleSubmit}>
+          
           <CustomInput
             heading={t('Email')}
             placeholder={t('Enter email')}
@@ -264,6 +442,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
             keyboardType="email-address"
             onSubmitEditing={() => passwordRef.current.focus()}
           />
+          
           <CustomInput
             heading={t('Password')}
             placeholder={t('Enter password')}
@@ -283,6 +462,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
             returnKeyType="done"
             inputRef={passwordRef}
           />
+          
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() =>
@@ -298,6 +478,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
               {t('Forgot password')}
             </CustomText.RegularText>
           </TouchableOpacity>
+
           <Loader isLoading={loading} />
         </AuthHeader>
       )}
@@ -305,5 +486,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({}) => {
   );
 };
 
-interface LoginScreenStyles {}
-const styles = StyleSheet.create<LoginScreenStyles>({});
+const styles = StyleSheet.create({
+  // Add any LoginScreen specific styles here
+});

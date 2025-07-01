@@ -7,22 +7,22 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
-import {SafeZoneProps} from '../../propTypes';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import MapView, {Circle, Marker, PROVIDER_GOOGLE} from 'react-native-maps';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../../../redux/reducers';
-import {Images, Metrix, Utills} from '../../../config';
-import {Image} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import {CustomModal, CustomText, Loader} from '../../../components';
+import React, { useEffect, useRef, useState } from 'react';
+import { SafeZoneProps } from '../../propTypes';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../redux/reducers';
+import { Images, Metrix, Utills } from '../../../config';
+import { Image } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { CustomModal, CustomText, Loader } from '../../../components';
 import Geolocation from 'react-native-geolocation-service';
-import {HomeAPIS} from '../../../services/home';
-import {HomeActions} from '../../../redux/actions';
-import {GOOGLE_API_KEY} from '../../../services/config';
+import { HomeAPIS } from '../../../services/home';
+import { HomeActions } from '../../../redux/actions';
+import { GOOGLE_API_KEY } from '../../../services/config';
 
-export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
+export const SafeZone: React.FC<SafeZoneProps> = ({ }) => {
   const route = useRoute();
   const dispatch = useDispatch();
   const mapRef = useRef<any>(null);
@@ -38,6 +38,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   const [searchedLocation, setSearchedLocation] = useState<any>('');
   const [safeZones, setSafeZones] = useState<any[]>([]);
   const [safeZoneAddress, setSafeZoneAddress] = useState<any>('');
+  const [isLocationReady, setIsLocationReady] = useState(false);
   const [region, setRegion] = useState({
     latitude: userCoordinates?.latitude,
     longitude: userCoordinates?.longitude,
@@ -67,10 +68,24 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       id: '5',
       image: Images.Target,
       onPress: () => {
-        getCurrentLocation();
+        // getCurrentLocation();
+        //Create safe zone immediately at current coordinates
+        if (userCoordinates?.latitude && userCoordinates?.longitude) {
+          createSafeZone(
+            userCoordinates?.latitude,
+            userCoordinates?.longitude,
+            'Current Location'
+          );
+          // setRegion({
+          //   latitude: userCoordinates.latitude,
+          //   longitude: userCoordinates.longitude
+          // })
+        }
       },
     },
   ];
+
+  console.log('GOOGLE_API_KEY', GOOGLE_API_KEY)
 
   const fetchPlaces = async (lat: any, lng: any, type: any) => {
     const response = await fetch(
@@ -140,16 +155,16 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
             type: 'custom',
           });
         });
-        const hospitals = await fetchPlaces(
-          region?.latitude,
-          region?.longitude,
-          'hospital',
-        );
-        const policeStations = await fetchPlaces(
-          region?.latitude,
-          region?.longitude,
-          'police',
-        );
+        // const hospitals = await fetchPlaces(
+        //   region?.latitude,
+        //   region?.longitude,
+        //   'hospital',
+        // );
+        // const policeStations = await fetchPlaces(
+        //   region?.latitude,
+        //   region?.longitude,
+        //   'police',
+        // );
         const isInSafeZone = array.find((zone: any) => {
           const distance = calculateDistance(
             userCoordinates?.latitude,
@@ -166,7 +181,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
           setInSZ(false);
           dispatch(HomeActions.setInSafeZone(false));
         }
-        setSafeZones([...array, ...hospitals, ...policeStations]);
+        // setSafeZones([...array, ...hospitals, ...policeStations]);
+        setSafeZones(array);
         setLoading(false);
       })
       .catch(err => {
@@ -199,19 +215,60 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       });
   };
 
+  // const deleteZone = (id: any) => {
+  //   setLoading(true);
+  //   HomeAPIS.deleteSafeZone(id)
+  //     .then(res => {
+  //       setLoading(false);
+  //       setTimeout(() => {
+  //         getZones();
+  //       }, 1000);
+  //     })
+  //     .catch(err => {
+  //       // console.log('Err', err?.response?.data);
+  //       setLoading(false);
+  //     });
+  // };
+
   const deleteZone = (id: any) => {
     setLoading(true);
     HomeAPIS.deleteSafeZone(id)
       .then(res => {
+        // ✅ Remove from local state
+        const updatedZones = safeZones.filter(zone => zone.id !== id);
+        setSafeZones(updatedZones);
+
+        // ✅ Re-check if user is still in any safe zone
+        checkSafeZoneStatus(updatedZones);
+
         setLoading(false);
-        setTimeout(() => {
-          getZones();
-        }, 1000);
+        // Utills.showToast('Safe zone deleted successfully');
       })
       .catch(err => {
-        // console.log('Err', err?.response?.data);
+        console.log('Delete error:', err?.response?.data);
         setLoading(false);
       });
+  };
+
+  // ✅ Extract safe zone checking logic into separate function
+  const checkSafeZoneStatus = (zones = safeZones) => {
+    const isInSafeZone = zones.find((zone: any) => {
+      const distance = calculateDistance(
+        userCoordinates?.latitude,
+        userCoordinates?.longitude,
+        zone.location.latitude,
+        zone.location.longitude,
+      );
+      return distance <= zone.radius;
+    });
+
+    if (isInSafeZone) {
+      setInSZ(true);
+      dispatch(HomeActions.setInSafeZone(true));
+    } else {
+      setInSZ(false);
+      dispatch(HomeActions.setInSafeZone(false));
+    }
   };
 
   const requestLocationPermission = async () => {
@@ -236,14 +293,20 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     if (hasPermission) {
       Geolocation.getCurrentPosition(
         position => {
-          const {latitude, longitude} = position.coords;
+          const { latitude, longitude } = position.coords;
           console.log('Position', position);
 
           setRegion({
             latitude: latitude,
             longitude: longitude,
           });
+
+          dispatch(HomeActions.setUserLocation({ latitude, longitude }));
+
           setSearchedLocation('');
+
+          setIsLocationReady(true);
+
           // Animate map to the user's location
           if (mapRef.current) {
             mapRef.current.animateToRegion(
@@ -259,6 +322,8 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
         },
         error => {
           console.error(error);
+          //fallback to default location
+          setIsLocationReady(true);
         },
         {
           enableHighAccuracy: true,
@@ -268,6 +333,15 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
       );
     }
   };
+
+  //Dont render map until location is ready
+  if (!isLocationReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <CustomText.RegularText>Loading location...</CustomText.RegularText>
+      </View>
+    )
+  }
 
   const deleteAlert = (item: any) => {
     Alert.alert(
@@ -286,7 +360,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
           style: 'cancel',
         },
       ],
-      {cancelable: true},
+      { cancelable: true },
     );
   };
 
@@ -294,15 +368,15 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
     const title = rowData?.structured_formatting?.main_text;
     const address = rowData?.structured_formatting?.secondary_text;
     return (
-      <View style={{alignItems: 'center', flexDirection: 'row'}}>
+      <View style={{ alignItems: 'center', flexDirection: 'row' }}>
         <Image
           resizeMode="contain"
           source={Images.Marker}
           style={styles.locMarker}
         />
-        <View style={{left: Metrix.HorizontalSize(10)}}>
+        <View style={{ left: Metrix.HorizontalSize(10) }}>
           <CustomText.RegularText
-            customStyle={{color: Utills.selectedThemeColors().Base}}>
+            customStyle={{ color: Utills.selectedThemeColors().Base }}>
             {title}
           </CustomText.RegularText>
           <CustomText.SmallText isSecondaryColor>
@@ -314,7 +388,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <View style={styles.searchContainer}>
         <TouchableOpacity
           onPress={() => {
@@ -346,7 +420,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
               source={Images.Cross}
               style={[
                 styles.searchIcon,
-                {tintColor: Utills.selectedThemeColors().Base, left: 20},
+                { tintColor: Utills.selectedThemeColors().Base, left: 20 },
               ]}
             />
           </TouchableOpacity>
@@ -394,7 +468,7 @@ export const SafeZone: React.FC<SafeZoneProps> = ({}) => {
                   <Image
                     source={Images.SafeZone}
                     resizeMode="contain"
-                    style={{width: '100%', height: '100%'}}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </View>
               </Marker>

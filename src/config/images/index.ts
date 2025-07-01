@@ -56,7 +56,8 @@ const Images = {
   OnBoard6: require('../../assets/images/Onboarding6.png'), //New
   OnBoard7: require('../../assets/images/Onboarding7.png'), //New
 
-  HomeActive: require('../../assets/icons/homeFilled.png'),
+  // HomeActive: require('../../assets/icons/homeFilled.png'),
+  HomeActive: require('../../assets/icons/livestream.png'),
   HomeInActive: require('../../assets/icons/Home.png'),
   ProfileActive: require('../../assets/icons/profile-circle1.png'),
   ProfileInActive: require('../../assets/icons/profile-circle.png'),
@@ -75,6 +76,7 @@ const Images = {
   HeartFilled: require('../../assets/icons/heartFilled.png'),
   HeartEmpty: require('../../assets/icons/heartEmpty.png'),
   Star: require('../../assets/icons/star.png'),
+  Responders: require('../../assets/icons/responders.png'),
 
   Drawer: require('../../assets/icons/Drawer.png'),
   About: require('../../assets/icons/About.png'),
@@ -132,6 +134,7 @@ const Images = {
   Camera: require('../../assets/icons/camera.png'),
   EndCall: require('../../assets/icons/endCall.png'),
   Mic: require('../../assets/icons/mute.png'),
+  NoMic: require('../../assets/icons/no_mic.png'),
   Hospital: require('../../assets/icons/hospital.png'),
   Police: require('../../assets/icons/police.png'),
   SafeZone: require('../../assets/icons/safe-zone.png'),

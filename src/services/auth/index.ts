@@ -28,11 +28,16 @@ const resendOTP = (body: object) => {
   return httpService().post('accounts/otp/resend-otp/', body);
 };
 
+// const appleLogin = (body: object) => {
+//   return httpService().post('accounts/api/apple-sign-in/', body);
+// };
+
 export const AuthAPIS = {
   userLogin,
   getAccessToken,
   userSignup,
   googleLogin,
+  // appleLogin,
   sendOtp,
   resendOTP,
   verifyOtp,

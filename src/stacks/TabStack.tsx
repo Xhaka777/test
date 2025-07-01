@@ -15,6 +15,7 @@ import Voice from '@react-native-voice/voice';
 import {HomeActions} from '../redux/actions';
 import {Environments} from '../services/config';
 import {useHeartRateHook} from '../hooks';
+import { HomeAPIS } from '../services/home';
 
 const Tab = createMaterialBottomTabNavigator();
 type TabStackType = {
@@ -38,10 +39,10 @@ const tabsData: TabStackType = [
     inActive: Images.Map,
   },
   {
-    name: 'Contacts',
+    name: 'Responders',
     component: TrustedContacts,
-    active: Images.People,
-    inActive: Images.People,
+    active: Images.Responders,
+    inActive: Images.Responders,
   },
   {
     name: 'Settings',
@@ -313,7 +314,7 @@ export const TabStack: React.FC = ({}) => {
         });
 
         LiveAudioStream.on('data', data => {
-          console.log('Live audio is streaming========>>> 1');
+          // console.log('Live audio is streaming========>>> 1');
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(data);
           }

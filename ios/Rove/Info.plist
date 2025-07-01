@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -57,7 +61,13 @@
 	<key>NSContactsUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to access your contacts to show contacts in the app</string>
 	<key>NSFileProviderDomainUsageDescription</key>
-	<string/>
+	<string></string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>Read and understand clinical health data.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Read and understand health data.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Share workout data with other apps.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to access your location for safety purposes</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -68,21 +78,18 @@
 	<string>$(PRODUCT_NAME) needs access to your photo library to allow you to upload your profile photo.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to access your microphone for speech recognition, allowing you to conveniently interact with the app using your voice.</string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Read and understand health data.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Share workout data with other apps.</string>
-	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
-	<string>Read and understand clinical health data.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SF-Pro-Display-Bold.ttf</string>
+		<string>SF-Pro-Display-Medium.ttf</string>
+		<string>SF-Pro-Display-Regular.ttf</string>
+		<string>SF-Pro-Display-Semibold.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
 		<string>processing</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -98,12 +105,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>SF-Pro-Display-Bold.ttf</string>
-		<string>SF-Pro-Display-Medium.ttf</string>
-		<string>SF-Pro-Display-Regular.ttf</string>
-		<string>SF-Pro-Display-Semibold.ttf</string>
-	</array>
 </dict>
 </plist>

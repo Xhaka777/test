@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useState} from 'react';
-import {TrustedContactsProps} from '../../propTypes';
+import React, { useCallback, useState } from 'react';
+import { TrustedContactsProps } from '../../propTypes';
 import {
   CustomText,
   Loader,
@@ -15,7 +15,7 @@ import {
   PrimaryButton,
   RoundImageContainer,
 } from '../../../components';
-import {t} from 'i18next';
+import { t } from 'i18next';
 import {
   Images,
   Metrix,
@@ -23,13 +23,13 @@ import {
   RouteNames,
   Utills,
 } from '../../../config';
-import {createShadow, normalizeFont} from '../../../config/metrix';
-import {HomeAPIS} from '../../../services/home';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../../redux/reducers';
-import {useFocusEffect} from '@react-navigation/native';
+import { createShadow, normalizeFont } from '../../../config/metrix';
+import { HomeAPIS } from '../../../services/home';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/reducers';
+import { useFocusEffect } from '@react-navigation/native';
 
-export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
+export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,12 +54,12 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
         let array:
           | ((prevState: never[]) => never[])
           | {
-              id: any;
-              name: any;
-              phone: any;
-              abbreviate: any;
-              serviceType: any;
-            }[] = [];
+            id: any;
+            name: any;
+            phone: any;
+            abbreviate: any;
+            serviceType: any;
+          }[] = [];
         res?.data?.map((item: any) => {
           array?.push({
             id: item?.id,
@@ -100,7 +100,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
     }, []),
   );
 
-  const renderContactListItem = ({item}: any) => {
+  const renderContactListItem = ({ item }: any) => {
     return (
       <View key={item?.id} style={styles.card}>
         <View style={styles.leftBox}>
@@ -116,7 +116,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
             customStyle={styles.rightText}>
             {item?.name}
           </CustomText.MediumText>
-          <CustomText.RegularText>{item?.phone}</CustomText.RegularText>
+          {/* <CustomText.RegularText>{item?.phone}</CustomText.RegularText> */}
         </View>
         <View style={styles.editBox}>
           <TouchableOpacity
@@ -137,30 +137,56 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
             activeOpacity={0.7}
             onPress={() => {
               Alert.alert('Are you sure?', 'You want to delete this contact', [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'OK', onPress: () => deleteContact(item?.id)},
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'OK', onPress: () => deleteContact(item?.id) },
               ]);
             }}>
             <RoundImageContainer
               resizeMode="contain"
               circleWidth={28}
               source={Images.Delete}
+              imageStyle={{
+                tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+              }}
             />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.testStreamButton}
+            onPress={() => {
+              // Handle test stream functionality
+              console.log('Test stream for:', item?.name);
+              // You can add your test stream logic here
+            }}>
+            <CustomText.SmallText customStyle={styles.testStreamText}>
+              Test{'\n'}stream
+            </CustomText.SmallText>
           </TouchableOpacity>
         </View>
       </View>
     );
   };
+
   return (
     <MainContainer>
       <CustomText.ExtraLargeBoldText>
-        {t('Trusted Contacts')}
+        {t('Responders')}
       </CustomText.ExtraLargeBoldText>
-      <View style={{flex: 1, marginTop: Metrix.VerticalSize(20)}}>
+
+      {/* Add the subtitle text here */}
+      <CustomText.RegularText
+        customStyle={{
+          marginTop: Metrix.VerticalSize(15),
+          lineHeight: 20,
+        }}>
+        {t('Add trusted contacts to be notified instantly in an emergency. They\'ll get your live location, alerts, and updates to help you quickly and effectively.')}
+      </CustomText.RegularText>
+
+      <View style={{ flex: 1, marginTop: Metrix.VerticalSize(20) }}>
         <PrimaryButton
           title={'Add Contact'}
           width={'97%'}
-          customStyles={{alignSelf: 'center'}}
+          customStyles={{ alignSelf: 'center' }}
           onPress={() => {
             // 🚨 Deliberate crash for testing
             // throw new Error('Test crash: Intentional crash from Add Contact button');
@@ -186,29 +212,6 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({}) => {
         />
       </View>
 
-      {/* <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => {
-          NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
-        }}
-        style={styles.addContact}>
-        <RoundImageContainer
-          circleWidth={24}
-          source={Images.Plus}
-          borderColor={Utills.selectedThemeColors().PrimaryTextColor}
-          backgroundColor={Utills.selectedThemeColors().PrimaryTextColor}
-        />
-        <CustomText.RegularText
-          customStyle={{
-            marginLeft: Metrix.HorizontalSize(5),
-            fontSize: normalizeFont(14),
-            color: Utills.selectedThemeColors().Base,
-            fontWeight: '600',
-          }}
-          numberOfLines={1}>
-          Add Contact
-        </CustomText.RegularText>
-      </TouchableOpacity> */}
       <Loader isLoading={loading} />
     </MainContainer>
   );
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    paddingHorizontal: Metrix.HorizontalSize(10),
+    // paddingHorizontal: Metrix.HorizontalSize(10),
     paddingVertical: Metrix.VerticalSize(5),
     borderRadius: Metrix.HorizontalSize(10),
     height: Metrix.VerticalSize(70),
@@ -236,9 +239,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   leftBox: {
-    width: '20%',
-    alignItems: 'center',
+    width: '15%',
+    alignItems: 'start',
     justifyContent: 'center',
+    // backgroundColor: Utills.selectedThemeColors().Primary,
+
   },
   circularView: {
     width: Metrix.HorizontalSize(45),
@@ -254,35 +259,48 @@ const styles = StyleSheet.create({
     fontSize: normalizeFont(24),
   },
   rightBox: {
-    width: '55%',
+    width: '45%',
     justifyContent: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(2),
+    paddingHorizontal: Metrix.HorizontalSize(8),
+    paddingLeft: Metrix.HorizontalSize(5),
   },
   editBox: {
-    width: '24%',
+    width: '40%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(2),
+    // paddingHorizontal: Metrix.HorizontalSize(-1),
     flexDirection: 'row',
   },
   rightText: {
     marginBottom: Metrix.VerticalSize(3),
     fontWeight: '700',
+    textAlign: 'left'
   },
   addContact: {
     position: 'absolute',
     bottom: '5%',
     right: '7%',
-    // width: Metrix.HorizontalSize(50),
-    // height: Metrix.VerticalSize(50),
     borderRadius: Metrix.HorizontalSize(100),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
 
     padding: Metrix.HorizontalSize(10),
-    // bottom: '5%',
-    // right: '8%',
     flexDirection: 'row',
+  },
+  testStreamButton: {
+    paddingHorizontal: Metrix.HorizontalSize(10),
+    paddingVertical: Metrix.VerticalSize(7),
+    borderRadius: Metrix.HorizontalSize(4),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF0005'
+  },
+  testStreamText: {
+    color: Utills.selectedThemeColors().PrimaryTextColor,
+    fontSize: normalizeFont(12),
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 12,
   },
 });
