@@ -1,13 +1,13 @@
 import React, { ReactNode } from 'react';
 import {
   Image,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import { BackHeader } from '../BackHeader';
 import { CustomText, MainContainer, PrimaryButton, SecondaryButton } from '..';
@@ -17,9 +17,6 @@ import { PrimaryButtonProps } from '../PrimaryButton';
 import { useThemeHook } from '../../hooks';
 import { t } from 'i18next';
 import { normalizeFont } from '../../config/metrix';
-import appleAuth, {
-  AppleButton,
-} from '@invertase/react-native-apple-authentication';
 
 const TouchableText: React.FC<{ text: string }> = ({ text }) => {
   return (
@@ -45,16 +42,13 @@ type AuthHeaderProps = PrimaryButtonProps & {
   isBtn?: boolean;
   isLogo?: boolean;
   isSecondaryBtn?: boolean;
+  isAppleBtn?: boolean; // NEW: Apple button prop
   isupperText?: boolean;
   children: ReactNode;
   title?: string;
   childrenView?: any;
   onSecPress?: () => void;
-  // Apple Sign-In props
-  isAppleBtn?: boolean;
-  onApplePress?: () => void;
-  appleSignInEnabled?: boolean;
-  googleSignInEnabled?: boolean;
+  onApplePress?: () => void; // NEW: Apple press handler
 };
 
 export const AuthHeader: React.FC<AuthHeaderProps> = ({
@@ -66,35 +60,17 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
   title,
   onPress,
   onSecPress,
+  onApplePress, // NEW: Apple press handler
   onBottomTextPress,
   isbottomText,
   isBtn,
   isLogo = true,
   customStyles,
   isSecondaryBtn,
+  isAppleBtn = false, // NEW: Apple button flag
   isupperText,
   childrenView,
-  // Apple Sign-In props
-  isAppleBtn,
-  onApplePress,
-  appleSignInEnabled = true,
-  googleSignInEnabled = true,
 }) => {
-  // Check if Apple Sign-In should be shown
-  const shouldShowAppleSignIn = 
-    isAppleBtn && 
-    appleSignInEnabled && 
-    Platform.OS === 'ios' && 
-    appleAuth.isSupported;
-
-  console.log(shouldShowAppleSignIn)
-
-  // Check if Google Sign-In should be shown
-  const shouldShowGoogleSignIn = isSecondaryBtn && googleSignInEnabled;
-
-  // Show social buttons section if either Google or Apple should be shown
-  const shouldShowSocialButtons = shouldShowAppleSignIn || shouldShowGoogleSignIn;
-
   return (
     <MainContainer
       customeStyle={{
@@ -140,7 +116,6 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
                 </CustomText.MediumText>
               </View>
             )}
-            
             {isBtn && (
               <PrimaryButton
                 title={title}
@@ -149,43 +124,42 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
                 onPress={onPress}
               />
             )}
-
-            {/* Social Sign-In Buttons Section */}
-            {shouldShowSocialButtons && (
-              <View style={styles.socialButtonsContainer}>
+            {isSecondaryBtn && (
+              <View style={{ marginBottom: Metrix.VerticalSize(50) }}>
                 <CustomText.RegularText
                   customStyle={{
                     color: Utills.selectedThemeColors().LightGreyText,
                     textAlign: 'center',
                     lineHeight: 30,
-                    marginVertical: Metrix.VerticalSize(10),
                   }}>
                   {t('or')}
                 </CustomText.RegularText>
 
-                {/* Apple Sign-In Button */}
-                
-               
+                {/* Google Sign-In Button */}
+                <SecondaryButton
+                  onPress={onSecPress}
+                  title={t('Continue with Google')}
+                  source={Images.GoogleLogo}
+                  isIcon
+                />
+
+                {/* NEW: Apple Sign-In Button - Only show on iOS */}
+                {/* {isAppleBtn && Platform.OS === 'ios' && (
                   <SecondaryButton
                     onPress={onApplePress}
                     title={t('Continue with Apple')}
-                    source={Images.Girl}
+                    source={Images.IOS}
                     isIcon
-                    />
-              
-
-                {/* Google Sign-In Button */}
-                {shouldShowGoogleSignIn && (
-                  <SecondaryButton
-                    onPress={onSecPress}
-                    title={t('Continue with Google')}
-                    source={Images.GoogleLogo}
-                    isIcon
+                    customStyles={{ 
+                      marginTop: Metrix.VerticalSize(10),
+                      backgroundColor: '#000000',
+                      borderColor: '#000000',
+                    }}
+                    textColor={Utills.selectedThemeColors().PrimaryTextColor}
                   />
-                )}
+                )} */}
               </View>
             )}
-
             {isbottomText && (
               <View style={styles.bottomText}>
                 <CustomText.MediumText isSecondaryColor>
@@ -208,9 +182,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    // marginVertical: Metrix.VerticalSize(40),
-  },
+  container: {},
   bottomText: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -219,9 +191,7 @@ const styles = StyleSheet.create({
   bottomTouchable: {
     justifyContent: 'center',
   },
-  bottomContainer: { 
-    justifyContent: 'space-between' 
-  },
+  bottomContainer: { justifyContent: 'space-between' },
   childrenView: {
     marginVertical: Metrix.VerticalSize(20),
     flex: 4,
@@ -231,9 +201,5 @@ const styles = StyleSheet.create({
     flex: 1.0,
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  socialButtonsContainer: {
-    marginTop: Metrix.VerticalSize(10),
-    marginBottom: Metrix.VerticalSize(20),
   },
 });

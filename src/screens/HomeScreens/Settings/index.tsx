@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import {
   ActionSheetIOS,
   FlatList,
@@ -6,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
 import {
   CustomText,
   FadeInImage,
@@ -14,8 +14,8 @@ import {
   RoundImageContainer,
   TextInputAlert,
 } from '../../../components';
-import {SettingsProps} from '../../propTypes';
-import {useDispatch, useSelector} from 'react-redux';
+import { SettingsProps } from '../../propTypes';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Images,
   Metrix,
@@ -23,16 +23,14 @@ import {
   RouteNames,
   Utills,
 } from '../../../config';
-import {t} from 'i18next';
-import {RootState} from '../../../redux/reducers';
-import {CommonActions, useNavigation} from '@react-navigation/native';
-import {AuthActions, HomeActions} from '../../../redux/actions';
-import {createShadow} from '../../../config/metrix';
+import { t } from 'i18next';
+import { RootState } from '../../../redux/reducers';
+import { AuthActions, HomeActions } from '../../../redux/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {HomeAPIS} from '../../../services/home';
-import {Environments} from '../../../services/config';
+import { HomeAPIS } from '../../../services/home';
+import { Environments } from '../../../services/config';
 
-export const Settings: React.FC<SettingsProps> = ({}) => {
+export const Settings: React.FC<SettingsProps> = ({ }) => {
   const dispatch = useDispatch();
   const isSafeWord = useSelector(
     (state: RootState) => state?.home?.safeWord?.isSafeWord,
@@ -40,7 +38,6 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
   const safeWord = useSelector(
     (state: RootState) => state?.home?.safeWord?.safeWord,
   );
-  const navigation = useNavigation();
   const [isPrompt, setIsPrompt] = useState(false);
   const [word, setWord] = useState(safeWord);
   const [model, setModel] = useState('');
@@ -63,8 +60,47 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
   const CardData = [
     {
       id: '1',
+      image: Images.SafeWord,
+      text: 'Safe Word',
+      onPress: () => {
+        isSafeWord
+          ? Utills.showToast(
+            'Please select your preference as manual for safe word audio streaming',
+          )
+          : setIsPrompt(true);
+      },
+    },
+    {
+      id: '2',
+      image: Images.Responders,
+      text: 'Responders',
+      onPress: () => {
+        NavigationService.navigate(RouteNames.HomeRoutes.TrustedContacts);
+      }
+    },
+    {
+      id: '3',
+      image: Images.Passkey,
+      text: 'Passcode',
+      styles: { width: '100%' },
+      onPress: () => {
+        NavigationService.navigate(RouteNames.HomeRoutes.PasscodeSettings);
+      },
+      iconSize: 35, 
+    },
+    {
+      id: '4',
+      image: Images.HowToUse,
+      text: 'How To use',
+      styles: { width: '100%' },
+      onPress: () => {
+        NavigationService.navigate(RouteNames.HomeRoutes.HowToUse);
+      },
+    },
+    {
+      id: '5',
       image: Images.About,
-      text: 'Help Center',
+      text: 'FAQs',
       onPress: () => {
         NavigationService.navigate(RouteNames.HomeRoutes.FAQ, {
           from: 'Help Center',
@@ -72,17 +108,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
       },
     },
     {
-      id: '2',
-      image: Images.Help,
-      text: 'FAQs',
-      onPress: () => {
-        NavigationService.navigate(RouteNames.HomeRoutes.FAQ, {
-          from: 'FAQ',
-        });
-      },
-    },
-    {
-      id: '3',
+      id: '6',
       image: Images.PrivacyPilicy,
       text: 'Privacy Policy',
       onPress: () => {
@@ -91,9 +117,8 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         });
       },
     },
-
     {
-      id: '4',
+      id: '7',
       image: Images.TermsAndCond,
       text: 'Terms & Conditions',
       onPress: () => {
@@ -102,28 +127,8 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         });
       },
     },
-    // {
-    //   id: '5',
-    //   image: Images.Preference,
-    //   text: 'Preferences',
-    //   onPress: () => {
-    //     NavigationService.navigate(RouteNames.HomeRoutes.HeartRateMonitor);
-    //   },
-    // },
     {
-      id: '6',
-      image: Images.SafeWord,
-      text: 'Safe Word',
-      onPress: () => {
-        isSafeWord
-          ? Utills.showToast(
-              'Please select your preference as manual for safe word audio streaming',
-            )
-          : setIsPrompt(true);
-      },
-    },
-    {
-      id: '7',
+      id: '8',
       image: Images.Out,
       text: 'Log Out',
       onPress: () => {
@@ -161,12 +166,6 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
     AsyncStorage.removeItem('userData');
     dispatch(HomeActions.setUserDetails({}));
     dispatch(HomeActions.setUserLocation({}));
-    // dispatch(
-    //   HomeActions.setSafeWord({
-    //     isSafeWord: true,
-    //     safeWord: 'Activate',
-    //   }),
-    // );
     dispatch(AuthActions.loginSuccess(false));
   };
 
@@ -208,7 +207,7 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
       },
     );
 
-  const renderSeetingsItem = ({item}: any) => {
+  const renderSeetingsItem = ({ item }: any) => {
     if (item.condition !== undefined && !item.condition) return null;
     return (
       <TouchableOpacity
@@ -216,17 +215,23 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
         onPress={item?.onPress}
         key={item?.id}
         style={styles.renderContainer}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <FadeInImage
             customImageContainerStyle={{
-              width: Metrix.HorizontalSize(25),
-              height: Metrix.VerticalSize(25),
+              width: Metrix.HorizontalSize(30), // same for all
+              height: Metrix.VerticalSize(30),
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
             imageStyles={{
+              width: Metrix.HorizontalSize(item?.iconSize || 25),  // icon image
+              height: Metrix.VerticalSize(item?.iconSize || 25),
+              resizeMode: 'contain',
               tintColor: Utills.selectedThemeColors().PrimaryTextColor,
             }}
             source={item?.image}
           />
+
           <CustomText.RegularText customStyle={styles.itemText}>
             {item?.text}
           </CustomText.RegularText>
@@ -244,81 +249,75 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
     );
   };
 
+  // Function to navigate to edit profile when avatar is pressed
+  const handleAvatarPress = () => {
+    NavigationService.navigate(RouteNames.HomeRoutes.EditProfileScreen);
+  };
+
   return (
     <MainContainer
       customeStyle={{
         paddingHorizontal: 0,
         flex: 1,
       }}>
-      <CustomText.ExtraLargeBoldText
-        customStyle={{paddingHorizontal: Metrix.HorizontalSize(20)}}>
-        {t('Settings')}
-      </CustomText.ExtraLargeBoldText>
-      <View style={{flex: 1}}>
-        <View style={{flex: 0.25}}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: Metrix.VerticalSize(20), justifyContent: 'start', paddingHorizontal: Metrix.HorizontalSize(20) }}>
+        <Image
+          source={Images.Premium}
+          style={styles.settingsIcon}
+          resizeMode="contain"
+        />
+        <CustomText.LargeBoldText>
+          {t('Settings')}
+        </CustomText.LargeBoldText>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <View style={{ flex: 0.3 }}>
           <View style={styles.profileCard}>
-            <View style={styles.cardLeftContainer}>
-              <View style={styles.avatarContainer}>
-                <RoundImageContainer
-                  circleWidth={60}
-                  source={
-                    userData?.isSocialLogin
-                      ? {uri: userData?.user?.image_url}
-                      : userData?.isSocialLogin == false
-                      ? {uri: userData?.user?.avatar}
-                      : Images.UserPlaceholder
-                  }
-                />
-              </View>
-              <View style={styles.detailsContainer}>
-                <CustomText.MediumText
-                  customStyle={{
-                    color: Utills.selectedThemeColors().PrimaryTextColor,
-                    fontWeight: '700',
-                  }}>
-                  {userData?.user?.first_name +
-                    ' ' +
-                    userData?.user?.last_name || userData?.user?.username}
-                </CustomText.MediumText>
-                <CustomText.SmallText>
-                  {userData?.user?.email}
-                </CustomText.SmallText>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    NavigationService.navigate(
-                      RouteNames.HomeRoutes.EditProfileScreen,
-                    );
-                  }}
-                  style={styles.editProfileButton}>
-                  <CustomText.ExtraSmallText
-                    customStyle={{
-                      color: Utills.selectedThemeColors().Base,
-                      fontWeight: '600',
-                    }}>
-                    Edit Profile
-                  </CustomText.ExtraSmallText>
-                </TouchableOpacity>
-              </View>
-            </View>
+            {/* Touchable Avatar Container */}
             <TouchableOpacity
+              style={styles.avatarContainer}
               activeOpacity={0.7}
-              onPress={() => {
-                handleLogout();
-              }}
-              style={styles.logoutContainer}>
-              <Image
-                source={Images.LogOut}
-                resizeMode="contain"
-                style={styles.logoutImage}
+              onPress={handleAvatarPress}>
+              <RoundImageContainer
+                circleWidth={80}
+                source={
+                  userData?.isSocialLogin
+                    ? { uri: userData?.user?.image_url }
+                    : userData?.isSocialLogin == false
+                      ? { uri: userData?.user?.avatar }
+                      : Images.UserPlaceholder
+                }
               />
             </TouchableOpacity>
+
+            <View style={styles.detailsContainer}>
+              <CustomText.MediumText
+                customStyle={{
+                  color: Utills.selectedThemeColors().PrimaryTextColor,
+                  fontWeight: '700',
+                }}>
+                {userData?.user?.first_name +
+                  ' ' +
+                  userData?.user?.last_name || userData?.user?.username}
+              </CustomText.MediumText>
+
+              <CustomText.SmallText customStyle={styles.emailText}>
+                {userData?.user?.email}
+              </CustomText.SmallText>
+
+              {/* Premium Badge */}
+              <View style={styles.badgeContainer}>
+                <CustomText.SmallText
+                  customStyle={{ color: '#fff', fontWeight: '600' }}>
+                  {userData?.user?.isPremium ? 'PREMIUM' : 'PREMIUM'}
+                </CustomText.SmallText>
+              </View>
+            </View>
           </View>
         </View>
-        <View
-          style={{
-            flex: 1,
-          }}>
+
+        <View style={{ flex: 1 }}>
           <FlatList
             data={CardData}
             renderItem={renderSeetingsItem}
@@ -326,18 +325,8 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
             keyExtractor={item => item?.id}
           />
         </View>
-        {/* <CustomText.RegularText
-          customStyle={{
-            alignSelf: 'center',
-          }}>
-          Chosse Model
-        </CustomText.RegularText>
-        <CustomText.SmallText
-          onPress={genderSelection}
-          customStyle={styles.genderTxt}>
-          {model}
-        </CustomText.SmallText> */}
       </View>
+
       <TextInputAlert
         heading={'Safe Word'}
         subHeading={'Please enter your custom safe word'}
@@ -353,64 +342,39 @@ export const Settings: React.FC<SettingsProps> = ({}) => {
 
 const styles = StyleSheet.create({
   profileCard: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(10),
-    paddingVertical: Metrix.VerticalSize(10),
-    // marginVertical: Metrix.VerticalSize(10),
-    borderRadius: Metrix.HorizontalSize(12),
+    justifyContent: 'center',
+    paddingVertical: Metrix.VerticalSize(20),
     marginHorizontal: Metrix.HorizontalSize(20),
     backgroundColor: Utills.selectedThemeColors().Base,
+    borderRadius: Metrix.HorizontalSize(12),
     marginTop: Metrix.VerticalSize(20),
     marginBottom: Metrix.VerticalSize(10),
-    // ...createShadow,
-  },
-  cardLeftContainer: {
-    width: '80%',
-    flexDirection: 'row',
-    borderRightWidth: 1,
-    borderColor: Utills.selectedThemeColors().TextInputBorderColor,
   },
   avatarContainer: {
-    width: '30%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: Metrix.VerticalSize(10),
   },
   detailsContainer: {
-    width: '80%',
-    justifyContent: 'center',
-    paddingLeft: Metrix.HorizontalSize(2),
-  },
-  editProfileButton: {
-    width: '50%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(10),
-    paddingVertical: Metrix.HorizontalSize(4),
-    borderRadius: Metrix.HorizontalSize(4),
-    backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-    marginTop: Metrix.VerticalSize(5),
-  },
-  logoutContainer: {
-    width: '20%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoutImage: {
-    width: Metrix.HorizontalSize(25),
-    height: Metrix.VerticalSize(25),
-    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+  emailText: {
+    marginBottom: Metrix.VerticalSize(8), // Added margin bottom to separate email from badge
+  },
+  badgeContainer: {
+    marginTop: Metrix.VerticalSize(4), // Reduced margin top since email now has margin bottom
+    backgroundColor: '#007AFF',
+    paddingHorizontal: Metrix.HorizontalSize(12),
+    paddingVertical: Metrix.VerticalSize(4),
+    borderRadius: Metrix.HorizontalSize(12),
   },
   flatlistContentContainer: {
     width: '90%',
     alignSelf: 'center',
     backgroundColor: Utills.selectedThemeColors().Base,
-    marginTop: Metrix.VerticalSize(10),
+    marginTop: Metrix.VerticalSize(50),
     borderRadius: Metrix.HorizontalSize(8),
     paddingBottom: Metrix.VerticalSize(20),
-    // borderWidth:1,borderColor:"red"
-
-    // ...Metrix.cardShadow,
   },
   renderContainer: {
     borderBottomWidth: 1,
@@ -424,18 +388,14 @@ const styles = StyleSheet.create({
     borderRadius: Metrix.HorizontalSize(8),
     width: '100%',
     backgroundColor: Utills.selectedThemeColors().Base,
-    // ...Metrix.createShadow,
   },
   itemText: {
     marginLeft: Metrix.HorizontalSize(10),
     fontWeight: '500',
   },
-  genderTxt: {
-    fontWeight: '600',
-    // borderWidth: 1,
-    borderColor: 'white',
-    // padding: Metrix.HorizontalSize(8),
-    borderRadius: 5,
-    alignSelf: 'center',
+  settingsIcon: {
+    width: Metrix.HorizontalSize(35),
+    height: Metrix.VerticalSize(35),
+    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
 });

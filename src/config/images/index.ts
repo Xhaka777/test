@@ -7,7 +7,9 @@ const Images = {
   Crown: require('../../assets/icons/premium.png'),
   CompleteClass: require('../../assets/icons/completeClasses.png'),
   Help: require('../../assets/icons/question.png'),
+
   TermsAndCond: require('../../assets/icons/terms.png'),
+
   LogoutIcon: require('../../assets/icons/Logout-Outline.png'),
   ChangePassword: require('../../assets/icons/changepassword.png'),
   CrownNoBg: require('../../assets/icons/crownNoBg.png'),
@@ -84,7 +86,9 @@ const Images = {
   Invitation: require('../../assets/icons/paper-plane.png'),
   Common: require('../../assets/icons/Comman.png'),
   TermCondition: require('../../assets/icons/Term&Condition.png'),
+
   PrivacyPilicy: require('../../assets/icons/privacy-policy.png'),
+
   HelpCenter: require('../../assets/icons/HelpCenter.png'),
   Certificate: require('../../assets/icons/certificate.png'),
   Stroke: require('../../assets/icons/Stroke.png'),
@@ -107,7 +111,8 @@ const Images = {
   Preference: require('../../assets/icons/preference.png'),
   Girl: require('../../assets/images/girl.jpg'),
   Edit: require('../../assets/icons/pen.png'),
-  Delete: require('../../assets/icons/bin.png'),
+  // Delete: require('../../assets/icons/bin.png'),
+  Delete: require('../../assets/icons/trash.png'),
   Phonebook: require('../../assets/icons/phone-book.png'),
   SettingsActive: require('../../assets/icons/settingsFilled.png'),
   SettingsInactive: require('../../assets/icons/settings.png'),
@@ -142,7 +147,25 @@ const Images = {
   Ear: require('../../assets/icons/ear.png'),
   EyeCircle: require('../../assets/icons/eye-circle.png'),
   Automatic: require('../../assets/icons/a.png'),
-  AutoAndManual: require('../../assets/icons/as.png'),
+  // AutoAndManual: require('../../assets/icons/as.png'),
+  Schedule: require('../../assets/icons/schedule.png'),
+  AutoAndManual: require('../../assets/icons/s.png'),
+  Premium: require('../../assets/icons/rove_premium.png'),
+  Passkey: require('../../assets/icons/passkey.png'),
+  IOS: require('../../assets/icons/ios.png'),
+
+  HeadsUp: require('../../assets/icons/heads_up.png'),
+  Harasment: require('../../assets/icons/harasment.png'),
+  Shooter: require('../../assets/icons/shooter.png'),
+  Stabing: require('../../assets/icons/stabing.png'),
+  Followed: require('../../assets/icons/followed.png'),
+  Fight: require('../../assets/icons/fight.png'),
+  Danger: require('../../assets/icons/danger.png'),
+  HowToUse: require('../../assets/icons/how_to_use.png'),
+  True: require('../../assets/icons/true.png'),
+  False: require('../../assets/icons/false.png'),
+
+  HowTo: require('../../assets/images/howto.jpg')
 };
 
 export default Images;

@@ -3,6 +3,7 @@ import {
   ForgotPassword,
   LoginScreen,
   OnBoarding,
+  ReadBeforeUse,
   OtpScreen,
   RegisterScreen,
   Preferences,
@@ -19,6 +20,12 @@ export const AuthStack: AuthScreenStacksTypes = [
     name: RouteNames.AuthRoutes.OnBoardingScreen,
     component: OnBoarding,
     key: RouteNames.AuthRoutes.OnBoardingScreen,
+  },
+  {
+    name: RouteNames.AuthRoutes.ReadBeforeUse,
+    component: ReadBeforeUse,
+    key: RouteNames.AuthRoutes.ReadBeforeUse,
+
   },
   {
     name: RouteNames.AuthRoutes.LoginScreen,
@@ -40,9 +47,9 @@ export const AuthStack: AuthScreenStacksTypes = [
     component: RegisterScreen,
     key: RouteNames.AuthRoutes.RegisterScreen,
   },
-  {
-    name: RouteNames.AuthRoutes.Preferences,
-    component: Preferences,
-    key: RouteNames.AuthRoutes.Preferences,
-  },
+  // {
+  //   name: RouteNames.AuthRoutes.Preferences,
+  //   component: Preferences,
+  //   key: RouteNames.AuthRoutes.Preferences,
+  // },
 ];

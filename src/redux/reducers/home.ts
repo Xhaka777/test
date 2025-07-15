@@ -1,4 +1,4 @@
-import Immutable, {ImmutableObject} from 'seamless-immutable';
+import Immutable, { ImmutableObject } from 'seamless-immutable';
 import Action from '../actions/Home';
 
 interface AppState {
@@ -11,6 +11,11 @@ interface AppState {
   isSafeZone?: boolean;
   threatDetected: boolean;
   streamStopped?: any;
+  //
+  tutorialCompleted?: boolean;
+  currentTutorialStep?: number;
+  tutorialActive?: boolean;
+  tutorialCurrentScreen?: string;
 }
 
 const initialState: ImmutableObject<AppState> = Immutable<AppState>({
@@ -26,9 +31,14 @@ const initialState: ImmutableObject<AppState> = Immutable<AppState>({
   isSafeZone: false,
   threatDetected: false,
   streamStopped: false,
+  //
+  tutorialCompleted: false,
+  currentTutorialStep: 1,
+  tutorialActive: false,
+  tutorialCurrentScreen: 'LiveStream',
 });
 
-export default (state = initialState, action: {type: any; payload: any}) => {
+export default (state = initialState, action: { type: any; payload: any }) => {
   switch (action.type) {
     case Action.EMPTY_STATE_SUCCESS:
       return Immutable(initialState);
@@ -78,6 +88,38 @@ export default (state = initialState, action: {type: any; payload: any}) => {
         streamStopped: action.payload,
       });
     }
+
+    //Tutorial reducer cases
+    case Action.SET_TUTORIAL_COMPLETED: {
+      return Immutable(state).merge({
+        tutorialCompleted: action.payload,
+        tutorialActive: !action.payload,
+      });
+    }
+
+    case Action.SET_TUTORIAL_STEP: {
+      return Immutable(state).merge({
+        currentTutorialStep: action.payload,
+      });
+    }
+
+    case Action.SET_TUTORIAL_ACTIVE:
+      return Immutable(state).merge({
+        tutorialActive: action.payload
+      });
+
+    case Action.SET_TUTORIAL_SCREEN:
+      return Immutable(state).merge({
+        tutorialCurrentScreen: action.payload,
+      });
+
+    case Action.RESET_TUTORIAL:
+      return Immutable(state).merge({
+        tutorialCompleted: false,
+        currentTutorialStep: 1,
+        tutorialActive: true,
+        tutorialCurrentScreen: 'LiveStream',
+      })
 
     default:
       return state;

@@ -1,4 +1,5 @@
-import httpService from '../https.service';
+// import httpService from '../https.service';
+import httpService from '../https.service'
 
 const userLogin = (body: object) => {
   return httpService().post('_allauth/app/v1/auth/login', body);
@@ -28,16 +29,19 @@ const resendOTP = (body: object) => {
   return httpService().post('accounts/otp/resend-otp/', body);
 };
 
-// const appleLogin = (body: object) => {
-//   return httpService().post('accounts/api/apple-sign-in/', body);
-// };
+// NEW: Apple Sign-In endpoint
+const appleLogin = (body: object) => {
+  return httpService().post('accounts/api/apple-sign-in/', body);
+};
+
+
 
 export const AuthAPIS = {
   userLogin,
   getAccessToken,
   userSignup,
   googleLogin,
-  // appleLogin,
+  appleLogin,
   sendOtp,
   resendOTP,
   verifyOtp,

@@ -1,5 +1,5 @@
-import {TransitionPresets} from '@react-navigation/stack';
-import {RouteNames} from '../config';
+import { TransitionPresets } from '@react-navigation/stack';
+import { RouteNames } from '../config';
 import {
   AddContacts,
   EditPreferences,
@@ -11,8 +11,11 @@ import {
   LiveStream,
   TermsAndPolicy,
   Videos,
+  PasscodeSettings,
+  TrustedContacts,
+  HowToUse,
 } from '../screens';
-import {TabStack} from './TabStack';
+import { TabStack } from './TabStack';
 
 type HomeScreenStacksTypes = {
   name: string;
@@ -79,5 +82,20 @@ export const HomeStack: HomeScreenStacksTypes = [
     name: RouteNames.HomeRoutes.HeartRateMonitor,
     component: HeartRateMonitor,
     key: RouteNames.HomeRoutes.HeartRateMonitor,
+  },
+  {
+    name: RouteNames.HomeRoutes.PasscodeSettings,
+    component: PasscodeSettings,
+    key: RouteNames.HomeRoutes.PasscodeSettings
+  },
+  {
+    name: RouteNames.HomeRoutes.TrustedContacts,
+    component: TrustedContacts,
+    key: RouteNames.HomeRoutes.TrustedContacts,
+  },
+  {
+    name: RouteNames.HomeRoutes.HowToUse,
+    component: HowToUse,
+    key: RouteNames.HomeRoutes.HowToUse,
   },
 ];

@@ -19,7 +19,9 @@ import {NormalCardComponent} from './NormalCard';
 import {TextInputAlert} from './TextInputAlert';
 import {FootageGrid} from './FootageGrid';
 import {ModeSelector} from './ModeSelector';
- 
+import {PasscodeInput} from './PasscodeInput/PasscodeInput';
+import { Tutorial } from './TutorialStep'; 
+
 export {
   CustomText,
   PrimaryButton,
@@ -42,4 +44,6 @@ export {
   TextInputAlert,
   FootageGrid,
   ModeSelector,
+  PasscodeInput,
+  Tutorial,
 };

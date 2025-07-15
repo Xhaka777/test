@@ -21,7 +21,7 @@ import {t} from 'i18next';
 import {normalizeFont} from '../../../config/metrix';
 
 const handleOnSkipAndDone = () => {
-  NavigationService.navigate(RouteNames.AuthRoutes.LoginScreen);
+  NavigationService.navigate(RouteNames.AuthRoutes.ReadBeforeUse);
 };
 
 const Square: React.FC<{isLight: any; selected: any}> = ({
@@ -135,22 +135,12 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
         pages={[
           {
             backgroundColor: Utills.selectedThemeColors().Base,
-            image: <ImageComp resizeMode={'cover'} source={Images.OnBoard} />,
-            title: '',
-            subtitle: '',
-          },
-          {
-            backgroundColor: Utills.selectedThemeColors().Base,
             image: (
-              <ImageComp resizeMode={'contain'} source={Images.OnBoard1} />
+              <ImageComp resizeMode={'contain'} source={Images.OnBoard1} bottom={0} />
             ),
-            title: (
-              <CustomText.MediumText customStyle={styles.textHeading}>
-               Intro
-              </CustomText.MediumText>
-            ),
+            title: ' ',
             subtitle: (
-              <CustomText.MediumText customStyle={styles.textSubheading}>
+              <CustomText.MediumText customStyle={styles.textMainHeading}>
                 When every second counts and adrenaline takes over, there's
                 often no time to reach for your phone or call for help. With
                 Rove, you don’t have to—we act for you.
@@ -211,72 +201,6 @@ export const OnBoarding: React.FC<OnBoardingProps> = () => {
           {
             backgroundColor: Utills.selectedThemeColors().Base,
             image: (
-              <ImageComp resizeMode={'contain'} source={Images.OnBoard4} />
-            ),
-            title: (
-              <CustomText.MediumText customStyle={styles.textHeading}>
-                Bodycam Capability
-              </CustomText.MediumText>
-            ),
-            subtitle: (
-              <CustomText.MediumText customStyle={styles.textSubheading}>
-                Worn on a strap with the camera facing outward, your phone
-                begins streaming automatically the moment Rove detects a threat—{' '}
-                <CustomText.MediumText
-                  customStyle={[styles.textSubheading, styles.highlightedText]}>
-                  capturing everything in real time.
-                </CustomText.MediumText>
-              </CustomText.MediumText>
-            ),
-          },
-          {
-            backgroundColor: Utills.selectedThemeColors().Base,
-            image: (
-              <ImageComp resizeMode={'contain'} source={Images.OnBoard5} />
-            ),
-            title: (
-              <CustomText.MediumText customStyle={styles.textHeading}>
-                LiveStream Deterrence
-              </CustomText.MediumText>
-            ),
-            subtitle: (
-              <CustomText.MediumText customStyle={styles.textSubheading}>
-                Alerting the perpetrator that they are being livestreamed can
-                induce hesitation, fear of exposure, and a loss of
-                control—powerful psychological triggers that{' '}
-                <CustomText.MediumText
-                  customStyle={[styles.textSubheading, styles.highlightedText]}>
-                  may prevent an attack{' '}
-                </CustomText.MediumText>{' '}
-                from escalating.
-              </CustomText.MediumText>
-            ),
-          },
-          {
-            backgroundColor: Utills.selectedThemeColors().Base,
-            image: (
-              <ImageComp resizeMode={'contain'} source={Images.OnBoard6} />
-            ),
-            title: (
-              <CustomText.MediumText customStyle={styles.textHeading}>
-                Secure Evidence
-              </CustomText.MediumText>
-            ),
-            subtitle: (
-              <CustomText.MediumText customStyle={styles.textSubheading}>
-                Even if your phone is lost or destroyed, all critical evidence
-                is{' '}
-                <CustomText.MediumText
-                  customStyle={[styles.textSubheading, styles.highlightedText]}>
-                  securely backed up
-                </CustomText.MediumText>{' '}
-                in the cloud, ensuring it remains safe for investigations.
-              </CustomText.MediumText>
-            ),
-          },
-          {
-            backgroundColor: Utills.selectedThemeColors().Base,
-            image: (
               <ImageComp resizeMode={'contain'} source={Images.OnBoard7} />
             ),
             title: (
@@ -310,7 +234,6 @@ const styles = StyleSheet.create({
     height: Metrix.VerticalSize(45),
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: Metrix.VerticalSize(10),
     backgroundColor: Utills.selectedThemeColors().TextInputBaseColor,
@@ -329,10 +252,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 20,
   },
+  textMainHeading: {
+    fontSize: normalizeFont(16),
+    letterSpacing: 0.7,
+    fontWeight: '600',
+    lineHeight: 20,
+    marginTop: Metrix.VerticalSize(20),
+  },
   textSubheading: {
     fontSize: normalizeFont(14),
     letterSpacing: 0.7,
-    fontWeight: '300',
+    fontWeight: '400',
+    marginBottom: Metrix.VerticalSize(15),
+    lineHeight: 20,
   },
   highlightedText: {
     fontWeight: '600',

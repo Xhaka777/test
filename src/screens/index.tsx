@@ -1,32 +1,39 @@
 // Auth Screens
 
-import {LoginScreen} from './AuthScreens/LoginScreen';
-import {OnBoarding} from './AuthScreens/OnBoarding';
-import {ForgotPassword} from './AuthScreens/ForgotPassword';
-import {OtpScreen} from './AuthScreens/OtpScreen';
-import {RegisterScreen} from './AuthScreens/RegisterScreen';
-import {Preferences} from './AuthScreens/Preferences';
+import { LoginScreen } from './AuthScreens/LoginScreen';
+import { OnBoarding } from './AuthScreens/OnBoarding';
+import { ReadBeforeUse } from './AuthScreens/ReadBeforeUse';
+import { ForgotPassword } from './AuthScreens/ForgotPassword';
+import { OtpScreen } from './AuthScreens/OtpScreen';
+import { RegisterScreen } from './AuthScreens/RegisterScreen';
+import { Preferences } from './AuthScreens/Preferences';
 // Home Screens
 
 // New Home
-import {Settings} from './HomeScreens/Settings';
-import {TermsAndPolicy} from './HomeScreens/TermsAndPolicy';
-import {EditProfile} from './HomeScreens/EditProfile';
-import {LiveStream} from './HomeScreens/LiveStream';
-import {TrustedContacts} from './HomeScreens/TrustedContacts';
-import {AddContacts} from './HomeScreens/AddContact';
-import {FAQ} from './HomeScreens/FAQ';
-import {SafeZone} from './HomeScreens/SafeZone';
-import {EditPreferences} from './HomeScreens/EditPreferences';
-import {Footages} from './HomeScreens/Footages';
-import {FootageDetails} from './HomeScreens/FootageDetails';
-import {Videos} from './HomeScreens/Videos';
-import {HeartRateMonitor} from './HomeScreens/HeartRateMonitor';
+import { Settings } from './HomeScreens/Settings';
+import { TermsAndPolicy } from './HomeScreens/TermsAndPolicy';
+import { EditProfile } from './HomeScreens/EditProfile';
+import { LiveStream } from './HomeScreens/LiveStream';
+import { TrustedContacts } from './HomeScreens/TrustedContacts';
+import { AddContacts } from './HomeScreens/AddContact';
+import { FAQ } from './HomeScreens/FAQ';
+import { SafeZone } from './HomeScreens/SafeZone';
+import { EditPreferences } from './HomeScreens/EditPreferences';
+import { Footages } from './HomeScreens/Footages';
+import { FootageDetails } from './HomeScreens/FootageDetails';
+import { Videos } from './HomeScreens/Videos';
+import { HeartRateMonitor } from './HomeScreens/HeartRateMonitor';
+import { Premium } from './HomeScreens/Premium';
+import { PasscodeSettings } from './HomeScreens/PasscodeSettings';
+import { HeadsUp } from './HomeScreens/HeadsUp';
+import { HowToUse } from './HomeScreens/HowToUse';
+
 
 export {
   // Auth Screens
   LoginScreen,
   OnBoarding,
+  ReadBeforeUse,
   ForgotPassword,
   OtpScreen,
   Preferences,
@@ -45,5 +52,9 @@ export {
   Footages,
   FootageDetails,
   Videos,
-  HeartRateMonitor
+  HeartRateMonitor,
+  Premium,
+  PasscodeSettings,
+  HeadsUp,
+  HowToUse,
 };

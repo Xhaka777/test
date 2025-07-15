@@ -1,20 +1,20 @@
-import {Alert, Image, ImageProps, StyleSheet, View} from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
-import {Settings, TrustedContacts, LiveStream, SafeZone} from '../screens';
-import {Images, Metrix, NavigationService, Utills} from '../config';
-import {MD3LightTheme, PaperProvider} from 'react-native-paper';
+import { Alert, Image, ImageProps, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import { Settings, TrustedContacts, LiveStream, SafeZone, Premium, HeadsUp } from '../screens';
+import { Images, Metrix, NavigationService, Utills } from '../config';
+import { MD3LightTheme, PaperProvider } from 'react-native-paper';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import LiveAudioStream from 'react-native-live-audio-stream';
-import notifee, {EventType} from '@notifee/react-native';
-import {CustomModal, CustomText, PrimaryButton} from '../components';
+import notifee, { EventType } from '@notifee/react-native';
+import { CustomModal, CustomText, PrimaryButton } from '../components';
 import BackgroundService from 'react-native-background-actions';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../redux/reducers';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/reducers';
 import Voice from '@react-native-voice/voice';
-import {HomeActions} from '../redux/actions';
-import {Environments} from '../services/config';
-import {useHeartRateHook} from '../hooks';
+import { HomeActions } from '../redux/actions';
+import { Environments } from '../services/config';
+import { useHeartRateHook } from '../hooks';
 import { HomeAPIS } from '../services/home';
 
 const Tab = createMaterialBottomTabNavigator();
@@ -25,12 +25,13 @@ type TabStackType = {
   inActive: ImageProps['source'];
 }[];
 
+// Updated tab order: LiveStream(1), Contacts(2), SafeZones(3), Premium(4), Settings(5)
 const tabsData: TabStackType = [
   {
-    name: 'LiveStream',
-    component: LiveStream,
-    active: Images.HomeActive,
-    inActive: Images.HomeActive,
+    name: 'HeadsUp',
+    component: HeadsUp,
+    active: Images.HeadsUp,
+    inActive: Images.HeadsUp,
   },
   {
     name: 'Safe Zones',
@@ -39,10 +40,16 @@ const tabsData: TabStackType = [
     inActive: Images.Map,
   },
   {
-    name: 'Responders',
-    component: TrustedContacts,
-    active: Images.Responders,
-    inActive: Images.Responders,
+    name: 'LiveStream',
+    component: LiveStream,
+    active: Images.HomeActive,
+    inActive: Images.HomeActive,
+  },
+  {
+    name: 'Premium',
+    component: Premium,
+    active: Images.Premium,
+    inActive: Images.Premium,
   },
   {
     name: 'Settings',
@@ -52,8 +59,13 @@ const tabsData: TabStackType = [
   },
 ];
 
-export const TabStack: React.FC = ({}) => {
+export const TabStack: React.FC = ({ }) => {
   const dispatch = useDispatch();
+  const [isVisible, setIsVisible] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognizedText, setRecognizedText] = useState('');
+
+  const [isListening, setIsListening] = useState(false);
   const selectedModel = useSelector(
     (state: RootState) => state.home.selectedModel,
   );
@@ -63,11 +75,6 @@ export const TabStack: React.FC = ({}) => {
   const safeWord = useSelector(
     (state: RootState) => state.home.safeWord?.safeWord,
   );
-  const isAudioStreamStopped = useSelector(
-    (state: RootState) => state.home.streamStopped,
-  );
-  const averageHeartRate = 75; // Example average heart rate
-  const [isVisible, setIsVisible] = useState(false);
   const [isSafeWord, setIsSafeWord] = useState(sw);
   const [isSafeZone, setIsSafeZone] = useState(sz);
   const [currentModel, setCurrentModel] = useState(selectedModel);
@@ -81,38 +88,19 @@ export const TabStack: React.FC = ({}) => {
     '-' +
     safeWord;
   const ws = useRef<WebSocket | null>(null);
-  const {heartRate, loading, error, refresh} = useHeartRateHook();
 
-  useEffect(() => {
-    if (isAudioStreamStopped) {
-      LiveAudioStream.stop();
-    }
-    return () => {
-      if (ws.current) {
-        ws.current.close();
-        ws.current = null;
-      }
-      LiveAudioStream.stop();
-    };
-  }, []);
+  console.log('Current state ML MODEL', currentModel);
+  console.log('Selected state ML MODEL', selectedModel);
 
   useEffect(() => {
     setCurrentModel(selectedModel);
   }, [selectedModel]);
-  console.log('currentModel', currentModel);
-
-  const threatDetected = () => {
-    dispatch(HomeActions.setThreatDetected(true));
-    onDisplayNotification(
-      'A New Threat Detected',
-      'Start your live stream now',
-    );
-  };
 
   const startListening = async () => {
     try {
       console.log('Starting voice recognition...');
       await Voice.start('en-US');
+      setIsListening(true);
     } catch (e) {
       console.error('Voice.start error:', e);
     }
@@ -121,6 +109,7 @@ export const TabStack: React.FC = ({}) => {
   const stopListening = async () => {
     try {
       await Voice.stop();
+      setIsListening(false);
     } catch (e) {
       console.error('Voice.stop error:', e);
     }
@@ -135,11 +124,6 @@ export const TabStack: React.FC = ({}) => {
   }, [sz]);
 
   useEffect(() => {
-    if (!isSafeWord) {
-      setIsSafeWord(true);
-      // startListening();
-    }
-
     // Voice event listeners
     const onSpeechStart = () => {
       console.log('Speech recognition started');
@@ -151,10 +135,11 @@ export const TabStack: React.FC = ({}) => {
     };
 
     const onSpeechResults = (e: any) => {
-      console.log('Speech results:', e);
-      const latestWordArray = e?.value?.[0]?.split(' ');
+      const latestWordArray = e.value?.[0]?.split(' ');
       const latestWord = latestWordArray?.at(-1);
+      console.log('Speech results:', latestWord);
       if (e.value) {
+        setRecognizedText(e.value[0]);
         if (latestWord?.toLowerCase() == safeWord?.toLowerCase()) {
           setIsSafeWord(true);
         }
@@ -164,6 +149,10 @@ export const TabStack: React.FC = ({}) => {
     Voice.onSpeechStart = onSpeechStart;
     Voice.onSpeechEnd = onSpeechEnd;
     Voice.onSpeechResults = onSpeechResults;
+
+    if (!isSafeWord) {
+      startListening();
+    }
 
     return () => {
       stopListening();
@@ -201,32 +190,30 @@ export const TabStack: React.FC = ({}) => {
     socket.onmessage = event => {
       console.log('Message from server:', event.data);
       const parsedData = JSON.parse(event.data);
-      // const isThreat = parsedData.threat_detected;
+      const isThreat = parsedData.threat_detected;
+      const isNegativeSentiment = parsedData?.sentiment == 'negative';
       if (currentModel == Environments.Models.WHISPER_AND_SENTIMENT) {
-        const isNegativeSentiment = parsedData?.sentiment == 'negative';
-        const threatScore = parsedData?.threat_level > 0.7 ? true : false;
-        if (isNegativeSentiment && threatScore) {
-          if (heartRate != undefined || heartRate != null) {
-            if (heartRate > averageHeartRate) {
-              console.log('Elevated Heart rate is normal');
-              threatDetected();
-            } else {
-              console.log(
-                'Heart rate is normal.so the threat did not detected',
-              );
-            }
-          } else {
-            console.log('Heart rate data is not available.', heartRate);
-            threatDetected();
-          }
+        if (isNegativeSentiment) {
+          console.log(
+            `${isNegativeSentiment} is a threatening word. in sentimental Model`,
+          );
+          onDisplayNotification(
+            'A New Threat Detected',
+            'Start your live stream now',
+          );
+          setIsVisible(true);
         } else {
           console.log('No threat detected.');
         }
+      } else if (isThreat) {
+        console.log(`${isThreat} is a threatening word.`);
+        onDisplayNotification(
+          'A New Threat Detected',
+          'Start your live stream now',
+        );
+        setIsVisible(true);
       } else {
-        const isThreat = parsedData['threat detected'];
-        if (isThreat) {
-          threatDetected();
-        }
+        console.log('No threat detected.');
       }
     };
 
@@ -249,15 +236,28 @@ export const TabStack: React.FC = ({}) => {
     });
 
     LiveAudioStream.on('data', data => {
-      console.log('Live audio is streaming========>>>');
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        // console.log('Datttta Logging');
         ws.current.send(data);
       }
     });
 
     LiveAudioStream.start();
-    // console.log('Live audio streaming started');
+    setIsRecording(true);
+    console.log('Live audio streaming started');
+
+    // return () => {
+    //   if (ws.current) {
+    //     ws.current.close();
+    //   }
+    // };
   }, [currentModel]);
+
+  // useEffect(() => {
+  //   const cleanUp = setupWebSocket();
+  //   handleNotificationPress();
+  //   return cleanUp;
+  // }, [setupWebSocket]);
 
   // Add this useEffect to monitor `isSafeWord`
   useEffect(() => {
@@ -271,6 +271,7 @@ export const TabStack: React.FC = ({}) => {
         ws.current = null;
       }
       LiveAudioStream.stop(); // Stop audio stream
+      setIsRecording(false);
     }
 
     // Cleanup when component unmounts or `isSafeWord` changes
@@ -280,6 +281,7 @@ export const TabStack: React.FC = ({}) => {
         ws.current = null;
       }
       LiveAudioStream.stop();
+      setIsRecording(false);
     };
   }, [isSafeWord, isSafeZone, currentModel]);
 
@@ -314,23 +316,23 @@ export const TabStack: React.FC = ({}) => {
         });
 
         LiveAudioStream.on('data', data => {
-          // console.log('Live audio is streaming========>>> 1');
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(data);
           }
         });
 
         LiveAudioStream.start();
+        setIsRecording(true);
       };
 
       ws.current.onmessage = event => {
         console.log('Message from server: Background', event.data);
         const parsedData = JSON.parse(event.data);
-        const isThreat = parsedData['threat detected'];
+        const isThreat = parsedData.threat_detected;
         console.log('Message from server:Background===', parsedData);
         if (isThreat) {
           console.log(`${isThreat} is a threatening word.`);
-          threatDetected();
+          setIsVisible(true);
         } else {
           console.log('No threat detected.');
         }
@@ -342,13 +344,13 @@ export const TabStack: React.FC = ({}) => {
 
       ws.current.onclose = () => {
         console.log('WebSocket connection closed');
+        setIsRecording(false);
       };
     };
 
     if (isSafeWord && !isSafeZone) {
       await BackgroundService.start(backgroundTask, options);
     } else {
-      console.log('In BG');
       await BackgroundService.stop();
     }
     const isServiceActive = await BackgroundService.isRunning();
@@ -366,14 +368,47 @@ export const TabStack: React.FC = ({}) => {
     startStreaming();
   }, [startStreaming]);
 
+  const getIconSize = (iconName) => {
+    switch (iconName) {
+      case 'LiveStream':
+        return { width: 25, height: 25 };
+      case 'Safe Zones':
+        return { width: 16, height: 27 };
+      case 'HeadsUp':
+        return { width: 27, height: 27 };
+      case 'Premium':
+        return { width: 27, height: 25 };
+      case 'Settings':
+        return { width: 22, height: 25 };
+      default:
+        return { width: 25, height: 25 };
+    }
+  };
+
   return (
     <>
-      <PaperProvider theme={MD3LightTheme}>
+      <PaperProvider
+        theme={{
+          ...MD3LightTheme,
+          colors: {
+            ...MD3LightTheme.colors,
+            surface: Utills.selectedThemeColors().Base,
+          }
+        }}
+      >
         <Tab.Navigator
-          activeColor={Utills.selectedThemeColors().PrimaryTextColor}
-          inactiveColor={Utills.selectedThemeColors().DotGrey}
+          initialRouteName="LiveStream" 
+          activeColor="#FFFFFF" // Active icon: white
+          inactiveColor="#999999" // Inactive icon: gray
           barStyle={styles.barStyle}
-          shifting>
+          shifting={false}
+          labeled={true}
+          sceneAnimationEnabled={false}
+          screenOptions={{
+            tabBarShowLabel: true,
+            tabBarLabelPosition: 'below-icon',
+          }}
+        >
           {tabsData?.map(item => (
             <Tab.Screen
               key={item?.name}
@@ -381,34 +416,54 @@ export const TabStack: React.FC = ({}) => {
               component={item?.component}
               options={{
                 tabBarLabel: item?.name,
-                tabBarIcon: ({color, focused}) => (
-                  <Image
-                    source={focused ? item?.active : item?.inActive}
-                    resizeMode="contain"
-                    style={{
-                      tintColor: color,
-                      width: Metrix.HorizontalSize(20),
-                      height: Metrix.VerticalSize(20),
-                    }}
-                  />
-                ),
+                tabBarIcon: ({ color, focused }) => {
+                  const iconSize = getIconSize(item?.name);
+                  return (
+                    <Image
+                      source={focused ? item?.active : item?.inActive}
+                      resizeMode="contain"
+                      style={{
+                        tintColor: color,
+                        width: Metrix.HorizontalSize(iconSize.width),
+                        height: Metrix.VerticalSize(iconSize.height),
+                      }}
+                    />
+                  );
+                },
+                tabBarLabelStyle: {
+                  fontSize: Metrix.customFontSize(2),
+                  fontWeight: '200',
+                  color: '#fff', // optional: usually handled automatically
+                  marginTop: Metrix.VerticalSize(6),
+                  textAlign: 'center',
+                },
+                tabBarItemStyle: {
+                  paddingVertical: Metrix.VerticalSize(8),
+                  marginHorizontal: Metrix.HorizontalSize(2),
+                  backgroundColor: 'transparent',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+                tabBarAllowFontScaling: false,
+                tabBarHideOnKeyboard: false,
               }}
             />
           ))}
         </Tab.Navigator>
+
       </PaperProvider>
 
       <CustomModal
         visible={isVisible}
         smallModal
         onClose={() => setIsVisible(false)}>
-        <CustomText.MediumText customStyle={{letterSpacing: 0.9}}>
+        <CustomText.MediumText customStyle={{ letterSpacing: 0.9 }}>
           Are you being threatened ?
         </CustomText.MediumText>
         <View style={styles.modalButtonContainer}>
           <PrimaryButton
             title="Yes"
-            customStyles={{borderRadius: 10}}
+            customStyles={{ borderRadius: 10 }}
             width={'45%'}
             onPress={() => {
               setIsVisible(false);
@@ -416,13 +471,13 @@ export const TabStack: React.FC = ({}) => {
                 'A New Threat Detected',
                 'Start your live stream now',
               );
-              NavigationService.navigate('LiveStream', {triggerFunction: true});
+              NavigationService.navigate('LiveStream', { triggerFunction: true });
             }}
           />
           <PrimaryButton
             title="No"
             width={'45%'}
-            customStyles={{borderRadius: 10}}
+            customStyles={{ borderRadius: 10 }}
             onPress={() => setIsVisible(false)}
           />
         </View>
@@ -434,26 +489,19 @@ export const TabStack: React.FC = ({}) => {
 const styles = StyleSheet.create({
   barStyle: {
     backgroundColor: Utills.selectedThemeColors().Base,
-    borderTopWidth: 1,
-    borderColor: Utills.selectedThemeColors().PrimaryOpacity,
-    // borderWidth: 1,
-    // borderColor: '#FFFFFF',
-    height: Metrix.VerticalSize(90),
-    // justifyContent: 'flex-end',
-    paddingTop: Metrix.VerticalSize(10),
-    // paddingHorizontal: Metrix.VerticalSize(20),
-    // borderTopRightRadius: Metrix.VerticalSize(40),
-    // borderTopLeftRadius: Metrix.VerticalSize(40),
-
-    // shadowColor: Utills.selectedThemeColors().PrimaryTextColor,
-    // shadowOffset: {
-    //   width: Metrix.HorizontalSize(3),
-    //   height: Metrix.VerticalSize(2),
-    // },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 20,
-
-    // elevation: Metrix.VerticalSize(20),
+    borderTopWidth: 0,
+    height: Metrix.VerticalSize(110),
+    paddingTop: Metrix.VerticalSize(15),
+    // paddingHorizontal: Metrix.HorizontalSize(2),
+    paddingBottom: Metrix.VerticalSize(15),
+    shadowColor: Utills.selectedThemeColors().PrimaryTextColor,
+    shadowOffset: {
+      width: Metrix.HorizontalSize(3),
+      height: Metrix.VerticalSize(2),
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: Metrix.VerticalSize(20),
   },
   modalButtonContainer: {
     width: '75%',

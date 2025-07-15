@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Images,
   Metrix,
@@ -21,18 +21,18 @@ import {
   CustomText,
   Loader,
 } from '../../../components';
-import {Formik} from 'formik';
-import {RegisterScreenProps} from '../../propTypes';
-import {useDispatch} from 'react-redux';
-import {HomeActions} from '../../../redux/actions';
-import {t} from 'i18next';
-import {AuthAPIS} from '../../../services/auth/index';
+import { Formik } from 'formik';
+import { RegisterScreenProps } from '../../propTypes';
+import { useDispatch } from 'react-redux';
+import { HomeActions } from '../../../redux/actions';
+import { t } from 'i18next';
+import { AuthAPIS } from '../../../services/auth/index';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PhoneInput from 'react-native-phone-number-input';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Schema from '../../../formik';
 
-export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({ }) => {
   const dispatch = useDispatch();
   const [hidePassword, setHidePassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
       .then(res => {
         console.log('Res OTP', res?.data);
         setLoading(false);
+        // NavigationService.navigate(RouteNames.AuthRoutes.OtpScreen, {
+        //   phone: phone,
+        // });
         NavigationService.navigate(RouteNames.AuthRoutes.OtpScreen, {
           phone: phone,
         });
@@ -290,7 +293,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
                   setModalPostVisible(true);
                 }}
                 activeOpacity={0.7}
-                style={{width: '85%'}}>
+                style={{ width: '85%' }}>
                 <CustomText.SmallText
                   customStyle={{
                     marginLeft: 5,
@@ -319,11 +322,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({}) => {
               </CustomText.ExtraLargeBoldText>
               <CustomText.RegularText
                 isSecondaryColor
-                customStyle={{paddingVertical: Metrix.VerticalSize(10)}}>
+                customStyle={{ paddingVertical: Metrix.VerticalSize(10) }}>
                 Last Updated: 19 September, 2024
               </CustomText.RegularText>
-              <View style={{flex: 1, paddingVertical: Metrix.VerticalSize(10)}}>
-                <CustomText.RegularText customStyle={{textAlign: 'center'}}>
+              <View style={{ flex: 1, paddingVertical: Metrix.VerticalSize(10) }}>
+                <CustomText.RegularText customStyle={{ textAlign: 'center' }}>
                   Please read this disclaimer carefully before using Rove,
                   operated and owned by {'\n'}Rove AI (Inc) (“us, “we” or our”).
                   {'\n' + '\n'} While our solution aims to provide reliable

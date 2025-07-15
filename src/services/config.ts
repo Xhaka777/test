@@ -1,4 +1,6 @@
 export const BASE_URL: string = 'https://api.rovesafe.com/';
+// export const BASE_URL: string = 'https://backend-api-458410.uc.r.appspot.com/';
+// export const BASE_URL: string = 'https://rove-backend-api-752186260001.us-central1.run.app/';
 export const BASE_PATH: string = 'api/';
 export const SOCKET_URL: string = 'http://161.35.120.195:9001/';
 export const V1_BASE_URL: string = '';

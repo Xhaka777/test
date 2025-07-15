@@ -10,6 +10,13 @@ export default class Action {
   static THREAT_DETECTED = 'THREAT_DETECTED';
   static STREAM_STOPPED = 'STREAM_STOPPED';
 
+  //Tutorial constants
+  static SET_TUTORIAL_COMPLETED = 'SET_TUTORIAL_COMPLETED';
+  static SET_TUTORIAL_STEP = 'SET_TUTORIAL_STEP';
+  static SET_TUTORIAL_ACTIVE = 'SET_TUTORIAL_ACTIVE';
+  static SET_TUTORIAL_SCREEN = 'SET_TUTORIAL_SCREEN';
+  static RESET_TUTORIAL = 'RESET_TUTORIAL';
+
   //Actions
   static setDarkMode() {
     return {
@@ -63,4 +70,32 @@ export default class Action {
       payload,
     };
   }
+
+  //Tutorial actions
+  static setTutorialCompleted(payload: boolean) {
+    return {
+      type: Action.SET_TUTORIAL_COMPLETED,
+      payload,
+    }
+  }
+
+  static setTutorialStep(payload: number) {
+    return {
+      type: Action.SET_TUTORIAL_STEP,
+      payload,
+    }
+  }
+
+  static setTutorialActive(payload: boolean) {
+    return { type: Action.SET_TUTORIAL_ACTIVE, payload };
+  }
+
+  static setTutorialScreen(payload: string) {
+    return { type: Action.SET_TUTORIAL_SCREEN, payload };
+  }
+
+  static resetTutorial() {
+    return { type: Action.RESET_TUTORIAL };
+  }
+
 }

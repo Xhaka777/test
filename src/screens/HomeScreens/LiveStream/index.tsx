@@ -23,6 +23,7 @@ import {
   useWindowDimensions,
   StatusBar,
   SafeAreaView,
+  Text,
 } from 'react-native';
 import {
   FontType,
@@ -33,7 +34,7 @@ import {
   Utills,
 } from '../../../config';
 import { LiveStreamProps } from '../../propTypes';
-import { CustomText, ModeSelector } from '../../../components';
+import { CustomText, ModeSelector, RoundImageContainer } from '../../../components';
 import { deviceHeight, deviceWidth, normalizeFont } from '../../../config/metrix';
 import { HomeAPIS } from '../../../services/home';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,26 +42,33 @@ import { RootState } from '../../../redux/reducers';
 import RNFS from 'react-native-fs';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import { HomeActions } from '../../../redux/actions';
-import { useIsFocused } from '@react-navigation/native';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { useFocusEffect, useIsFocused, useRoute } from '@react-navigation/native';
 import { Environments } from '../../../services/config';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ProtectionScheduleModal } from '../../../components/ProtectionScheduleModal';
+import { set } from 'lodash';
 
-const threatModes = [
-  {
-    id: '1',
-    key: 'AUDIO',
-    onPress: () => { },
-  },
-  {
-    id: '2',
-    key: 'VIDEO',
-    onPress: () => { },
-  },
-];
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import ReanimatedAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+  runOnJS,
+} from 'react-native-reanimated';
+import { Dimensions } from 'react-native';
+import LiveStreamContent from '../../../components/Livestream/LiveStreamContent';
+import LiveStreamModeSelector from '../../../components/Livestream/LiveStreamModeSelector';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const dispatch = useDispatch();
+
+  // NEW: Tutorial state selectors
+  const tutorialCompleted = useSelector((state: RootState) => state.home.tutorialCompleted);
+  const isFirstTime = useSelector((state: RootState) => state.user.isFirstTime);
+
   const isFocus = useIsFocused();
   const layout = useWindowDimensions();
   const slideAnim = useRef(new Animated.Value(-50)).current;
@@ -102,10 +110,23 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     thumbnail: null,
   });
 
+  //Tutorial state
+  const [showTutorial, setShowTutorial] = useState(false);
+
   const [eyeEarState, setEyeEarState] = useState('EYE'); // 'EYE' or 'EAR'
   const [preferenceState, setPreferenceState] = useState('A'); // 'A', 'AS', or 'MIC'
+  const [modalVisible, setModalVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState(''); // New toast message state
   const [showToast, setShowToast] = useState(false); // New toast visibility state
+
+  // New state variables for header icons
+  const [showAudioIcon, setShowAudioIcon] = useState(true); // Toggle between A and S
+  const [showEyeIcon, setShowEyeIcon] = useState(true); // Toggle between ear and eye
+  const [showProtectionSchedule, setShowProtectionSchedule] = useState(false);
+
+  const route = useRoute();
+  const testStreamContact = route?.params?.testStreamContact;
+  const isTestStream = route?.params?.isTestStream;
 
   const [step, setStep] = useState(0);
   const [resource_id, setResource_id] = useState('');
@@ -114,7 +135,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const [seconds, setSeconds] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [hours, setHours] = useState(0);
-  const [mode, setMode] = useState(threatModes[0]?.key || '');
+  const [mode, setMode] = useState<'AUDIO' | 'VIDEO'>('AUDIO');
   const [selectedMode, setSelectedMode] = useState('AUDIO');
   const [zoomLevel, setZoomLevel] = useState(0.5);
   const [isFlashlight, setIsFlashlight] = useState(false);
@@ -128,6 +149,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
+
+  // Animation values for horizontal swiping
+  const translateX = useSharedValue(0);
+  const modeIndex = useSharedValue(0); // 0 for AUDIO, 1 for VIDEO
+
   const userCordinates = useSelector(
     (state: RootState) => state.home.userLocation,
   );
@@ -140,64 +166,99 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const isThreatDetected = useSelector(
     (state: RootState) => state?.home?.threatDetected,
   );
-  console.log('isThreatDetected', isThreatDetected);
 
-  // ✅ NEW: Enhanced notification functions
-  const showYellowNotification = useCallback((message: string) => {
-    console.log('🟡 Starting yellow notification:', message);
+  // useEffect(() => {
+  //   if(isFirstTime && !tutorialCompleted) {
+  //     const tutorialTimer = setTimeout(() => {
+  //       setShownTutorial(true);
+  //     }, 1500);
+  //     return () => clearTimeout(tutorialTimer);
+  //   }
+  // }, [isFirstTime, tutorialCompleted]);
 
-    setPreferenceMsg(message);
-    setIsModeText(true);
+  // Define gesture for horizontal swiping
+  const switchMode = (newMode: 'AUDIO' | 'VIDEO') => {
+    setMode(newMode);
+    const newIndex = newMode === 'AUDIO' ? 0 : 1;
+    modeIndex.value = withSpring(newIndex, {
+      damping: 20,
+      stiffness: 200,
+    });
 
-    // Reset animation to ensure clean start
-    opacity.stopAnimation();
-    opacity.setValue(0);
+    // Update eye/ear state based on mode
+    if (newMode === 'AUDIO') {
+      setEyeEarState('EAR');
+      showToastNotification('Recipients will get: Audio Stream')
+    } else {
+      setEyeEarState('EYE');
+      showToastNotification('Recipients will get: Video Stream')
+    }
+  };
 
-    // Start animation sequence
-    Animated.sequence([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.delay(2000), // Keep visible for 2 seconds
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+    })
+    .onEnd((event) => {
+      const shouldSwitch = Math.abs(event.translationX) > screenWidth * 0.2;
+
+      if (shouldSwitch) {
+        if (event.translationX > 0 && mode === 'VIDEO') {
+          // Swipe right: VIDEO to AUDIO
+          runOnJS(switchMode)('AUDIO');
+        } else if (event.translationX < 0 && mode === 'AUDIO') {
+          // Swipe left: AUDIO to VIDEO
+          runOnJS(switchMode)('VIDEO');
+        }
+      }
+
+      translateX.value = withSpring(0, {
+        damping: 20,
+        stiffness: 200,
+      });
+    });
+
+  const showText = () => {
+    // Fade in
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 400, // fade-in duration
+      useNativeDriver: true,
+    }).start(() => {
+      // After fade-in completes, wait and fade out
       Animated.timing(opacity, {
         toValue: 0,
         duration: 400,
+        delay: 2000, // keep visible for 2 seconds
         useNativeDriver: true,
-      }),
-    ]).start((finished) => {
-      if (finished) {
-        console.log('🟡 Yellow notification animation completed');
+      }).start(() => {
+        // Reset state after fade-out finishes
         setPreferenceMsg('');
         setIsModeText(false);
-      }
+      });
     });
-  }, [opacity]);
+  };
 
-  // ✅ NEW: Enhanced toast notification
-  const showToastNotification = useCallback((message: string) => {
-    console.log('⚪ Starting toast notification:', message);
-
+  const showToastNotification = (message: string | { firstLine: string; secondLine: string }) => {
     setToastMessage(message);
     setShowToast(true);
 
-    // Auto-hide after 2.5 seconds
+    // Auto-hide after 3 seconds
     setTimeout(() => {
-      console.log('⚪ Hiding toast notification');
       setShowToast(false);
       setToastMessage('');
-    }, 2500);
-  }, []);
+    }, 3000);
+  };
 
+  // Your existing icon functions
   const getEyeEarIcon = () => {
     switch (eyeEarState) {
       case 'EYE':
-        return Images.EyeCircle;
+        return Images.Eye || Images.Eye; // Fallback to existing icon
       case 'EAR':
-        return Images.Ear;
+        return Images.Ear || Images.SpeakerBtn; // Fallback to existing icon
       default:
-        return Images.EyeCircle;
+        return Images.EyeCircle || Images.Eye;
     }
   };
 
@@ -205,54 +266,36 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const getPreferenceIcon = () => {
     switch (preferenceState) {
       case 'A':
-        return Images.Automatic;
+        return Images.Automatic || Images.MicBtn; // Fallback to existing icon
       case 'AS':
-        return Images.AutoAndManual;
+        return Images.AutoAndManual || Images.MicOpenBtn; // Fallback to existing icon
       case 'MIC':
-        return Images.NoMic;
+        return Images.NoMic || Images.Mic; // Fallback to existing icon
       default:
-        return Images.Automatic;
+        return Images.Automatic || Images.MicBtn;
     }
   };
 
   useEffect(() => {
     // Preload the eye icon
-    Image.prefetch(Image.resolveAssetSource(Images.EyeAbleIcon).uri);
+    if (Images.EyeAbleIcon) {
+      Image.prefetch(Image.resolveAssetSource(Images.EyeAbleIcon).uri);
+    }
   }, []);
 
-  // ✅ UPDATED: Fixed headerOptions with proper notification handling
-  const headerOptions = [
-    mode == 'VIDEO' && {
-      id: '1',
-      key: 'Flashlight',
-      icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
-      onPress: () => {
-        setIsFlashlight(prev => !prev);
-        engine?.setCameraTorchOn(!isFlashlight);
-      },
-    },
-    {
-      id: '2',
-      key: 'Eye Ear Toggle',
-      icon: getEyeEarIcon(),
-      onPress: () => {
-        console.log('👁️👂 Eye/Ear toggle pressed, current state:', eyeEarState);
+  useFocusEffect(
+    useCallback(() => {
+      // When screen loses focus, close the modal
+      return () => {
+        setModalVisible(false);
+      };
+    }, [])
+  );
 
-        if (eyeEarState === 'EYE') {
-          setEyeEarState('EAR');
-          setMode('AUDIO');
-          // ONLY show toast for Eye/Ear toggle
-          showToastNotification('Recipients will get: Audio Stream');
-        } else {
-          setEyeEarState('EYE');
-          setMode('VIDEO');
-          // ONLY show toast for Eye/Ear toggle
-          showToastNotification('Recipients will get: Video Stream');
-        }
-      },
-    },
+  // ✅ NEW: Enhanced toast notification
+  const leftHeaderOptions = [
     {
-      id: '3',
+      id: '1',
       key: 'Preference Toggle',
       icon: getPreferenceIcon(),
       onPress: () => {
@@ -260,13 +303,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
 
         if (preferenceState === 'A') {
           setPreferenceState('AS');
-
-          // Show BOTH notifications with slight delay
-          // showToastNotification('Stream activates via: Auto Detection+Safe Word');
-          // setTimeout(() => {
-          showYellowNotification('Monitoring for assault...');
-          // }, 100); // Small delay to prevent conflicts
-
+          // Show white toast notification with structured message
+          showToastNotification({
+            firstLine: 'Stream activates via:',
+            secondLine: 'Auto Detection + safe word'
+          });
           dispatch(
             HomeActions.setSelectedModel(
               Environments.Models.WHISPER_AND_SENTIMENT,
@@ -280,22 +321,13 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
           );
         } else if (preferenceState === 'AS') {
           setPreferenceState('MIC');
-
-          // Show BOTH notifications with slight delay
-          // showToastNotification('Stream activation: OFF');
-          setTimeout(() => {
-            showYellowNotification('Monitoring off...');
-          }, 100);
-
         } else {
           setPreferenceState('A');
-
-          // Show BOTH notifications with slight delay
-          // showToastNotification('Stream activates via: Auto Detection');
-          // setTimeout(() => {
-          showYellowNotification('Monitoring for assault...');
-          // }, 100);
-
+          // Show white toast notification with structured message
+          showToastNotification({
+            firstLine: 'Stream activates via:',
+            secondLine: 'Manual activation only'
+          });
           dispatch(
             HomeActions.setSelectedModel(
               Environments.Models.TRIGGER_WORD_WHISPER,
@@ -310,7 +342,35 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
         }
       },
     },
+    {
+      id: '2',
+      key: 'Protection Schedule',
+      icon: Images.Schedule || Images.Bell,
+      step: 2,
+      disabled: preferenceState === 'MIC', // Add this line
+      onPress: () => {
+        // Only allow press if not in MIC state
+        if (preferenceState !== 'MIC') {
+          setModalVisible(true);
+        }
+      }
+    }
   ].filter(Boolean);
+
+  // ✅ FIXED: Flashlight only shows in VIDEO mode
+  const rightHeaderOptions = mode === 'VIDEO' ? [
+    {
+      id: '3',
+      key: 'Flashlight',
+      icon: isFlashlight ? Images.FlashOn : Images.FlashOff,
+      step: 3,
+      description: 'Enable or disable the flashlight',
+      onPress: () => {
+        setIsFlashlight(prev => !prev);
+        engine?.setCameraTorchOn(!isFlashlight);
+      },
+    },
+  ] : []; // Empty array when in AUDIO mode
 
   const toggleShape = () => {
     if (isCircle) {
@@ -445,12 +505,14 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     initRtcEngine();
   }, [isFocus]);
 
+  // All your existing functions remain the same...
   const startRecordingAPI = async (token: any) => {
     const body = {
       channel_name: state.channelId,
       recorder_uid: '316000',
       token: token,
     };
+    console.log('startRecordingAPI', body);
     try {
       HomeAPIS.startRecording(body)
         .then(async res => {
@@ -539,10 +601,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
       location_longitude: userCordinates?.longitude?.toFixed(6),
       user: userDetails?.user?.id,
     };
+    console.log('incident body', body);
     try {
       HomeAPIS.postIncidents(body)
         .then(async res => {
-          // console.log('Response Post incidents', res?.data);
+          console.log('Response Post incidents', res?.data);
           postMessage(token, res?.data?.id);
           setIncident_id(res?.data?.id);
         })
@@ -550,7 +613,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
           console.log('Err Post incidents', err.response?.data);
         });
     } catch (error) {
-      // console.error('Error Agora Token ', error);
+      console.error('Error Agora Token ', error);
     }
   };
 
@@ -560,6 +623,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
       channel_name: state.channelId,
       role: 'publisher',
     };
+    console.log('AgoraToken body', body);
     try {
       HomeAPIS.getAgoraToken(body)
         .then(async res => {
@@ -572,10 +636,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
           postIncident(res?.data?.token);
         })
         .catch(err => {
-          // console.log('Err Agora Token', err.response?.data);
+          console.log('Err Agora Token', err.response?.data);
         });
     } catch (error) {
-      // console.error('Error Agora Token ', error);
+      console.error('Error Agora Token ', error);
     }
   };
 
@@ -774,7 +838,9 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   };
 
   const startAndStopStream = () => {
+    console.log('isStreaming ');
     if (isStreaming) {
+      console.log('isStreaming inside!', isStreaming);
       leaveChannel();
       toggleShape();
       stopRecordingAPI();
@@ -925,225 +991,270 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     );
   };
 
-
-  const renderMode = () => {
-    return (
-      <ModeSelector
-        threatModes={threatModes}
-        mode={mode}
-        setMode={setMode}
-        setModeMsg={setModeMsg}
-        callback={() => {
-          showYellowNotification
-        }}
-      />
-    );
-  };
-
+  const renderZoomControls = () => (
+    <View style={[
+      styles.zoomControls,
+      {
+        bottom: isStreaming ? '19%' : '24%'
+      }
+    ]}>
+      {[0.5, 2, 3].map((zoom, index) => (
+        <TouchableOpacity
+          key={index?.toString()}
+          onPress={() => adjustZoom(zoom)}
+          style={[
+            styles.zoomButton,
+            zoom === zoomLevel && styles.activeZoomButton
+          ]}>
+          <CustomText.RegularText
+            customStyle={[
+              styles.zoomText,
+              {
+                color: zoom === zoomLevel
+                  ? Utills.selectedThemeColors().Yellow
+                  : Utills.selectedThemeColors().PrimaryTextColor,
+                fontWeight: zoom === zoomLevel ? '700' : '500',
+              }
+            ]}>
+            {zoom === 0.5 ? '0.5×' : `${zoom}×`}
+          </CustomText.RegularText>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
 
   return (
     <View style={{ flex: 1 }}>
       <StatusBar hidden={true} />
       <SafeAreaView style={{ flex: 1 }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <View style={{ flex: 1 }}>
-            <View style={styles.headerContainer}>
-              <View style={styles.headerMainContainer}>
+          <GestureDetector gesture={panGesture}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.headerContainer}>
+                {/* LEFT SIDE ICONS */}
                 <View style={styles.topLeftContainer}>
-                  {headerOptions?.map((item: any) => {
+                  {leftHeaderOptions?.map((item: any) => {
+                    const isDisabled = item.disabled; // Check if item is disabled
+
                     return (
                       <TouchableOpacity
                         key={item?.id}
-                        activeOpacity={0.7}
-                        onPress={item?.onPress}
-                        style={{ marginHorizontal: 3 }}>
-                        <Image
+                        activeOpacity={isDisabled ? 1 : 0.7} // No press feedback when disabled
+                        onPress={isDisabled ? undefined : item?.onPress} // Disable onPress when disabled
+                      >
+                        <RoundImageContainer
+                          imageStyle={{
+                            tintColor: isDisabled
+                              ? Utills.selectedThemeColors().SecondaryTextColor // Gray color when disabled
+                              : Utills.selectedThemeColors().PrimaryTextColor, // Normal white when enabled
+                            alignSelf: 'center',
+                            resizeMode: 'contain',
+                            marginLeft: item?.id === '1' ? 0.49 : 0,
+                          }}
+                          backgroundColor="transparent"
+                          circleWidth={26}
+                          borderWidth={item?.id === '2' ? 0 : 1.4}
+                          styles={{
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: item?.id === '1' ? 0 : (item?.id === '2' ? 0 : 3),
+                            opacity: isDisabled ? 0.5 : 1, // Additional opacity reduction when disabled
+                          }}
+                          borderColor={isDisabled
+                            ? Utills.selectedThemeColors().SecondaryTextColor
+                            : "white"
+                          }
                           source={item?.icon}
-                          style={styles.headerIcons}
-                          resizeMode="contain"
                         />
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-                <View
-                  style={{
-                    width: '40%',
-                    alignItems: 'center',
-                  }}>
-                  <CustomText.MediumText
-                    customStyle={[
+
+                {/* CENTER TIMER - Always centered */}
+                <View style={styles.timerCenterContainer}>
+                  <Text
+                    style={[
                       styles.timerText,
                       {
-                        backgroundColor: isStreaming
-                          ? '#FF0005'
-                          : Utills.selectedThemeColors().Transparent,
+                        backgroundColor: isStreaming ? '#FF3B30' : 'transparent',
                       },
                     ]}>
                     {isStreaming
-                      ? `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(
-                        seconds,
-                      )}`
+                      ? `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`
                       : '00:00:00'}
-                  </CustomText.MediumText>
+                  </Text>
                 </View>
-                <View
-                  style={{
-                    width: '30%',
-                    alignItems: 'flex-end',
-                  }}></View>
+
+                {/* RIGHT SIDE ICONS - Only show in video mode */}
+                <View style={styles.topRightContainer}>
+                  {rightHeaderOptions?.map((item: any) => {
+                    return (
+                      <TouchableOpacity
+                        key={item?.id}
+                        activeOpacity={0.7}
+                        onPress={item?.onPress}>
+                        <RoundImageContainer
+                          imageStyle={{
+                            tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+                          }}
+                          backgroundColor="transparent"
+                          circleWidth={26}
+                          borderWidth={1.4}
+                          styles={{ padding: 2 }}
+                          borderColor="white"
+                          source={item?.icon}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
-              <Animated.View style={[styles.fadeContainer, { opacity }]}>
-                <CustomText.SmallText
-                  customStyle={{ color: '#FDD128', textAlign: 'center' }}>
-                  {modeMsg}
-                </CustomText.SmallText>
-                <CustomText.SmallText
-                  customStyle={{ color: '#FDD128', textAlign: 'center' }}>
-                  {preferenceMsg}
-                </CustomText.SmallText>
-              </Animated.View>
-              {/* ✅ NEW: White Toast Notification */}
+              {isModeText && (
+                <Animated.View style={[styles.fadeContainer, { opacity }]}>
+                  <CustomText.SmallText
+                    customStyle={{ color: '#FDD128', textAlign: 'center' }}>
+                    {preferenceMsg}
+                  </CustomText.SmallText>
+                </Animated.View>
+              )}
+
               {showToast && (
                 <View style={styles.toastContainer}>
-                  <CustomText.SmallText customStyle={styles.toastText}>
-                    {toastMessage}
-                  </CustomText.SmallText>
+                  {typeof toastMessage === 'string' ? (
+                    <CustomText.RegularText customStyle={styles.toastText}>
+                      {toastMessage}
+                    </CustomText.RegularText>
+                  ) : (
+                    <View style={styles.multiLineToastContainer}>
+                      <CustomText.RegularText customStyle={styles.toastTextNormal}>
+                        {toastMessage.firstLine}
+                      </CustomText.RegularText>
+                      <CustomText.RegularText customStyle={styles.toastTextBold}>
+                        {toastMessage.secondLine}
+                      </CustomText.RegularText>
+                    </View>
+                  )}
                 </View>
               )}
-            </View>
 
-            <View style={{ flex: 1 }}>
-              {mode == 'AUDIO' ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <Image
-                    source={Images.Audio}
-                    style={{
-                      width: Metrix.HorizontalSize(120),
-                      height: Metrix.VerticalSize(120),
-                      tintColor: Utills.selectedThemeColors().PrimaryTextColor,
-                      marginLeft: Metrix.HorizontalSize(25),
-                    }}
-                    resizeMode="contain"
-                  />
-                  {!isStreaming && renderMode()}
-                </View>
-              ) : (
-                <>
-                  {renderUsers()}
-                  {isStreaming && renderViewers()}
+              <View style={{ flex: 1 }}>
+                <LiveStreamContent
+                  mode={mode}
+                  modeIndex={modeIndex}
+                  translateX={translateX}
+                  renderUsers={renderUsers}
+                  renderViewers={renderViewers}
+                  isStreaming={isStreaming}
+                  zoomControls={renderZoomControls()}
+                />
 
-                  <View style={[
-                    styles.zoomControls,
-                    {
-                      bottom: isStreaming ? '19%' : '24%'
-                    }
-                  ]}
-                  >
-                    {[0.5, 2, 3].map((zoom, index) => (
-                      <TouchableOpacity
-                        key={index?.toString()}
-                        onPress={() => adjustZoom(zoom)}
-                        style={[
-                          styles.zoomButton,
-                          zoom === zoomLevel && styles.activeZoomButton
-                        ]}>
-
-                        <CustomText.RegularText
-                          customStyle={[
-                            styles.zoomText,
-                            {
-                              color: zoom === zoomLevel
-                                ? Utills.selectedThemeColors().Yellow
-                                : Utills.selectedThemeColors().PrimaryTextColor,
-                              fontWeight: zoom === zoomLevel ? '700' : '500',
-                            }
-                          ]}>
-                          {zoom === 0.5 ? '0.5x' : zoom === 1 ? '1×' : `${zoom}×`}
-                        </CustomText.RegularText>
-
-                      </TouchableOpacity>
-                    ))}
+                {!isStreaming && (
+                  <View style={styles.modeSelectorContainer}>
+                    <LiveStreamModeSelector
+                      currentMode={mode}
+                      onModeChange={switchMode}
+                      translateX={translateX}
+                      modeIndex={modeIndex}
+                    />
                   </View>
-                  {!isStreaming && renderMode()}
-                </>
-              )}
-            </View>
-
-            <View style={styles.bottomContainer}>
-              <View style={styles.blankView}></View>
-              <View>
-                <TouchableOpacity
-                  onPress={startAndStopStream}
-                  style={styles.liveStreamButton}>
-                  <Animated.View
-                    style={[
-                      styles.innerLiveStreamButton,
-                      {
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: sizeAnim,
-                        height: sizeAnim,
-                        borderRadius: borderRadiusAnim,
-                        borderColor: isCircle
-                          ? Utills.selectedThemeColors().Base
-                          : Utills.selectedThemeColors().Transparent,
-                      },
-                    ]}></Animated.View>
-                </TouchableOpacity>
-                <CustomText.RegularText customStyle={styles.livestreamText}>
-                  {isStreaming ? 'STREAMING' : 'LIVESTREAM'}
-                </CustomText.RegularText>
+                )}
               </View>
 
-              <TouchableOpacity
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: Utills.selectedThemeColors().SecondaryTextColor,
-                  borderRadius: Metrix.HorizontalSize(7),
-                  marginBottom: Metrix.VerticalSize(29)
-                }}
-                onPress={() => {
-                  NavigationService.navigate(RouteNames.HomeRoutes.Footages);
-                }}>
-                {lastImage && (
-                  <Image
-                    source={Images.PlayBtn}
-                    resizeMode={'cover'}
-                    style={styles.playBtn}
-                  />
-                )}
+              <View style={styles.bottomContainer}>
+                {/* LEFT SIDE - Play/Footage Button (moved from right) */}
+                <TouchableOpacity
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    // borderColor: Utills.selectedThemeColors().SecondaryTextColor,
+                    borderRadius: Metrix.HorizontalSize(7),
+                    marginBottom: Metrix.VerticalSize(20)
+                  }}
+                  onPress={() => {
+                    NavigationService.navigate(RouteNames.HomeRoutes.Footages);
+                  }}>
+                  {lastImage && (
+                    <Image
+                      source={Images.PlayBtn}
+                      resizeMode={'cover'}
+                      style={styles.playBtn}
+                    />
+                  )}
 
-                {lastImage ? (
-                  <Image
-                    source={{ uri: lastImage?.thumbnail }}
-                    style={styles.footageImg}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <Image
-                    source={Images.Audio}
-                    style={styles.footageImg}
-                    resizeMode="cover"
-                  />
-                )}
-              </TouchableOpacity>
+                  {lastImage ? (
+                    <Image
+                      source={{ uri: lastImage?.thumbnail }}
+                      style={styles.footageImg}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Image
+                      source={Images.Audio}
+                      style={styles.footageImg}
+                      resizeMode="cover"
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {/* CENTER - Record/Livestream Button */}
+                <View>
+                  <TouchableOpacity
+                    onPress={startAndStopStream}
+                    style={styles.liveStreamButton}>
+                    <Animated.View
+                      style={[
+                        styles.innerLiveStreamButton,
+                        {
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: sizeAnim,
+                          height: sizeAnim,
+                          borderRadius: borderRadiusAnim,
+                          borderColor: isCircle
+                            ? Utills.selectedThemeColors().Base
+                            : Utills.selectedThemeColors().Transparent,
+                        },
+                      ]}></Animated.View>
+                  </TouchableOpacity>
+                  <CustomText.RegularText customStyle={styles.livestreamText}>
+                    {isStreaming ? 'STREAMING' : 'LIVESTREAM'}
+                  </CustomText.RegularText>
+                </View>
+
+                {/* RIGHT SIDE - Empty Space (for balance/centering) */}
+                <View style={styles.blankView}></View>
+              </View>
             </View>
-          </View>
+          </GestureDetector>
         </GestureHandlerRootView>
+        {modalVisible && (
+          <ProtectionScheduleModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+          />
+        )}
       </SafeAreaView>
     </View>
   );
 };
-
+const getTimerFont = () => {
+  if (Platform.OS === 'ios') {
+    return {
+      fontFamily: 'SF Pro Display',
+      fontWeight: '600', // Semi-bold
+      fontVariant: ['tabular-nums'],
+    };
+  } else {
+    return {
+      fontFamily: 'Roboto',
+      fontWeight: '500', // Medium on Android
+      fontVariant: ['tabular-nums'],
+    };
+  }
+};
 const styles = StyleSheet.create({
   headerContainer: {
     position: 'absolute',
@@ -1151,45 +1262,72 @@ const styles = StyleSheet.create({
     top: '0%',
     width: '100%',
     backgroundColor: '#00000080',
-    paddingHorizontal: Metrix.HorizontalSize(12),
-    paddingBottom: Metrix.HorizontalSize(10),
-    paddingTop: Metrix.HorizontalSize(10),
-    justifyContent: 'space-between',
-  },
-  headerMainContainer: {
     flexDirection: 'row',
-    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: Metrix.HorizontalSize(10),
+    paddingVertical: Metrix.HorizontalSize(10),
+    paddingTop: Metrix.HorizontalSize(45),
     justifyContent: 'space-between',
+    minHeight: Metrix.VerticalSize(60),
+  },
+
+  // Update your topLeftContainer style:
+  topLeftContainer: {
+    flexDirection: 'row',
+    width: '30%',
+    justifyContent: 'flex-start',
+    alignItems: 'center', // This centers all items vertically
+    gap: Metrix.HorizontalSize(8),
+  },
+  timerCenterContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  topRightContainer: {
+    flexDirection: 'row',
+    width: '30%',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
+  timerText: {
+    // fontSize: normalizeFont(19),
+    fontSize: 22,
+    paddingHorizontal: Metrix.HorizontalSize(8),
+    paddingVertical: Metrix.VerticalSize(2),
+    borderRadius: Metrix.HorizontalSize(3),
+    lineHeight: 30,
+    overflow: 'hidden',
+    textAlign: 'center',
+
+    // iOS Camera Timer Font Properties
+    fontFamily: Platform.OS === 'ios' ? 'SF Pro Display' : 'Roboto', // SF Pro on iOS, Roboto on Android
+    fontWeight: '100', // Semi-bold weight like iOS camera
+    fontVariant: ['tabular-nums'], // Monospaced numbers for consistent spacing
+    // letterSpacing: 1, // Slight letter spacing for clarity
+
+    color: '#FFFFFF',
+  },
+
   frontCamWrapper: {
     position: 'absolute',
     top: '19%',
     left: '4%',
     width: '30%',
     borderRadius: Metrix.HorizontalSize(5),
-    backgroundColor: 'black', // Same background as camera
-    overflow: 'visible', // Allow live indicator to extend beyond
+    backgroundColor: 'black',
+    overflow: 'visible',
   },
+
   frontCamPreview: {
-    height: Metrix.VerticalSize(150), // Keep original height
+    height: Metrix.VerticalSize(150),
     width: '100%',
     borderRadius: Metrix.HorizontalSize(5),
     backgroundColor: 'black',
     overflow: 'hidden',
   },
-  topLeftContainer: {
-    flexDirection: 'row',
-    width: '30%',
-  },
-  headerIcons: {
-    width: Metrix.HorizontalSize(29),
-    height: Metrix.HorizontalSize(29),
-    borderRadius: Metrix.HorizontalSize(100),
-    borderWidth: 1,
-    borderColor: 'white',
-    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
-  },
+
   bottomContainer: {
     width: '100%',
     alignItems: 'center',
@@ -1198,22 +1336,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 99,
     bottom: '0%',
-    paddingHorizontal: Metrix.HorizontalSize(40),
+    paddingHorizontal: Metrix.HorizontalSize(20),
   },
+
   blankView: {
     width: Metrix.HorizontalSize(60),
     height: Metrix.VerticalSize(60),
     borderRadius: Metrix.HorizontalSize(100),
   },
+
   livestreamText: {
     paddingVertical: Metrix.VerticalSize(10),
     fontWeight: '700',
   },
+
   footageImg: {
-    width: Metrix.HorizontalSize(60),
-    height: Metrix.VerticalSize(60),
+    width: Metrix.HorizontalSize(50),
+    height: Metrix.VerticalSize(50),
     borderRadius: Metrix.HorizontalSize(5),
   },
+
   circularContact: {
     width: Metrix.VerticalSize(32),
     height: Metrix.VerticalSize(32),
@@ -1222,6 +1364,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
+
   liveStreamButton: {
     marginTop: Metrix.VerticalSize(10),
     alignSelf: 'center',
@@ -1234,6 +1377,7 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
+
   innerLiveStreamButton: {
     width: Metrix.HorizontalSize(65),
     height: Metrix.HorizontalSize(65),
@@ -1242,17 +1386,19 @@ const styles = StyleSheet.create({
     borderColor: Utills.selectedThemeColors().Base,
     backgroundColor: Utills.selectedThemeColors().Red,
   },
+
   zoomControls: {
     position: 'absolute',
-    // bottom: '24%', //24%
     alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '35%',
     alignItems: 'center',
     borderRadius: Metrix.HorizontalSize(100),
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent black background
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    marginBottom: Metrix.VerticalSize(13)
   },
+
   zoomButton: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: Metrix.HorizontalSize(100),
@@ -1262,6 +1408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   activeZoomButton: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: Metrix.HorizontalSize(100),
@@ -1273,21 +1420,12 @@ const styles = StyleSheet.create({
     marginTop: Metrix.VerticalSize(2),
     marginBottom: Metrix.VerticalSize(2)
   },
+
   zoomText: {
     color: 'white',
     fontSize: 12,
   },
-  timerText: {
-    fontSize: normalizeFont(18),
-    paddingHorizontal: Metrix.HorizontalSize(8),
-    borderRadius: Metrix.HorizontalSize(3),
-    lineHeight: 30,
-    overflow: 'hidden',
-    color: Utills.selectedThemeColors().PrimaryTextColor,
-  },
-  circle: {
-    backgroundColor: 'red',
-  },
+
   viewerContainer: {
     top: '50%',
     left: '4%',
@@ -1297,84 +1435,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
+
   liveBgContainer: {
     position: 'absolute',
-    bottom: -Metrix.VerticalSize(40), // Position below the camera
+    bottom: -Metrix.VerticalSize(40),
     left: 0,
     right: 0,
     flexDirection: 'row',
     backgroundColor: Utills.selectedThemeColors().Base,
     padding: Metrix.HorizontalSize(2),
     borderRadius: Metrix.HorizontalSize(2),
-    borderTopWidth: 0, // Remove top border to connect with camera
-    // borderTopLeftRadius: 0, // Connect top corners with camera
-    // borderTopRightRadius: 0,
+    borderTopWidth: 0,
     marginTop: Metrix.VerticalSize(6)
   },
 
   liveContainer: {
     width: '50%',
     height: Metrix.VerticalSize(30),
-    // backgroundColor: Utills.selectedThemeColors().Red,
     backgroundColor: '#FF0005',
     alignItems: 'center',
     justifyContent: 'space-evenly',
     borderRadius: Metrix.HorizontalSize(2),
     flexDirection: 'row',
   },
+
   liveCircle: {
     width: Metrix.HorizontalSize(5),
     height: Metrix.HorizontalSize(5),
     borderRadius: Metrix.HorizontalSize(100),
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
+
   countContainer: {
     width: '50%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
   },
+
   eyeIcon: {
     width: Metrix.HorizontalSize(18),
     height: Metrix.VerticalSize(18),
-    tintColor: Utills.selectedThemeColors().PrimaryTextColor, // Add tint for consistency
+    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+  },
 
-  },
-  blurView: {
-    width: deviceWidth,
-    height: deviceHeight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    position: 'absolute',
-  },
-  tooltipContent: {
-    color: Utills.selectedThemeColors().Base,
-    textAlign: 'center',
-    fontSize: Metrix.customFontSize(13),
-    fontWeight: '500',
-  },
-  nextTouchable: {
-    marginTop: Metrix.VerticalSize(8),
-    alignSelf: 'flex-end',
-  },
   viewersContainer: {
     marginTop: Metrix.VerticalSize(5),
     flexDirection: 'row',
     alignItems: 'center',
     width: '50%',
   },
+
   userInitialText: {
     fontWeight: '600',
     color: Utills.selectedThemeColors().Base,
     fontSize: normalizeFont(13),
   },
+
   userNameText: {
     fontWeight: '700',
     color: Utills.selectedThemeColors().PrimaryTextColor,
     left: Metrix.HorizontalSize(8),
     fontSize: normalizeFont(14),
   },
+
   playBtn: {
     width: Metrix.HorizontalSize(30),
     height: Metrix.HorizontalSize(30),
@@ -1382,17 +1506,23 @@ const styles = StyleSheet.create({
     zIndex: 10,
     tintColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
+
   fadeContainer: {
+    position: 'absolute',
+    top: Metrix.VerticalSize(82),
+    left: 0,
+    right: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 99,
   },
-  // ✅ NEW: Toast notification styles
+
   toastContainer: {
     position: 'absolute',
-    top: Metrix.VerticalSize(82), // Under the timer (00:00:00)
-    left: 40, // 5px margin from left
-    right: 40, // 5px margin from right
-    backgroundColor: '#FFFFFF', // White background
+    top: Metrix.VerticalSize(90),
+    left: 40,
+    right: 40,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: Metrix.HorizontalSize(15),
     paddingVertical: Metrix.VerticalSize(8),
     borderRadius: Metrix.HorizontalSize(8),
@@ -1406,10 +1536,39 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 100,
   },
+
   toastText: {
-    color: '#000000', // Black text on white background
-    fontSize: Metrix.customFontSize(12),
+    color: '#000000',
+    fontSize: Metrix.customFontSize(13),
     fontWeight: '600',
     textAlign: 'center',
+  },
+
+  multiLineToastContainer: {
+    alignItems: 'center',
+  },
+
+  toastTextNormal: {
+    color: '#000000',
+    fontSize: Metrix.customFontSize(13),
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  toastTextBold: {
+    color: '#000000',
+    fontSize: Metrix.customFontSize(13),
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+
+  modeSelectorContainer: {
+    position: 'absolute',
+    bottom: '15%',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
   },
 });

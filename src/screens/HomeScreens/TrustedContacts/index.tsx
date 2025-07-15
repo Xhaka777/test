@@ -1,8 +1,11 @@
 import {
   Alert,
+  Dimensions,
   FlatList,
+  Image,
   RefreshControl,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -28,6 +31,9 @@ import { HomeAPIS } from '../../../services/home';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/reducers';
 import { useFocusEffect } from '@react-navigation/native';
+
+const { width } = Dimensions.get('window');
+
 
 export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
   const [loading, setLoading] = useState(false);
@@ -91,6 +97,15 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
       });
   };
 
+  const handleTestStream = (contact: any) => {
+    // Navigate to LiveStream with the selected contact for test streaming
+    NavigationService.navigate(RouteNames.HomeRoutes.LiveStream, {
+      testStreamContact: contact,
+      isTestStream: true
+    });
+  };
+
+
   useFocusEffect(
     useCallback(() => {
       getContacts();
@@ -116,7 +131,6 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
             customStyle={styles.rightText}>
             {item?.name}
           </CustomText.MediumText>
-          {/* <CustomText.RegularText>{item?.phone}</CustomText.RegularText> */}
         </View>
         <View style={styles.editBox}>
           <TouchableOpacity
@@ -142,22 +156,17 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
               ]);
             }}>
             <RoundImageContainer
+              styles={{ width: Metrix.HorizontalSize(34), height: Metrix.VerticalSize(35) }}
               resizeMode="contain"
-              circleWidth={28}
+              circleWidth={30}
               source={Images.Delete}
-              imageStyle={{
-                tintColor: Utills.selectedThemeColors().PrimaryTextColor,
-              }}
             />
           </TouchableOpacity>
+
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.testStreamButton}
-            onPress={() => {
-              // Handle test stream functionality
-              console.log('Test stream for:', item?.name);
-              // You can add your test stream logic here
-            }}>
+            onPress={() => handleTestStream(item)}>
             <CustomText.SmallText customStyle={styles.testStreamText}>
               Test{'\n'}stream
             </CustomText.SmallText>
@@ -169,9 +178,13 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
 
   return (
     <MainContainer>
-      <CustomText.ExtraLargeBoldText>
-        {t('Responders')}
-      </CustomText.ExtraLargeBoldText>
+      <View style={styles.titleContainer}>
+        <Image
+          source={Images.Premium}
+          style={styles.premiumIcon}
+        />
+        <Text style={styles.title}>Responders</Text>
+      </View>
 
       {/* Add the subtitle text here */}
       <CustomText.RegularText
@@ -233,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: Metrix.HorizontalSize(10),
     height: Metrix.VerticalSize(70),
     marginVertical: Metrix.VerticalSize(10),
-    backgroundColor: Utills.selectedThemeColors().Base,
+    // backgroundColor: Utills.selectedThemeColors().Primary,
     // ...createShadow,
     // shadowColor: Utills.selectedThemeColors().NotFocussed,
     flexDirection: 'row',
@@ -246,8 +259,8 @@ const styles = StyleSheet.create({
 
   },
   circularView: {
-    width: Metrix.HorizontalSize(45),
-    height: Metrix.VerticalSize(45),
+    width: Metrix.HorizontalSize(35),
+    height: Metrix.VerticalSize(35),
     backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
     borderRadius: Metrix.HorizontalSize(100),
     alignItems: 'center',
@@ -265,11 +278,13 @@ const styles = StyleSheet.create({
     paddingLeft: Metrix.HorizontalSize(5),
   },
   editBox: {
-    width: '40%',
-    justifyContent: 'space-between',
+    width: '38%',
+    justifyContent: 'center', // Changed from 'space-between'
     alignItems: 'center',
-    // paddingHorizontal: Metrix.HorizontalSize(-1),
+    paddingHorizontal: Metrix.HorizontalSize(5), // Added padding
     flexDirection: 'row',
+    gap: Metrix.HorizontalSize(8), // Added consistent gap between buttons
+    // backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
   rightText: {
     marginBottom: Metrix.VerticalSize(3),
@@ -302,5 +317,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     lineHeight: 12,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8, // Space between icon and text
+  },
+  premiumIcon: {
+    tintColor: '#fff', // Black color
+    resizeMode: 'contain',
+    width: Metrix.HorizontalSize(35),
+    height: Metrix.VerticalSize(35),
+  },
+  title: {
+    fontSize: Math.min(width * 0.045, 18), // Responsive font size
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'left',
+    flex: 1, // Take remaining space
   },
 });

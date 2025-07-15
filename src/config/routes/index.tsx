@@ -1,7 +1,11 @@
+// import { TrustedContacts } from "../../screens";
+
+
 export const RouteNames = {
   AuthRoutes: {
     LoginScreen: 'LoginScreen',
     OnBoardingScreen: 'OnBoardingScreen',
+    ReadBeforeUse: 'ReadBeforeUse',
     ForgotPasswordScreen: 'ForgotPasswordScreen',
     OtpScreen: 'OtpScreen',
     RegisterScreen: 'RegisterScreen',
@@ -23,6 +27,10 @@ export const RouteNames = {
     Footages: 'Footages',
     FootageDetails: 'FootageDetails',
     Videos: 'Videos',
-    HeartRateMonitor:"HeartRateMonitor"
+    HeartRateMonitor: "HeartRateMonitor",
+    Premium: 'Premium',
+    PasscodeSettings: 'PasscodeSettings',
+    TrustedContacts: 'TrustedContacts',
+    HowToUse: 'HowToUse',
   },
 };

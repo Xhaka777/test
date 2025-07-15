@@ -7,6 +7,14 @@ type AuthParamList = {
   VideoScreen: {courseId?: string};
 };
 
+export interface TrustedContact {
+  id: string;
+  name: string;
+  phone: string;
+  abbreviate: string;
+  serviceType: string;
+}
+
 type HomeParamList = {};
 
 // Auth Screens Types
@@ -28,6 +36,8 @@ export type GoogleSignUpProps = {};
 export type VerifyUserProps = {};
 
 export type OnBoardingProps = {};
+
+export type ReadBeforeUseProps = {};
 
 // Home Screen Types
 
@@ -60,3 +70,11 @@ export type FootagesProps = {};
 export type FootageDetailsProps = {};
 
 export type HeartRateMonitorProps = {};
+
+export type PremiumProps = {};
+
+export type PasscodeSettingsProps = {};
+
+export type HeadsUpProps = {};
+
+export type HowToUseProps = {};
