@@ -11,12 +11,31 @@ import {Provider} from 'react-redux';
 import configureStore from './src/redux/Store';
 import DataHandler from './src/services/dataHandler.service';
 import {PersistGate} from 'redux-persist/integration/react';
+import SplashScreenComponent from './src/components/SplashScreen/SplashScreenComponent';
 
 const {runSaga, store, persistor} = configureStore();
 DataHandler.setStore(store);
 
 class AppView extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showSplash: true,
+    };
+  }
+
+  componentDidMount() {
+    // Hide splash after 4 seconds
+    setTimeout(() => {
+      this.setState({ showSplash: false });
+    }, 4000);
+  }
+
   render() {
+    if (this.state.showSplash) {
+      return <SplashScreenComponent />;
+    }
+
     return (
       <>
         <Provider store={store}>

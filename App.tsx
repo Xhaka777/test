@@ -19,10 +19,8 @@ import Toast, {
 import SplashScreen from 'react-native-splash-screen';
 import './src/i18n';
 import Bugsee from 'react-native-bugsee';
-import {LottieAnimatedComponent} from './src/components';
 
 function App(): JSX.Element {
-  const [showCustomSplash, setShowCustomSplash] = useState(true);
 
   const toastConfig = {
     info: (props: ToastProps) => (
@@ -90,26 +88,8 @@ function App(): JSX.Element {
     };
 
     launchBugsee();
-
-    // Hide custom splash after 3 seconds
-    const timer = setTimeout(() => {
-      setShowCustomSplash(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
   }, []);
 
-  if (showCustomSplash) {
-    return (
-      <LottieAnimatedComponent
-        src={require('./src/assets/animations/microphone.json')}
-        customStyle={styles.splashContainer}
-        speed={1}
-        loop={true}
-        autoPlay={true}
-      />
-    );
-  }
 
   return (
     <NavigationContainer
@@ -135,12 +115,6 @@ const styles = StyleSheet.create({
   backgroundStyle: {
     flex: 1,
     backgroundColor: Utills.selectedThemeColors().Base,
-  },
-  splashContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
 
