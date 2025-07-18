@@ -5,6 +5,7 @@ import {
   StatusBar,
   Animated,
   Dimensions,
+  Text,
 } from 'react-native';
 import {LottieAnimatedComponent} from '../LottieAnimatedComponent';
 import {Utills} from '../../config';
@@ -50,22 +51,26 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   };
 
   const handleLottieFinish = () => {
-    // If you want the splash to finish when Lottie animation completes
-    // instead of using the timer, uncomment the line below
-    // handleFinish();
+    // Optional: finish when Lottie animation completes
+    console.log('Lottie animation finished');
   };
 
   return (
     <Animated.View style={[styles.container, {backgroundColor, opacity: fadeAnim}]}>
       <StatusBar hidden={true} />
       
+      {/* Debug text to ensure splash is showing */}
+      <View style={styles.debugContainer}>
+        <Text style={styles.debugText}>Loading...</Text>
+      </View>
+      
       <View style={styles.animationContainer}>
-        {showAnimation && (
+        {showAnimation && animationSource && (
           <LottieAnimatedComponent
             src={animationSource}
             customStyle={styles.lottieStyle}
             speed={1}
-            loop={false} // Set to false for splash screen
+            loop={true} // Changed to true for better visibility
             autoPlay={true}
             onAnimationFinish={handleLottieFinish}
           />
@@ -87,11 +92,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 9999,
   },
+  debugContainer: {
+    position: 'absolute',
+    top: height * 0.3,
+    alignItems: 'center',
+  },
+  debugText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  },
   animationContainer: {
-    width: width * 0.8, // 80% of screen width
-    height: height * 0.4, // 40% of screen height
+    width: width * 0.6, // Reduced size for better visibility
+    height: height * 0.3,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Debug background
+    borderRadius: 10,
   },
   lottieStyle: {
     width: '100%',

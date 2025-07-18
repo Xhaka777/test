@@ -21,6 +21,7 @@ import SplashScreen from 'react-native-splash-screen';
 import './src/i18n';
 import Bugsee from 'react-native-bugsee';
 import {SplashScreen as CustomSplashScreen} from './src/components';
+import {Images} from './src/config';
 
 function App(): JSX.Element {
   const [showSplash, setShowSplash] = useState(true);
@@ -116,8 +117,9 @@ function App(): JSX.Element {
     {showSplash && (
       <CustomSplashScreen
         onFinish={() => setShowSplash(false)}
-        animationSource={require('./src/assets/animations/splash.json')}
-        duration={3000}
+        animationSource={require('./src/assets/animations/microphone.json')}
+        duration={4000}
+        backgroundColor="#000000"
       />
     )}
     </>

@@ -19,8 +19,10 @@ export const LottieAnimatedComponent: React.FC<LottieAnimatedComponentProps> = (
   autoPlay = true,
   onAnimationFinish,
 }) => {
+  console.log('LottieAnimatedComponent rendering with source:', src ? 'Source provided' : 'No source');
+  
   return (
-    <View style={customStyle}>
+    <View style={[{flex: 1}, customStyle]}>
       <Lottie
         source={src}
         autoPlay={autoPlay}
@@ -28,6 +30,7 @@ export const LottieAnimatedComponent: React.FC<LottieAnimatedComponentProps> = (
         speed={speed}
         style={{width: '100%', height: '100%'}}
         onAnimationFinish={onAnimationFinish}
+        resizeMode="contain"
       />
     </View>
   );
