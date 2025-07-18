@@ -57,23 +57,26 @@ const GifSplashScreen: React.FC<GifSplashScreenProps> = ({
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar hidden={true} />
       
-      {/* Try FastImage first */}
+      {/* Use FastImage with high quality settings */}
       {gifSource ? (
         <FastImage
           source={gifSource}
           style={styles.animation}
           resizeMode={FastImage.resizeMode.contain}
+          priority={FastImage.priority.high}
+          cache={FastImage.cacheControl.immutable}
           onError={(error) => {
             console.error('❌ FastImage GIF error:', error);
           }}
           onLoad={() => console.log('✅ FastImage GIF loaded successfully')}
         />
       ) : (
-        /* Fallback to regular Image component */
+        /* Fallback to regular Image component with better settings */
         <Image
           source={require('../../assets/animations/splash.gif')}
           style={styles.animation}
-          resizeMode="contain"
+          resizeMode="cover"
+          fadeDuration={0}
           onError={(error) => {
             console.error('❌ Regular Image GIF error:', error);
           }}
@@ -81,12 +84,6 @@ const GifSplashScreen: React.FC<GifSplashScreenProps> = ({
         />
       )}
       
-      {/* Debug overlay */}
-      <View style={styles.debugOverlay}>
-        <Text style={styles.debugText}>
-          GIF Splash Screen Active
-        </Text>
-      </View>
     </Animated.View>
   );
 };
@@ -105,23 +102,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   animation: {
-    width: width * 0.8,
-    height: height * 0.8,
-  },
-  debugOverlay: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  debugText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    width: width,
+    height: height,
   },
 });
 

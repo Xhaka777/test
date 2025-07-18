@@ -11,7 +11,7 @@ import {Provider} from 'react-redux';
 import configureStore from './src/redux/Store';
 import DataHandler from './src/services/dataHandler.service';
 import {PersistGate} from 'redux-persist/integration/react';
-import { SimpleSplashScreen, VideoSplashScreen, GifSplashScreen } from './src/components';
+import { SimpleSplashScreen, VideoSplashScreen, GifSplashScreen, LottieSplashScreen } from './src/components';
 import { Images } from './src/config';
 
 const {runSaga, store, persistor} = configureStore();
@@ -29,40 +29,48 @@ class AppView extends Component {
     // Hide splash after 3 seconds
     setTimeout(() => {
       this.setState({ showSplash: false });
-    }, 3000);
+    }, 4000);
   }
 
   render() {
     if (this.state.showSplash) {
-      // Try different splash screen types:
-      
-      // Option 1: Simple animated splash (most reliable)
+      // Option 1: Improved GIF splash (better quality)
       return (
-        <SimpleSplashScreen
+        <GifSplashScreen
           onFinish={() => this.setState({ showSplash: false })}
-          duration={3000}
-          logoSource={Images.Logo}
-          title="Rove"
-          backgroundColor="#000000"
+          duration={4000}
+          gifSource={require('./src/assets/animations/splash.gif')}
         />
       );
       
-      // Option 2: Video splash (uncomment to try)
+      // Option 2: Try Lottie with better implementation (uncomment to test)
+      // return (
+      //   <LottieSplashScreen
+      //     onFinish={() => this.setState({ showSplash: false })}
+      //     duration={4000}
+      //     animationSource={require('./src/assets/animations/your-lottie-file.json')}
+      //     backgroundColor="#000000"
+      //   />
+      // );
+      
+      // Option 3: Video splash (uncomment to try)
       // return (
       //   <VideoSplashScreen
       //     onFinish={() => this.setState({ showSplash: false })}
-      //     duration={3000}
+      //     duration={4000}
       //     type="video"
       //     videoSource={require('./src/assets/animations/splash.mp4')}
       //   />
       // );
       
-      // Option 3: GIF splash (uncomment to try)
+      // Option 4: Simple animated splash (most reliable fallback)
       // return (
-      //   <GifSplashScreen
+      //   <SimpleSplashScreen
       //     onFinish={() => this.setState({ showSplash: false })}
-      //     duration={3000}
-      //     gifSource={require('./src/assets/animations/splash.gif')}
+      //     duration={4000}
+      //     logoSource={Images.Logo}
+      //     title="Rove"
+      //     backgroundColor="#000000"
       //   />
       // );
     }

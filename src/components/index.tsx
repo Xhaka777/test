@@ -22,6 +22,7 @@ import {ModeSelector} from './ModeSelector';
 import {PasscodeInput} from './PasscodeInput/PasscodeInput';
 import { Tutorial } from './TutorialStep'; 
 import {LottieAnimatedComponent} from './LottieAnimatedComponent';
+import LottieSplashScreen from './SplashScreen/LottieSplashScreen';
 
 
 export {
@@ -52,4 +53,5 @@ export {
   VideoSplashScreen,
   GifSplashScreen,
   SimpleSplashScreen,
+  LottieSplashScreen,
 };
