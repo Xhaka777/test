@@ -19,7 +19,17 @@ export const LottieAnimatedComponent: React.FC<LottieAnimatedComponentProps> = (
   autoPlay = true,
   onAnimationFinish,
 }) => {
-  console.log('LottieAnimatedComponent rendering with source:', src ? 'Source provided' : 'No source');
+  console.log('🎬 LottieAnimatedComponent rendering');
+  console.log('📁 Animation source provided:', src ? 'YES' : 'NO');
+  
+  if (!src) {
+    console.error('❌ No animation source provided to LottieAnimatedComponent');
+    return (
+      <View style={[{flex: 1, backgroundColor: 'red'}, customStyle]}>
+        {/* Red background to indicate error */}
+      </View>
+    );
+  }
   
   return (
     <View style={[{flex: 1}, customStyle]}>

@@ -5,7 +5,6 @@
  * @format
  */
 import 'react-native-gesture-handler';
-import React, {useEffect} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {Platform, StyleSheet} from 'react-native';
@@ -20,11 +19,10 @@ import Toast, {
 import SplashScreen from 'react-native-splash-screen';
 import './src/i18n';
 import Bugsee from 'react-native-bugsee';
-import {SplashScreen as CustomSplashScreen} from './src/components';
-import {Images} from './src/config';
+import {LottieAnimatedComponent} from './src/components';
 
 function App(): JSX.Element {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showCustomSplash, setShowCustomSplash] = useState(true);
 
   const toastConfig = {
     info: (props: ToastProps) => (
@@ -52,7 +50,6 @@ function App(): JSX.Element {
           borderLeftColor: 'lightgreen',
           width: '80%',
           borderLeftWidth: 6,
-          // ...Metrix.createShadow,
         }}
         text1Style={{
           fontSize: 14,
@@ -83,20 +80,38 @@ function App(): JSX.Element {
   };
 
   useEffect(() => {
-  // Hide splash screen
-  SplashScreen.hide();
+    // Hide the native splash screen immediately
+    SplashScreen.hide();
 
-  // LaunchBugsee
-  const launchBugsee = async () => {
-    let appToken = '36c1101e-8278-4b0c-a65b-ec367335af31';
-    await Bugsee.launch(appToken);
-  };
+    // Launch Bugsee
+    const launchBugsee = async () => {
+      let appToken = '36c1101e-8278-4b0c-a65b-ec367335af31';
+      await Bugsee.launch(appToken);
+    };
 
-  launchBugsee();
-}, []);
+    launchBugsee();
+
+    // Hide custom splash after 3 seconds
+    const timer = setTimeout(() => {
+      setShowCustomSplash(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showCustomSplash) {
+    return (
+      <LottieAnimatedComponent
+        src={require('./src/assets/animations/microphone.json')}
+        customStyle={styles.splashContainer}
+        speed={1}
+        loop={true}
+        autoPlay={true}
+      />
+    );
+  }
 
   return (
-    <>
     <NavigationContainer
       ref={ref => NavigationService.setTopLevelNavigator(ref)}
       theme={{
@@ -113,16 +128,6 @@ function App(): JSX.Element {
       <MainStack />
       <Toast config={toastConfig} />
     </NavigationContainer>
-    
-    {showSplash && (
-      <CustomSplashScreen
-        onFinish={() => setShowSplash(false)}
-        animationSource={require('./src/assets/animations/microphone.json')}
-        duration={4000}
-        backgroundColor="#000000"
-      />
-    )}
-    </>
   );
 }
 
@@ -130,6 +135,12 @@ const styles = StyleSheet.create({
   backgroundStyle: {
     flex: 1,
     backgroundColor: Utills.selectedThemeColors().Base,
+  },
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
