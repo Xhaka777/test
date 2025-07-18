@@ -22,9 +22,7 @@ import {ModeSelector} from './ModeSelector';
 import {PasscodeInput} from './PasscodeInput/PasscodeInput';
 import { Tutorial } from './TutorialStep'; 
 import {LottieAnimatedComponent} from './LottieAnimatedComponent';
-import VideoSplashScreen from './SplashScreen/VideoSplashScreen';
-import GifSplashScreen from './SplashScreen/GifSplashScreen';
-import SimpleSplashScreen from './SplashScreen/SimpleSplashScreen';
+
 
 export {
   CustomText,
