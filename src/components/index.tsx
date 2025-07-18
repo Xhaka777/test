@@ -21,6 +21,8 @@ import {FootageGrid} from './FootageGrid';
 import {ModeSelector} from './ModeSelector';
 import {PasscodeInput} from './PasscodeInput/PasscodeInput';
 import { Tutorial } from './TutorialStep'; 
+import {LottieAnimatedComponent} from './LottieAnimatedComponent';
+import {SplashScreen} from './SplashScreen';
 
 export {
   CustomText,
@@ -46,4 +48,6 @@ export {
   ModeSelector,
   PasscodeInput,
   Tutorial,
+  LottieAnimatedComponent,
+  SplashScreen,
 };

@@ -6,6 +6,7 @@
  */
 import 'react-native-gesture-handler';
 import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {Platform, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
@@ -19,8 +20,11 @@ import Toast, {
 import SplashScreen from 'react-native-splash-screen';
 import './src/i18n';
 import Bugsee from 'react-native-bugsee';
+import {SplashScreen as CustomSplashScreen} from './src/components';
 
 function App(): JSX.Element {
+  const [showSplash, setShowSplash] = useState(true);
+
   const toastConfig = {
     info: (props: ToastProps) => (
       <BaseToast
@@ -91,6 +95,7 @@ function App(): JSX.Element {
 }, []);
 
   return (
+    <>
     <NavigationContainer
       ref={ref => NavigationService.setTopLevelNavigator(ref)}
       theme={{
@@ -107,6 +112,15 @@ function App(): JSX.Element {
       <MainStack />
       <Toast config={toastConfig} />
     </NavigationContainer>
+    
+    {showSplash && (
+      <CustomSplashScreen
+        onFinish={() => setShowSplash(false)}
+        animationSource={require('./src/assets/animations/splash.json')}
+        duration={3000}
+      />
+    )}
+    </>
   );
 }
 
