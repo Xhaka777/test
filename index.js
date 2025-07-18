@@ -11,7 +11,8 @@ import {Provider} from 'react-redux';
 import configureStore from './src/redux/Store';
 import DataHandler from './src/services/dataHandler.service';
 import {PersistGate} from 'redux-persist/integration/react';
-import SplashScreenComponent from './src/components/SplashScreen/SplashScreenComponent';
+import { SimpleSplashScreen, VideoSplashScreen, GifSplashScreen } from './src/components';
+import { Images } from './src/config';
 
 const {runSaga, store, persistor} = configureStore();
 DataHandler.setStore(store);
@@ -25,15 +26,45 @@ class AppView extends Component {
   }
 
   componentDidMount() {
-    // Hide splash after 4 seconds
+    // Hide splash after 3 seconds
     setTimeout(() => {
       this.setState({ showSplash: false });
-    }, 4000);
+    }, 3000);
   }
 
   render() {
     if (this.state.showSplash) {
-      return <SplashScreenComponent />;
+      // Try different splash screen types:
+      
+      // Option 1: Simple animated splash (most reliable)
+      return (
+        <SimpleSplashScreen
+          onFinish={() => this.setState({ showSplash: false })}
+          duration={3000}
+          logoSource={Images.Logo}
+          title="Rove"
+          backgroundColor="#000000"
+        />
+      );
+      
+      // Option 2: Video splash (uncomment to try)
+      // return (
+      //   <VideoSplashScreen
+      //     onFinish={() => this.setState({ showSplash: false })}
+      //     duration={3000}
+      //     type="video"
+      //     videoSource={require('./src/assets/animations/splash.mp4')}
+      //   />
+      // );
+      
+      // Option 3: GIF splash (uncomment to try)
+      // return (
+      //   <GifSplashScreen
+      //     onFinish={() => this.setState({ showSplash: false })}
+      //     duration={3000}
+      //     gifSource={require('./src/assets/animations/splash.gif')}
+      //   />
+      // );
     }
 
     return (
