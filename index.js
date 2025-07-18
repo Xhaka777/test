@@ -34,16 +34,26 @@ class AppView extends Component {
 
   render() {
     if (this.state.showSplash) {
-      // Option 1: Improved GIF splash (better quality)
+      // Option 1: WebM splash (best quality with transparency support)
       return (
-        <GifSplashScreen
+        <VideoSplashScreen
           onFinish={() => this.setState({ showSplash: false })}
           duration={4000}
-          gifSource={require('./src/assets/animations/splash.gif')}
+          type="webm"
+          webmSource={require('./src/assets/animations/splash.webm')}
         />
       );
       
-      // Option 2: Try Lottie with better implementation (uncomment to test)
+      // Option 2: Improved GIF splash (better quality)
+      // return (
+      //   <GifSplashScreen
+      //     onFinish={() => this.setState({ showSplash: false })}
+      //     duration={4000}
+      //     gifSource={require('./src/assets/animations/splash.gif')}
+      //   />
+      // );
+      
+      // Option 3: Try Lottie with better implementation (uncomment to test)
       // return (
       //   <LottieSplashScreen
       //     onFinish={() => this.setState({ showSplash: false })}
@@ -53,7 +63,7 @@ class AppView extends Component {
       //   />
       // );
       
-      // Option 3: Video splash (uncomment to try)
+      // Option 4: MP4 Video splash (uncomment to try)
       // return (
       //   <VideoSplashScreen
       //     onFinish={() => this.setState({ showSplash: false })}
@@ -63,7 +73,7 @@ class AppView extends Component {
       //   />
       // );
       
-      // Option 4: Simple animated splash (most reliable fallback)
+      // Option 5: Simple animated splash (most reliable fallback)
       // return (
       //   <SimpleSplashScreen
       //     onFinish={() => this.setState({ showSplash: false })}
@@ -73,6 +83,7 @@ class AppView extends Component {
       //     backgroundColor="#000000"
       //   />
       // );
+      
     }
 
     return (

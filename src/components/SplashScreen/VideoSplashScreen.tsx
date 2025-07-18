@@ -57,7 +57,7 @@ const VideoSplashScreen: React.FC<VideoSplashScreenProps> = ({
   };
 
   const handleVideoEnd = () => {
-    console.log('🎥 Video ended, finishing splash');
+    console.log('🎥 Video/WebM ended, finishing splash');
     handleFinish();
   };
 
