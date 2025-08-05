@@ -1,5 +1,3 @@
-// Create this file: src/components/PasscodeInput/index.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,6 +8,7 @@ import {
   Vibration,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import { CustomText } from '../index';
 import { Metrix, Utills, Images } from '../../config';
@@ -30,6 +29,7 @@ interface PasscodeInputProps {
   expectedPasscode?: string;
   showError?: boolean;
   isConfirmation?: boolean;
+  isVerificationMode?: boolean; // New prop to distinguish between setup and verification
 }
 
 const keypadData: KeypadButton[] = [
@@ -44,6 +44,51 @@ const keypadData: KeypadButton[] = [
   { number: '9', letters: 'WXYZ' },
 ];
 
+// AsyncStorage functions for passcode management
+const PASSCODE_KEY = 'userPasscode';
+
+const savePasscodeToStorage = async (passcode: string) => {
+  try {
+    await AsyncStorage.setItem(PASSCODE_KEY, passcode);
+    console.log('Passcode saved successfully');
+  } catch (error) {
+    console.error('Error saving passcode:', error);
+  }
+};
+
+export const getPasscodeFromStorage = async (): Promise<string | null> => {
+  try {
+    const passcode = await AsyncStorage.getItem(PASSCODE_KEY);
+    return passcode;
+  } catch (error) {
+    console.error('Error getting passcode:', error);
+    return null;
+  }
+};
+
+export const clearPasscodeFromStorage = async () => {
+  try {
+    await AsyncStorage.removeItem(PASSCODE_KEY);
+    console.log('Passcode cleared successfully');
+  } catch (error) {
+    console.error('Error clearing passcode:', error);
+  }
+};
+
+export const verifyStoredPasscode = async (inputPasscode: string): Promise<boolean> => {
+  try {
+    const storedPasscode = await AsyncStorage.getItem(PASSCODE_KEY);
+    console.log('Verifying passcode...');
+    console.log('Input:', inputPasscode);
+    console.log('Stored:', storedPasscode);
+    console.log('Match:', storedPasscode === inputPasscode);
+    return storedPasscode === inputPasscode;
+  } catch (error) {
+    console.error('Error verifying passcode:', error);
+    return false;
+  }
+};
+
 export const PasscodeInput: React.FC<PasscodeInputProps> = ({
   title,
   onPasscodeComplete,
@@ -51,14 +96,21 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
   expectedPasscode,
   showError = false,
   isConfirmation = false,
+  isVerificationMode = false, // New prop with default value
 }) => {
   const [passcode, setPasscode] = useState('');
   const [isError, setIsError] = useState(false);
 
-  // Calculate responsive dimensions
-  const buttonSize = Math.min(width * 0.18, 75); // 18% of screen width, max 75
-  const buttonMargin = width * 0.04; // 4% of screen width for better spacing
-  const keypadWidth = (buttonSize * 3) + (buttonMargin * 4); // 3 buttons + 4 margins
+  // Calculate responsive dimensions with better constraints
+  const maxButtonSize = 80;
+  const minButtonSize = 60;
+  const availableWidth = width - (Metrix.HorizontalSize(80));
+  const calculatedButtonSize = Math.min(
+    Math.max((availableWidth - 60) / 3, minButtonSize),
+    maxButtonSize
+  );
+  const buttonSize = calculatedButtonSize;
+  const buttonSpacing = Math.min((availableWidth - (buttonSize * 3)) / 4, 20);
 
   useEffect(() => {
     if (showError) {
@@ -85,8 +137,15 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
       
       // Auto-submit when 4 digits entered
       if (newPasscode.length === 4) {
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Only save passcode to AsyncStorage if NOT in verification mode
+          if (!isVerificationMode) {
+            await savePasscodeToStorage(newPasscode);
+          }
+          
+          // Call the original callback
           onPasscodeComplete(newPasscode);
+          
           // Clear passcode immediately after submitting for next input
           setPasscode('');
         }, 100);
@@ -102,7 +161,7 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
 
   const renderPasscodeDots = () => {
     const dotSize = Math.min(width * 0.04, 16);
-    const dotSpacing = width * 0.08; // Increased spacing between dots
+    const dotSpacing = width * 0.08;
     
     return (
       <View style={[styles.dotsContainer, { gap: dotSpacing }]}>
@@ -171,6 +230,13 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
     </TouchableOpacity>
   );
 
+  // Create rows for guaranteed 3x3 layout
+  const renderKeypadRow = (startIndex: number) => (
+    <View style={[styles.keypadRow, { gap: buttonSpacing }]}>
+      {keypadData.slice(startIndex, startIndex + 3).map((item) => renderKeypadButton(item))}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {/* Background Gradient */}
@@ -194,14 +260,16 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
 
         {renderPasscodeDots()}
 
-        <View style={[styles.keypadContainer, { width: keypadWidth, paddingHorizontal: buttonMargin }]}>
-          {/* Numbers 1-9 in 3x3 grid */}
-          <View style={[styles.keypadGrid, { gap: buttonMargin }]}>
-            {keypadData.map((item) => renderKeypadButton(item))}
-          </View>
+        <View style={styles.keypadContainer}>
+          {/* Row 1: 1, 2, 3 */}
+          {renderKeypadRow(0)}
+          {/* Row 2: 4, 5, 6 */}
+          {renderKeypadRow(3)}
+          {/* Row 3: 7, 8, 9 */}
+          {renderKeypadRow(6)}
           
-          {/* Bottom row with 0 */}
-          <View style={[styles.bottomRow, { marginTop: buttonMargin * 1.5, gap: buttonMargin }]}>
+          {/* Bottom row with 0 and delete */}
+          <View style={[styles.bottomRow, { gap: buttonSpacing }]}>
             <View style={{ width: buttonSize, height: buttonSize }} />
             <TouchableOpacity
               style={[
@@ -291,11 +359,10 @@ const styles = StyleSheet.create({
   },
   keypadContainer: {
     alignItems: 'center',
-    alignSelf: 'center',
+    gap: 20,
   },
-  keypadGrid: {
+  keypadRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -321,7 +388,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   numberText: {
     color: Utills.selectedThemeColors().PrimaryTextColor,

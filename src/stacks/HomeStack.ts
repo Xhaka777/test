@@ -14,6 +14,8 @@ import {
   PasscodeSettings,
   TrustedContacts,
   HowToUse,
+  SafeWord,
+  SafeWordTraining,
 } from '../screens';
 import { TabStack } from './TabStack';
 
@@ -98,4 +100,14 @@ export const HomeStack: HomeScreenStacksTypes = [
     component: HowToUse,
     key: RouteNames.HomeRoutes.HowToUse,
   },
+  {
+    name: RouteNames.HomeRoutes.SafeWord,
+    component: SafeWord,
+    key: RouteNames.HomeRoutes.SafeWord,
+  },
+  {
+    name: RouteNames.HomeRoutes.SafeWordTraining,
+    component: SafeWordTraining,
+    key: RouteNames.HomeRoutes.SafeWordTraining,
+  }
 ];

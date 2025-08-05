@@ -17,6 +17,8 @@ export default class Action {
   static SET_TUTORIAL_SCREEN = 'SET_TUTORIAL_SCREEN';
   static RESET_TUTORIAL = 'RESET_TUTORIAL';
 
+  static SET_HIGHLIGHTED_ELEMENT = 'SET_HIGHLIGHTED_ELEMENT';
+
   //Actions
   static setDarkMode() {
     return {
@@ -98,4 +100,7 @@ export default class Action {
     return { type: Action.RESET_TUTORIAL };
   }
 
+  static setHighlightedElement(payload: string | null) {
+    return { type: Action.SET_HIGHLIGHTED_ELEMENT, payload };
+  }
 }

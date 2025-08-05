@@ -10,6 +10,8 @@ export const MainStack = () => {
   const MainStack = createStackNavigator();
   const authorize = useSelector((state: RootState) => state?.user?.authorize);
 
+
+  
   const AuthScreens = AuthStack?.map(stack => (
     <MainStack.Screen
       key={stack.key}
@@ -34,8 +36,8 @@ export const MainStack = () => {
           headerShown: false,
           ...TransitionPresets.DefaultTransition,
         }}>
-        {/* {authorize ? HomeScreens : AuthScreens} */}
-        {HomeScreens}
+        {authorize ? HomeScreens : AuthScreens}
+        {/* {HomeScreens} */}
       </MainStack.Navigator>
     </>
   );

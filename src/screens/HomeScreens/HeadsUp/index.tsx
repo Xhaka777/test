@@ -1,5 +1,3 @@
-// Updated HeadsUp Component
-
 import {
   StyleSheet,
   TouchableOpacity,
@@ -55,6 +53,7 @@ interface ThreatDetails {
   description?: string;
   latitude: number;
   longitude: number;
+  user?: string;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -94,6 +93,8 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
   });
   const [mapType, setMapType] = useState<any>('standard');
 
+  const [threatReports, setThreatReports] = useState<any[]>([]);
+
   const mapButtons = [
     {
       id: '1',
@@ -129,15 +130,18 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
 
   // Function to get threat icon by type
   const getThreatIcon = (threatType: string) => {
+    const normalizedType = threatType?.toLowerCase();
+
     const iconMap: { [key: string]: any } = {
-      'Harassment': Images.Harasment,
-      'Followed': Images.Followed,
-      'Fight': Images.Fight,
-      'Stabbing': Images.Stabing,
-      'Shooting': Images.Shooter,
-      'Mass event': Images.Danger,
+      'harassment': Images.Harasment,
+      'followed': Images.Followed,
+      'fight': Images.Fight,
+      'stabbing': Images.Stabing,
+      'shooting': Images.Shooter,
+      'mass event': Images.Danger,
     };
-    return iconMap[threatType] || Images.Incident;
+
+    return iconMap[normalizedType] || Images.Incident;
   };
 
   // Function to get street name from coordinates (you can implement reverse geocoding here)
@@ -168,29 +172,6 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
     }
   };
 
-  // Function to handle threat marker tap
-  const handleThreatMarkerPress = async (threat: any) => {
-    const streetName = await getStreetName(threat.latitude, threat.longitude);
-
-    const threatDetails: ThreatDetails = {
-      id: threat.id,
-      icon: getThreatIcon(threat.threat_type || 'General'),
-      label: threat.threat_type || 'General Threat',
-      streetName: streetName,
-      image: threat.image,
-      timestamp: threat.timestamp,
-      description: threat.description,
-      latitude: threat.latitude,
-      longitude: threat.longitude,
-    };
-
-    setSelectedThreatDetails(threatDetails);
-
-  setTimeout(() => {
-      console.log('Opening threat details sheet');
-      threatDetailsBottomSheetRef.current?.expand();
-    }, 100);  };
-
   // Function to close threat details bottom sheet
   const closeThreatDetails = () => {
     threatDetailsBottomSheetRef.current?.close();
@@ -204,9 +185,9 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
       latitude: currentLocation.latitude,
       longitude: currentLocation.longitude,
     };
-    
+
     setSelectedThreat(newSelectedThreat);
-    
+
     // Optionally animate to the threat location
     if (mapRef.current) {
       mapRef.current.animateToRegion({
@@ -217,7 +198,7 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
       }, 1000);
     }
   }, [currentLocation]);
-  
+
 
   const handleTempThreatSelection = useCallback((threatData: { id: number, icon: any, label: string }) => {
     setTempThreatData(threatData); // Store temporarily
@@ -252,53 +233,132 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
     setTempThreatData(null); // Add this line
   }, []);
 
-  // Function to complete the reporting process
+  useEffect(() => {
+    getCurrentLocation();
+    loadThreats();
+    if (currentLocation.latitude && currentLocation.longitude) {
+      loadThreatReports(currentLocation.latitude, currentLocation.longitude);
+    }
+  }, [isFocus, currentLocation.latitude, currentLocation.longitude]);
+
+  // Add new function to load threat reports
+  const loadThreatReports = async (userLatitude: number, userLongitude: number) => {
+    try {
+      const response = await HomeAPIS.getThreatReports(userLatitude, userLongitude);
+
+      console.log('response', response);
+
+      // Fix: Use response.data.results instead of response.data
+      const threatReportMarkers = response?.data?.results?.map((item: any) => {
+        // Parse the location string "latitude, longitude" back to lat/lng
+        const [latitude, longitude] = item.location.split(', ').map(parseFloat);
+
+        return {
+          id: item?.id,
+          latitude: latitude,
+          longitude: longitude,
+          timestamp: item?.created_at,
+          description: item?.description || 'Threat Report',
+          threat_type: item?.report_type, // Changed from threat_type to report_type
+          image: item?.photo,
+          user: item?.user,
+          user_vote: item?.user_vote, // Add user vote info
+          confirm_votes: item?.confirm_votes, // Add vote counts
+          deny_votes: item?.deny_votes,
+          type: 'threat_report'
+        };
+      });
+
+      setThreatReports(threatReportMarkers || []);
+    } catch (error) {
+      console.error('Error loading threat reports:', error);
+    }
+  };
+
+  // Update the handleThreatMarkerPress function to handle both types
+  const handleThreatMarkerPress = async (threat: any) => {
+    const streetName = await getStreetName(threat.latitude, threat.longitude);
+
+    const threatDetails: ThreatDetails = {
+      id: threat.id,
+      icon: getThreatIcon(threat.threat_type || 'General'),
+      label: threat.threat_type || 'General Threat',
+      streetName: streetName,
+      image: threat.image,
+      timestamp: threat.timestamp,
+      description: threat.description,
+      latitude: threat.latitude,
+      longitude: threat.longitude,
+    };
+
+    setSelectedThreatDetails(threatDetails);
+
+    setTimeout(() => {
+      console.log('Opening threat details sheet');
+      threatDetailsBottomSheetRef.current?.expand();
+    }, 100);
+  };
+
+  // Update the completeThreatReport function to reload threat reports
   const completeThreatReport = useCallback(async (additionalDetails: string, image?: string) => {
     if (tempThreatData) {
-      // First show the threat on map
-      handleThreatSelection(tempThreatData);
-      
-        // Create a new threat object to add to the threats array
-    const newThreat = {
-      id: Date.now(), // Generate a temporary ID
-      latitude: currentLocation.latitude,
-      longitude: currentLocation.longitude,
-      timestamp: new Date().toISOString(),
-      description: additionalDetails || `${tempThreatData.label} reported`,
-      threat_type: tempThreatData.label,
-      image: image,
-    };
-    
-    // Add the new threat to the threats array manually
-    setThreats(prevThreats => [...prevThreats, newThreat]);
+      try {
+        setLoading(true);
 
-      // Then create the incident
-      // await createThreadZone(
-      //   currentLocation.latitude,
-      //   currentLocation.longitude,
-      //   `${tempThreatData.label} reported`,
-      //   additionalDetails,
-      //   image
-      // );
-      //TODO: we are displaying it just for test!
-      // setTimeout(() => {
-      //   Alert.alert(
-      //     'Threat Reported',
-      //     `${tempThreatData.label} has been reported successfully and is now visible on the map.`,
-      //     [{ text: 'OK' }]
-      //   );
-      // }, 1000); // Small delay to let user see the threat appear on map
-   
-      
-      setTempThreatData(null); // Clear temp data
+        // Create the body for the API call
+        const body = {
+          user_id: userData?.user?.id?.toString(),
+          location: `${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`,
+          latitude: `${currentLocation.latitude.toFixed(6)}`,
+          longitude: `${currentLocation.longitude.toFixed(6)}`,
+          timestamp: new Date().toISOString(),
+          description: additionalDetails || `${tempThreatData.label} reported`,
+          report_type: tempThreatData.label.toLowerCase(),
+          photo: image || null,
+        };
 
-      setTimeout(() => {
-        setSelectedThreat(null);
-      }, 2000);
+        console.log('Sending threat report:', body);
+
+        // Call the API
+        const response = await HomeAPIS.sendThreatReports(body);
+
+        console.log('Threat report sent successfully:', response);
+
+        // First show the threat on map
+        handleThreatSelection(tempThreatData);
+
+        // Reload threat reports to get the latest data from server with current location
+        await loadThreatReports(currentLocation.latitude, currentLocation.longitude);
+
+        // Show success message
+        setTimeout(() => {
+          Alert.alert(
+            'Threat Reported Successfully',
+            `${tempThreatData.label} has been reported and shared with the community.`,
+            [{ text: 'OK' }]
+          );
+        }, 1000);
+
+        // Clear temp data and selected threat after a delay
+        setTempThreatData(null);
+        setTimeout(() => {
+          setSelectedThreat(null);
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error sending threat report:', error);
+        Alert.alert(
+          'Error',
+          'Failed to report threat. Please try again.',
+          [{ text: 'OK' }]
+        );
+      } finally {
+        setLoading(false);
+      }
     }
     closeAllSheets();
-  }, [tempThreatData, currentLocation, handleThreatSelection]);
-  
+  }, [tempThreatData, currentLocation, userData?.user?.id, handleThreatSelection]);
+
   // Handle sheet changes
   const handleSheetChange = useCallback((index: number, sheetType: 'first' | 'second' | 'third') => {
     if (index === -1) {
@@ -317,60 +377,24 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
     loadThreats();
   }, [isFocus]);
 
-const createThreadZone = async (
-  latitude: number,
-  longitude: number,
-  address: string,
-  additionalDetails?: string,
-  image?: string
-) => {
-  /*
-  if (!latitude || !longitude) {
-    Alert.alert('Location Error', 'Unable to get location coordinates');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const body = {
+  const createThreadZone = async (
+    latitude: number,
+    longitude: number,
+    address: string,
+    additionalDetails?: string,
+    image?: string
+  ) => {
+    // For now, just console log the data that would be sent
+    console.log('Threat data that would be sent to API:', {
       timestamp: new Date().toISOString(),
       location_latitude: latitude.toFixed(6),
       location_longitude: longitude.toFixed(6),
       user: userData?.user?.id,
       description: additionalDetails || address,
-      threat_type: tempThreatData?.label || selectedThreat?.label || 'General Threat', // Fix this line
+      threat_type: tempThreatData?.label || selectedThreat?.label || 'General Threat',
       image: image,
-    };
-
-    await HomeAPIS.postIncidents(body);
-    await loadThreats();
-
-    Alert.alert(
-      'Threat Reported',
-      `${tempThreatData?.label || selectedThreat?.label || 'Threat'} has been reported successfully.`, // Fix this line
-      [{ text: 'OK' }]
-    );
-  } catch (error) {
-    console.error('Error creating thread zone:', error);
-    Alert.alert(
-      'Error',
-      'Failed to report threat. Please try again.',
-    );
-  } finally {
-    setLoading(false);
-  }
-    */
-   // For now, just console log the data that would be sent
-  console.log('Threat data that would be sent to API:', {
-    timestamp: new Date().toISOString(),
-    location_latitude: latitude.toFixed(6),
-    location_longitude: longitude.toFixed(6),
-    user: userData?.user?.id,
-    description: additionalDetails || address,
-    threat_type: tempThreatData?.label || selectedThreat?.label || 'General Threat',
-    image: image,
-  });
-};
+    });
+  };
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -400,6 +424,9 @@ const createThreadZone = async (
             longitude: longitude,
           });
 
+          // Load threat reports with new location
+          loadThreatReports(latitude, longitude);
+
           if (mapRef.current) {
             mapRef.current.animateToRegion(
               {
@@ -427,7 +454,6 @@ const createThreadZone = async (
       );
     }
   };
-
   const loadThreats = async () => {
     setLoading(true);
     try {
@@ -522,10 +548,30 @@ const createThreadZone = async (
               </View>
             </Marker>
           ))}
+
+          {threatReports.map((threatReport: any, index: number) => (
+            <Marker
+              key={`threat-report-${threatReport.id}-${index}`}
+              coordinate={{
+                latitude: threatReport.latitude,
+                longitude: threatReport.longitude,
+              }}
+              title="Threat Report"
+              description={`Reported: ${formatTimestamp(threatReport.timestamp)}`}
+              onPress={() => handleThreatMarkerPress(threatReport)}>
+              <View style={styles.threatReportMarker}>
+                <Image
+                  source={getThreatIcon(threatReport.threat_type)}
+                  style={styles.threatIcon}
+                  resizeMode="contain"
+                />
+              </View>
+            </Marker>
+          ))}
         </MapView>
 
         {/* Map controls */}
-        {activeSheet === 'none' && (
+        {activeSheet === 'none' && !selectedThreatDetails && (
           <View style={styles.mapControls}>
             {mapButtons.map((button: any) => (
               <TouchableOpacity
@@ -542,21 +588,6 @@ const createThreadZone = async (
             ))}
           </View>
         )}
-        {/* Threat counter */}
-        {/* <View style={styles.threatCounter}>
-          <CustomText.SmallText customStyle={styles.counterText}>
-            Threats: {threats.length}
-          </CustomText.SmallText>
-        </View> */}
-
-        {/* Selected threat info */}
-        {/* {selectedThreat && (
-          <View style={styles.selectedThreatInfo}>
-            <CustomText.SmallText customStyle={styles.selectedThreatText}>
-              Selected: {selectedThreat.label}
-            </CustomText.SmallText>
-          </View>
-        )} */}
       </View>
 
       {/* Cut the Drama Modal */}
@@ -595,13 +626,6 @@ const createThreadZone = async (
         </View>
       </CustomModal>
 
-      {/* <PrimaryButton
-            title="Gotcha!"
-            onPress={startFlow}
-            customStyles={styles.gotchaButton}
-            customTextStyle={styles.gotchaButtonText}
-          /> */}
-
       {/* First Bottom Sheet */}
       <FirstBottomSheet
         ref={firstBottomSheetRef}
@@ -623,8 +647,8 @@ const createThreadZone = async (
       {/* Third Bottom Sheet */}
       <ThirdBottomSheet
         ref={thirdBottomSheetRef}
-        onComplete={completeThreatReport} // Updated to complete the report
-        selectedThreat={tempThreatData} // Pass selected threat info
+        onComplete={completeThreatReport}
+        selectedThreat={tempThreatData}
         onThreatConfirmed={handleThreatSelection}
         onChange={(index) => handleSheetChange(index, 'third')}
       />
@@ -634,6 +658,7 @@ const createThreadZone = async (
         ref={threatDetailsBottomSheetRef}
         threatDetails={selectedThreatDetails}
         onClose={closeThreatDetails}
+        userCoordinates={currentLocation}
         onChange={(index) => {
           if (index === -1) {
             setSelectedThreatDetails(null);
@@ -841,5 +866,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  
+  threatReportMarker: {
+    width: Metrix.HorizontalSize(35),
+    height: Metrix.VerticalSize(35),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF6B35', // Different color to distinguish from incidents
+    borderRadius: Metrix.HorizontalSize(18),
+    borderWidth: 2,
+    borderColor: Utills.selectedThemeColors().PrimaryTextColor,
+    // Add a slight shadow to make them stand out
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 1,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+
 });

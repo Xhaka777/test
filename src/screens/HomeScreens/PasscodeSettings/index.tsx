@@ -1,5 +1,3 @@
-// Create this file: src/screens/HomeScreens/PasscodeSettings/index.tsx
-
 import {StyleSheet, View} from 'react-native';
 import React, {useState} from 'react';
 import {PasscodeSettingsProps} from '../../propTypes';

@@ -1,10 +1,10 @@
-import {RouteProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // params Object
 type AuthParamList = {
-  OtpScreen: {email: string; from?: string; phone: string};
-  VideoScreen: {courseId?: string};
+  OtpScreen: { email: string; from?: string; phone: string };
+  VideoScreen: { courseId?: string };
 };
 
 export interface TrustedContact {
@@ -78,3 +78,9 @@ export type PasscodeSettingsProps = {};
 export type HeadsUpProps = {};
 
 export type HowToUseProps = {};
+
+export type SafeWordProps = {};
+
+export type EntryWordProps = {};
+
+export type SafeWordTrainingProps = {};

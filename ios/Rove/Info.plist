@@ -84,6 +84,8 @@
 	<string>$(PRODUCT_NAME) would like to access your microphone so that you can conveniently speak and utilize its features.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need access to save photos.</string>
+	<key>NSPhotoLibraryAddOnlyUsageDescription</key>
+<string>This app needs access to save videos to your photo library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your photo library to allow you to upload your profile photo.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

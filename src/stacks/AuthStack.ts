@@ -47,9 +47,4 @@ export const AuthStack: AuthScreenStacksTypes = [
     component: RegisterScreen,
     key: RouteNames.AuthRoutes.RegisterScreen,
   },
-  // {
-  //   name: RouteNames.AuthRoutes.Preferences,
-  //   component: Preferences,
-  //   key: RouteNames.AuthRoutes.Preferences,
-  // },
 ];

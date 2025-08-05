@@ -31,6 +31,7 @@ import { HomeAPIS } from '../../../services/home';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/reducers';
 import { useFocusEffect } from '@react-navigation/native';
+import ContactImageDB from '../../../config/utills/ContactImageDB';
 
 const { width } = Dimensions.get('window');
 
@@ -53,55 +54,88 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
     });
   };
 
-  const getContacts = () => {
+  const getContacts = async () => {
     setLoading(true);
-    HomeAPIS.getTrustedContacts()
-      .then(res => {
-        let array:
-          | ((prevState: never[]) => never[])
-          | {
-            id: any;
-            name: any;
-            phone: any;
-            abbreviate: any;
-            serviceType: any;
-          }[] = [];
-        res?.data?.map((item: any) => {
-          array?.push({
+    try {
+      const res = await HomeAPIS.getTrustedContacts();
+
+      if (res?.data && res.data.length > 0) {
+        // Get all contact IDs
+        const contactIds = res.data.map(item => item.id.toString());
+
+        // Get all images from database in one call
+        const contactImages = await ContactImageDB.getMultipleContactImages(contactIds);
+
+        let array: Array<{
+          id: any;
+          name: any;
+          phone: any;
+          abbreviate: any;
+          serviceType: any;
+          avatar?: any;
+        }> = [];
+
+        // Process each contact
+        res.data.forEach((item: any) => {
+          const contactId = item.id.toString();
+          const dbImage = contactImages[contactId];
+
+          // More robust avatar checking
+          let finalAvatar = null;
+
+          if (dbImage && dbImage !== '') {
+            finalAvatar = dbImage;
+          } else if (item?.avatar && item.avatar !== '' && item.avatar !== null) {
+            finalAvatar = item.avatar;
+          }
+
+          array.push({
             id: item?.id,
             name: item?.name,
             phone: item?.phone_number,
-            abbreviate: item?.name.charAt(0)?.toUpperCase(),
+            abbreviate: item?.name?.charAt(0)?.toUpperCase() || '?',
             serviceType: item?.alert_to,
+            avatar: finalAvatar, // Will be null if no valid avatar found
           });
         });
         setData(array?.reverse());
-        setLoading(false);
-      })
-      .catch(err => {
-        console.log('Err', err?.response?.data);
-        setLoading(false);
-      });
+      } else {
+        setData([]);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.log('Error getting contacts:', err?.response?.data);
+      setLoading(false);
+    }
   };
 
-  const deleteContact = (id: any) => {
+  const deleteContact = async (id: any) => {
     setLoading(true);
-    HomeAPIS.deleteTrustedContact(id)
-      .then(res => {
-        // setLoading(false);
-        getContacts();
-      })
-      .catch(err => {
-        console.log('Err', err?.response?.data);
-        // setLoading(false);
-      });
+    try {
+      await HomeAPIS.deleteTrustedContact(id);
+
+      // Also delete the image from local database
+      const contactId = id.toString();
+      const deletedFromDb = await ContactImageDB.deleteContactImage(contactId);
+      console.log(`Contact image ${deletedFromDb ? 'deleted' : 'failed to delete'} from database for contact ID: ${contactId}`);
+
+      // Refresh the contacts list
+      getContacts();
+    } catch (err) {
+      console.log('Error deleting contact:', err?.response?.data);
+      setLoading(false);
+    }
   };
 
   const handleTestStream = (contact: any) => {
     // Navigate to LiveStream with the selected contact for test streaming
-    NavigationService.navigate(RouteNames.HomeRoutes.LiveStream, {
-      testStreamContact: contact,
-      isTestStream: true
+    NavigationService.navigate(RouteNames.HomeRoutes.TabStack, {
+      screen: 'LiveStream',
+      params: {
+        testStreamContact: contact,
+        isTestStream: true
+      },
     });
   };
 
@@ -116,15 +150,31 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
   );
 
   const renderContactListItem = ({ item }: any) => {
+    const hasValidAvatar = !!item?.avatar && item.avatar !== 'null' && item.avatar !== '';
+  
+    // Derive fallback initial safely
+    const fallbackLetter = (item?.name?.trim()?.charAt(0) || '?').toUpperCase();
+  
     return (
       <View key={item?.id} style={styles.card}>
         <View style={styles.leftBox}>
-          <View style={styles.circularView}>
-            <CustomText.LargeBoldText customStyle={styles.circularText}>
-              {item?.abbreviate?.toUpperCase()}
-            </CustomText.LargeBoldText>
-          </View>
+          {hasValidAvatar ? (
+            <Image
+              source={{ uri: item.avatar }}
+              style={styles.contactAvatar}
+              onError={() => {
+                console.log('Failed to load avatar for contact:', item?.name);
+              }}
+            />
+          ) : (
+            <View style={styles.circularView}>
+              <CustomText.LargeBoldText customStyle={styles.circularText}>
+                {fallbackLetter}
+              </CustomText.LargeBoldText>
+            </View>
+          )}
         </View>
+  
         <View style={styles.rightBox}>
           <CustomText.MediumText
             numberOfLines={1}
@@ -132,6 +182,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
             {item?.name}
           </CustomText.MediumText>
         </View>
+  
         <View style={styles.editBox}>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -147,6 +198,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
               source={Images.Edit}
             />
           </TouchableOpacity>
+  
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
@@ -162,7 +214,7 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
               source={Images.Delete}
             />
           </TouchableOpacity>
-
+  
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.testStreamButton}
@@ -175,6 +227,8 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
       </View>
     );
   };
+  
+
 
   return (
     <MainContainer>
@@ -241,7 +295,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    // paddingHorizontal: Metrix.HorizontalSize(10),
+    // paddingHorizontal: Metrix.HorizontalSize(10),    
     paddingVertical: Metrix.VerticalSize(5),
     borderRadius: Metrix.HorizontalSize(10),
     height: Metrix.VerticalSize(70),
@@ -252,11 +306,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   leftBox: {
-    width: '15%',
-    alignItems: 'start',
+    marginRight: Metrix.HorizontalSize(10),
+    alignItems: 'center',
     justifyContent: 'center',
-    // backgroundColor: Utills.selectedThemeColors().Primary,
-
   },
   circularView: {
     width: Metrix.HorizontalSize(35),
@@ -267,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   circularText: {
-    marginVertical: Metrix.VerticalSize(0),
+    // marginVertical: Metrix.VerticalSize(0),
     color: Utills.selectedThemeColors().Base,
     fontSize: normalizeFont(24),
   },
@@ -336,4 +388,12 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     flex: 1, // Take remaining space
   },
+  contactAvatar: {
+    width: Metrix.HorizontalSize(35),
+    height: Metrix.VerticalSize(35),
+    borderRadius: Metrix.HorizontalSize(17.5), // Half of width/height for perfect circle
+    // borderWidth: 1,
+    // borderColor: Utills.selectedThemeColors().PrimaryTextColor,
+  },
+
 });

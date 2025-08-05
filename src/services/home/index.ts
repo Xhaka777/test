@@ -68,6 +68,58 @@ const getIncidentDetail = (id: any) => {
   return httpService().get(`incidents/incidents/${id}/`);
 };
 
+const sendFeedback = (body: any) => {
+  return httpService().post('incidents/feedback/', body);
+};
+
+const sendThreatReports = (body: any) => {
+  const formData = new FormData();
+
+  // Add regular fields as strings
+  formData.append('user_id', body.user_id);
+  formData.append('location', body.location);
+  formData.append('latitude', body.latitude);
+  formData.append('longitude', body.longitude);
+  formData.append('timestamp', body.timestamp);
+  formData.append('description', body.description);
+  formData.append('report_type', body.report_type);
+
+  // Add image as binary data if it exists
+  if (body.photo) {
+    formData.append('photo', {
+      uri: body.photo,
+      type: 'image/jpeg', // or determine from file extension
+      name: `threat_image_${Date.now()}.jpg`,
+    } as any);
+  }
+
+  return httpService().post('threat_reports/threat_reports/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+const getThreatReports = (latitude?: number, longitude?: number) => {
+  let url = 'threat_reports/threat_reports/';
+
+  // Add query parameters if latitude and longitude are provided
+  if (latitude !== undefined && longitude !== undefined) {
+    url += `?latitude=${latitude}&longitude=${longitude}`;
+  }
+
+  console.log('urlLLLLLLLLlll', url)  
+  return httpService().get(url);
+};
+
+const voteThreatReport = (id: any, body: any) => {
+  return httpService().post(`threat_reports/threat_reports/${id}/vote/`, body);
+};
+
+// const getThreatReports = () => {
+//   return httpService().get('threat_reports/threat_reports/');
+// };
+
 export const HomeAPIS = {
   // New Endpoints
   getTrustedContacts,
@@ -87,4 +139,8 @@ export const HomeAPIS = {
   getIncidentDetail,
   startRecording,
   stopRecording,
+  sendFeedback,
+  sendThreatReports,
+  getThreatReports,
+  voteThreatReport,
 };

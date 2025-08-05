@@ -62,13 +62,12 @@ export const Settings: React.FC<SettingsProps> = ({ }) => {
       id: '1',
       image: Images.SafeWord,
       text: 'Safe Word',
+      // onPress: () => {
+      //   setIsPrompt(true);
+      // },
       onPress: () => {
-        isSafeWord
-          ? Utills.showToast(
-            'Please select your preference as manual for safe word audio streaming',
-          )
-          : setIsPrompt(true);
-      },
+        NavigationService.navigate(RouteNames.HomeRoutes.SafeWord);
+      }
     },
     {
       id: '2',
@@ -86,7 +85,7 @@ export const Settings: React.FC<SettingsProps> = ({ }) => {
       onPress: () => {
         NavigationService.navigate(RouteNames.HomeRoutes.PasscodeSettings);
       },
-      iconSize: 35, 
+      iconSize: 35,
     },
     {
       id: '4',

@@ -165,7 +165,14 @@ const Images = {
   True: require('../../assets/icons/true.png'),
   False: require('../../assets/icons/false.png'),
 
-  HowTo: require('../../assets/images/howto.jpg')
+  HowTo: require('../../assets/images/howto.jpg'),
+
+  Download: require('../../assets/icons/download.png'),
+  Fullscreen: require('../../assets/icons/fullscreen.png'),
+  RedDelete: require('../../assets/icons/red_delete.png'),
+  Checked: require('../../assets/icons/check.png'),
+  LogoGray: require('../../assets/icons/logo_grey.png')
+
 };
 
 export default Images;

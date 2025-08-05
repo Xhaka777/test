@@ -9,6 +9,8 @@ export const Videos: React.FC<any> = () => {
   const route = useRoute<any>();
   const videos = route?.params?.videos;
 
+  console.log('videos', videos)
+
   return (
     <MainContainer customeStyle={{paddingVertical: 0, paddingHorizontal: 0}}>
       <BackHeader

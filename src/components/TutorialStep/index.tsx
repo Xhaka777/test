@@ -1,310 +1,318 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
-  Animated,
   Dimensions,
+  Animated,
   Modal,
-  BackHandler,
 } from 'react-native';
-import { CustomText } from '../Text';
-import { Images, Metrix, Utills, NavigationService } from '../../config';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../redux/reducers';
-import { HomeActions } from '../../redux/actions';
-import { TUTORIAL_STEPS } from '../../config/tutorialSteps';
+// import { BlurView } from 'expo-blur';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-interface TutorialProps {
-  visible: boolean;
-  onComplete: () => void;
-  currentScreen: string;
-  onNavigate?: (screen: string) => void;
+interface TutorialStep {
+  id: string;
+  title: string;
+  description: string;
+  targetPosition?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  highlightTab?: 'home' | 'tutorials' | 'profile' | 'settings';
 }
 
-export const Tutorial: React.FC<TutorialProps> = ({ 
-  visible, 
-  onComplete, 
-  currentScreen,
-  onNavigate 
-}) => {
-  const dispatch = useDispatch();
-  const currentTutorialStep = useSelector((state: RootState) => state.home.currentTutorialStep);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [progressAnim] = useState(new Animated.Value(0));
-  const [showHighlight, setShowHighlight] = useState(false);
+interface TutorialOverlayProps {
+  visible: boolean;
+  steps: TutorialStep[];
+  onClose: () => void;
+  onComplete: () => void;
+  onHighlightTab?: (tab: string | null) => void;
+  onStepChange?: (stepIndex: number) => void;
+}
 
-  const currentStep = TUTORIAL_STEPS.find(step => step.id === currentTutorialStep);
-  const isCurrentScreen = currentStep?.screen === currentScreen;
+export default function TutorialOverlay({
+  visible,
+  steps,
+  onClose,
+  onComplete,
+  onHighlightTab,
+  onStepChange,
+}: TutorialOverlayProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    if (visible && isCurrentScreen) {
+    if (visible) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-      updateProgress();
-      
-      // Show highlight after modal appears
-      if (currentStep?.highlightElement) {
-        setTimeout(() => setShowHighlight(true), 500);
-      }
-    } else {
-      setShowHighlight(false);
     }
-  }, [visible, currentTutorialStep, currentScreen]);
-
-  // Prevent back button during tutorial
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (visible && isCurrentScreen) {
-        return true; // Prevent back navigation
-      }
-      return false;
-    });
-
-    return () => backHandler.remove();
-  }, [visible, isCurrentScreen]);
-
-  const updateProgress = () => {
-    const progress = currentTutorialStep / TUTORIAL_STEPS.length;
-    Animated.timing(progressAnim, {
-      toValue: progress,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
+    
+    // Handle tab highlighting
+    if (visible && steps[currentStep]?.highlightTab) {
+      onHighlightTab?.(steps[currentStep].highlightTab!);
+    } else if (!visible) {
+      onHighlightTab?.(null);
+    }
+  }, [visible, currentStep, fadeAnim, onHighlightTab, steps]);
 
   const handleNext = () => {
-    if (!currentStep) return;
-
-    if (currentStep.action === 'navigate' && currentStep.navigationTarget) {
-      // Navigate to next screen
-      setShowHighlight(false);
-      dispatch(HomeActions.setTutorialStep(currentTutorialStep + 1));
-      
-      if (onNavigate) {
-        onNavigate(currentStep.navigationTarget);
-      } else {
-        NavigationService.navigate(currentStep.navigationTarget);
-      }
-    } else if (currentStep.action === 'complete') {
-      // Complete tutorial
-      handleComplete();
+    if (currentStep < steps.length - 1) {
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      onStepChange?.(nextStep);
     } else {
-      // Move to next step
-      setShowHighlight(false);
-      dispatch(HomeActions.setTutorialStep(currentTutorialStep + 1));
+      handleComplete();
     }
   };
 
-  const handleClose = () => {
-    handleComplete();
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const handleComplete = () => {
-    setShowHighlight(false);
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      dispatch(HomeActions.setTutorialCompleted(true));
       onComplete();
+      setCurrentStep(0);
     });
   };
 
-  if (!visible || !isCurrentScreen || !currentStep) {
-    return showHighlight && currentStep?.highlightElement ? (
-      <TutorialHighlight
-        targetElement={currentStep.highlightElement}
-        highlightType={currentStep.highlightType}
-        onPress={currentStep.isNavigationStep ? handleNext : undefined}
-      />
-    ) : null;
-  }
+  const handleSkip = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+      setCurrentStep(0);
+    });
+  };
 
-  const isLastStep = currentTutorialStep === TUTORIAL_STEPS.length;
-  const isNavigationStep = currentStep.isNavigationStep;
+  if (!visible || steps.length === 0) return null;
+
+  const currentStepData = steps[currentStep];
 
   return (
-    <>
-      <Modal visible={visible} transparent animationType="none">
-        <View style={styles.overlay}>
-          <Animated.View style={[styles.tutorialContainer, { opacity: fadeAnim }]}>
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <Image
-                  source={Images.Premium}
-                  style={styles.premiumIcon}
-                  resizeMode="contain"
-                />
-                <CustomText.LargeSemiBoldText customStyle={styles.title}>
-                  {currentStep.title}
-                </CustomText.LargeSemiBoldText>
+    <Modal visible={visible} transparent animationType="none">
+      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+        <View style={styles.blurContainer}>
+          <View style={styles.container}>
+            {/* Spotlight effect for target element */}
+            {currentStepData.targetPosition && (
+              <View
+                style={[
+                  styles.spotlight,
+                  {
+                    left: currentStepData.targetPosition.x - 10,
+                    top: currentStepData.targetPosition.y - 10,
+                    width: currentStepData.targetPosition.width + 20,
+                    height: currentStepData.targetPosition.height + 20,
+                  },
+                ]}
+              />
+            )}
+
+            {/* Tutorial Card */}
+            <View style={styles.tutorialCard}>
+              <View style={styles.header}>
+                <View style={styles.stepIndicator}>
+                  <Text style={styles.stepText}>
+                    {currentStep + 1} of {steps.length}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={handleSkip} style={styles.closeButton}>
+                  <X size={24} color="#6B7280" />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Image
-                  source={Images.Cross}
-                  style={styles.closeIcon}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
 
-            {/* Separator Line */}
-            <View style={styles.separator} />
+              <Text style={styles.title}>{currentStepData.title}</Text>
+              <Text style={styles.description}>{currentStepData.description}</Text>
 
-            {/* Description */}
-            <View style={styles.descriptionContainer}>
-              <CustomText.RegularText customStyle={styles.description}>
-                {currentStep.description}
-              </CustomText.RegularText>
-            </View>
-
-            {/* Progress Bar and Next Button */}
-            <View style={styles.bottomContainer}>
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBackground}>
-                  <Animated.View
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  onPress={handlePrevious}
+                  style={[
+                    styles.navButton,
+                    styles.previousButton,
+                    currentStep === 0 && styles.disabledButton,
+                  ]}
+                  disabled={currentStep === 0}
+                >
+                  <ChevronLeft size={20} color={currentStep === 0 ? '#9CA3AF' : '#6B7280'} />
+                  <Text
                     style={[
-                      styles.progressFill,
-                      {
-                        width: progressAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ['0%', '100%'],
-                        }),
-                      },
+                      styles.navButtonText,
+                      currentStep === 0 && styles.disabledText,
+                    ]}
+                  >
+                    Previous
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
+                  <Text style={styles.nextButtonText}>
+                    {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
+                  </Text>
+                  {currentStep < steps.length - 1 && (
+                    <ChevronRight size={20} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Progress indicator */}
+              <View style={styles.progressContainer}>
+                {steps.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.progressDot,
+                      index <= currentStep && styles.activeDot,
                     ]}
                   />
-                </View>
+                ))}
               </View>
-              <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
-                <CustomText.MediumText customStyle={styles.nextText}>
-                  {isLastStep ? 'Get Started' : 
-                   isNavigationStep ? 'Guide Me' : 'Next'}
-                </CustomText.MediumText>
-              </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
         </View>
-      </Modal>
-
-      {/* Highlight Overlay */}
-      {showHighlight && currentStep.highlightElement && (
-        <TutorialHighlight
-          targetElement={currentStep.highlightElement}
-          highlightType={currentStep.highlightType}
-          onPress={currentStep.isNavigationStep ? handleNext : undefined}
-        />
-      )}
-    </>
+      </Animated.View>
+    </Modal>
   );
-};
+}
 
 const styles = StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: Metrix.HorizontalSize(20),
-      zIndex: 1000,
-    },
-    tutorialContainer: {
-      backgroundColor: Utills.selectedThemeColors().Base,
-      borderRadius: Metrix.HorizontalSize(16),
-      padding: Metrix.HorizontalSize(20),
-      width: '100%',
-      maxWidth: Metrix.HorizontalSize(340),
-      ...Metrix.createShadow,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: Metrix.VerticalSize(16),
-    },
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    premiumIcon: {
-      width: Metrix.HorizontalSize(24),
-      height: Metrix.VerticalSize(24),
-      tintColor: Utills.selectedThemeColors().TertiaryTextColor,
-      marginRight: Metrix.HorizontalSize(8),
-    },
-    title: {
-      color: Utills.selectedThemeColors().PrimaryTextColor,
-      fontWeight: '700',
-      flex: 1,
-    },
-    closeButton: {
-      padding: Metrix.HorizontalSize(4),
-    },
-    closeIcon: {
-      width: Metrix.HorizontalSize(20),
-      height: Metrix.VerticalSize(20),
-      tintColor: Utills.selectedThemeColors().SecondaryTextColor,
-    },
-    separator: {
-      height: 1,
-      backgroundColor: Utills.selectedThemeColors().TextInputBorderColor,
-      marginBottom: Metrix.VerticalSize(20),
-    },
-    descriptionContainer: {
-      marginBottom: Metrix.VerticalSize(24),
-    },
-    description: {
-      color: Utills.selectedThemeColors().PrimaryTextColor,
-      lineHeight: 22,
-      textAlign: 'center',
-    },
-    bottomContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: Metrix.HorizontalSize(16),
-    },
-    progressContainer: {
-      flex: 1,
-    },
-    progressBackground: {
-      height: Metrix.VerticalSize(4),
-      backgroundColor: Utills.selectedThemeColors().TextInputBorderColor,
-      borderRadius: Metrix.HorizontalSize(2),
-    },
-    progressFill: {
-      height: '100%',
-      backgroundColor: '#007AFF',
-      borderRadius: Metrix.HorizontalSize(2),
-    },
-    nextButton: {
-      backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-      paddingVertical: Metrix.VerticalSize(12),
-      paddingHorizontal: Metrix.HorizontalSize(24),
-      borderRadius: Metrix.HorizontalSize(8),
-    },
-    nextText: {
-      color: Utills.selectedThemeColors().Base,
-      fontWeight: '600',
-      fontSize: Metrix.customFontSize(16),
-    },
-    highlightOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 999,
-    },
-    highlightArea: {
-      // Dynamic styles applied in getHighlightStyle
-    },
-  });
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  blurContainer: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  spotlight: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+  },
+  tutorialCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  stepIndicator: {
+    backgroundColor: '#EBF4FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  stepText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 16,
+    color: '#6B7280',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  previousButton: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginLeft: 4,
+  },
+  disabledText: {
+    color: '#9CA3AF',
+  },
+  nextButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  nextButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginRight: 4,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E5E7EB',
+  },
+  activeDot: {
+    backgroundColor: '#3B82F6',
+  },
+});

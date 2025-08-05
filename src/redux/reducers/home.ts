@@ -16,6 +16,8 @@ interface AppState {
   currentTutorialStep?: number;
   tutorialActive?: boolean;
   tutorialCurrentScreen?: string;
+
+  highlitedElement?: string | null;
 }
 
 const initialState: ImmutableObject<AppState> = Immutable<AppState>({
@@ -36,6 +38,8 @@ const initialState: ImmutableObject<AppState> = Immutable<AppState>({
   currentTutorialStep: 1,
   tutorialActive: false,
   tutorialCurrentScreen: 'LiveStream',
+
+  highlitedElement: null,
 });
 
 export default (state = initialState, action: { type: any; payload: any }) => {
@@ -119,6 +123,11 @@ export default (state = initialState, action: { type: any; payload: any }) => {
         currentTutorialStep: 1,
         tutorialActive: true,
         tutorialCurrentScreen: 'LiveStream',
+      });
+
+    case Action.SET_HIGHLIGHTED_ELEMENT:
+      return Immutable(state).merge({
+        highlitedElement: action.payload,
       })
 
     default:

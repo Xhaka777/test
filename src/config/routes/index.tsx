@@ -1,8 +1,7 @@
-// import { TrustedContacts } from "../../screens";
-
 
 export const RouteNames = {
   AuthRoutes: {
+    SplashScreen: 'SplashScreen',
     LoginScreen: 'LoginScreen',
     OnBoardingScreen: 'OnBoardingScreen',
     ReadBeforeUse: 'ReadBeforeUse',
@@ -32,5 +31,7 @@ export const RouteNames = {
     PasscodeSettings: 'PasscodeSettings',
     TrustedContacts: 'TrustedContacts',
     HowToUse: 'HowToUse',
+    SafeWord: 'SafeWord',
+    SafeWordTraining: 'SafeWordTraining',
   },
 };

@@ -27,7 +27,9 @@ import { Premium } from './HomeScreens/Premium';
 import { PasscodeSettings } from './HomeScreens/PasscodeSettings';
 import { HeadsUp } from './HomeScreens/HeadsUp';
 import { HowToUse } from './HomeScreens/HowToUse';
-
+import { SafeWord } from './HomeScreens/SafeWord';
+import { EntryWord } from './HomeScreens/EntryWord';
+import SafeWordTraining from './HomeScreens/SafeWordTraining';
 
 export {
   // Auth Screens
@@ -57,4 +59,7 @@ export {
   PasscodeSettings,
   HeadsUp,
   HowToUse,
+  SafeWord,
+  EntryWord,
+  SafeWordTraining,
 };

@@ -47,6 +47,7 @@ import { Environments } from '../../../services/config';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProtectionScheduleModal } from '../../../components/ProtectionScheduleModal';
 import { set } from 'lodash';
+import { useNavigation } from '@react-navigation/native';
 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ReanimatedAnimated, {
@@ -59,6 +60,7 @@ import ReanimatedAnimated, {
 import { Dimensions } from 'react-native';
 import LiveStreamContent from '../../../components/Livestream/LiveStreamContent';
 import LiveStreamModeSelector from '../../../components/Livestream/LiveStreamModeSelector';
+import { AppState, NativeModules } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -110,9 +112,6 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     thumbnail: null,
   });
 
-  //Tutorial state
-  const [showTutorial, setShowTutorial] = useState(false);
-
   const [eyeEarState, setEyeEarState] = useState('EYE'); // 'EYE' or 'EAR'
   const [preferenceState, setPreferenceState] = useState('A'); // 'A', 'AS', or 'MIC'
   const [modalVisible, setModalVisible] = useState(false);
@@ -124,9 +123,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const [showEyeIcon, setShowEyeIcon] = useState(true); // Toggle between ear and eye
   const [showProtectionSchedule, setShowProtectionSchedule] = useState(false);
 
+  const navigation = useNavigation();
   const route = useRoute();
-  const testStreamContact = route?.params?.testStreamContact;
-  const isTestStream = route?.params?.isTestStream;
+  const { isTestStream } = route.params || {};
+
 
   const [step, setStep] = useState(0);
   const [resource_id, setResource_id] = useState('');
@@ -149,11 +149,11 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const sizeAnim = useRef(new Animated.Value(70)).current;
   const borderRadiusAnim = useRef(new Animated.Value(50)).current;
-
   // Animation values for horizontal swiping
   const translateX = useSharedValue(0);
   const modeIndex = useSharedValue(0); // 0 for AUDIO, 1 for VIDEO
 
+  
   const userCordinates = useSelector(
     (state: RootState) => state.home.userLocation,
   );
@@ -167,14 +167,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     (state: RootState) => state?.home?.threatDetected,
   );
 
-  // useEffect(() => {
-  //   if(isFirstTime && !tutorialCompleted) {
-  //     const tutorialTimer = setTimeout(() => {
-  //       setShownTutorial(true);
-  //     }, 1500);
-  //     return () => clearTimeout(tutorialTimer);
-  //   }
-  // }, [isFirstTime, tutorialCompleted]);
+
 
   // Define gesture for horizontal swiping
   const switchMode = (newMode: 'AUDIO' | 'VIDEO') => {
@@ -276,6 +269,19 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      if (isTestStream) {
+        console.log('Screen focused with isTestStream:', isTestStream);
+        startAndStopStream();
+
+        // Clear so next focus won’t re-run it
+        navigation.setParams({ isTestStream: false });
+      }
+    }, [isTestStream])
+  );
+
+
   useEffect(() => {
     // Preload the eye icon
     if (Images.EyeAbleIcon) {
@@ -292,6 +298,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     }, [])
   );
 
+  console.log('safeWord', safeWord);
   // ✅ NEW: Enhanced toast notification
   const leftHeaderOptions = [
     {
@@ -300,7 +307,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
       icon: getPreferenceIcon(),
       onPress: () => {
         console.log('⚙️ Preference toggle pressed, current state:', preferenceState);
-
+  
         if (preferenceState === 'A') {
           setPreferenceState('AS');
           // Show white toast notification with structured message
@@ -321,9 +328,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
           );
         } else if (preferenceState === 'AS') {
           setPreferenceState('MIC');
-        } else {
-          setPreferenceState('A');
-          // Show white toast notification with structured message
+          // Add toast notification for manual only mode
           showToastNotification({
             firstLine: 'Stream activates via:',
             secondLine: 'Manual activation only'
@@ -339,6 +344,24 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
               safeWord: safeWord,
             }),
           );
+        } else {
+          setPreferenceState('A');
+          // Show white toast notification with structured message
+          showToastNotification({
+            firstLine: 'Stream activates via:',
+            secondLine: 'Auto Detection only'
+          });
+          dispatch(
+            HomeActions.setSelectedModel(
+              Environments.Models.WHISPER_AND_SENTIMENT,
+            ),
+          );
+          dispatch(
+            HomeActions.setSafeWord({
+              isSafeWord: true,
+              safeWord: safeWord,
+            }),
+          );
         }
       },
     },
@@ -347,7 +370,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
       key: 'Protection Schedule',
       icon: Images.Schedule || Images.Bell,
       step: 2,
-      disabled: preferenceState === 'MIC', // Add this line
+      disabled: preferenceState === 'MIC',
       onPress: () => {
         // Only allow press if not in MIC state
         if (preferenceState !== 'MIC') {
@@ -356,6 +379,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
       }
     }
   ].filter(Boolean);
+
 
   // ✅ FIXED: Flashlight only shows in VIDEO mode
   const rightHeaderOptions = mode === 'VIDEO' ? [
@@ -404,6 +428,23 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
 
     setIsCircle(!isCircle);
   };
+
+  useEffect(() => {
+    if (isSafeWord) {
+      setPreferenceState('AS');
+    } else {
+      setPreferenceState('MIC');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isSafeWord && preferenceState !== 'AS' && preferenceState !== 'A') {
+      setPreferenceState('AS');
+    } else if (!isSafeWord && preferenceState !== 'MIC') {
+      setPreferenceState('MIC');
+    }
+  }, [isSafeWord])
+
 
   const extractInitials = (text: string) => {
     const parts = text.split(' ');
@@ -595,6 +636,10 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
   };
 
   const postIncident = async (token: any) => {
+    console.log('userCordinates?.latitude?.toFixed(6)', userCordinates?.latitude?.toFixed(6))
+    console.log('userCordinates?.longitude?.toFixed(6)', userCordinates?.longitude?.toFixed(6))
+    console.log('timeStamp', new Date())
+    console.log('userDetails?.user?.id', userDetails?.user?.id)
     const body = {
       timestamp: new Date(),
       location_latitude: userCordinates?.latitude?.toFixed(6),
@@ -633,6 +678,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
             token: res?.data?.token,
             token2: res?.data?.token,
           });
+          console.log('res?.data?.token', res?.data?.token)
           postIncident(res?.data?.token);
         })
         .catch(err => {
@@ -892,6 +938,7 @@ export const LiveStream: React.FC<LiveStreamProps> = ({ }) => {
     console.log('Running Stop Recording');
     recorder?.stopRecording();
     setState(prev => ({ ...prev, startRecording: false }));
+    console.log('Stop recording state', state)
   }, [recorder]);
 
   const stopRecording2 = useCallback(() => {
@@ -1570,5 +1617,23 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 10,
+  },
+  audioControlButtons: {
+    position: 'absolute',
+    top: 100,
+    right: 20,
+    flexDirection: 'column',
+    gap: 10,
+    zIndex: 1000,
+  },
+  audioControlButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  audioControlText: {
+    color: 'white',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
