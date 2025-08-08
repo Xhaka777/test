@@ -30,6 +30,7 @@ import { HowToUse } from './HomeScreens/HowToUse';
 import { SafeWord } from './HomeScreens/SafeWord';
 import { EntryWord } from './HomeScreens/EntryWord';
 import SafeWordTraining from './HomeScreens/SafeWordTraining';
+import { EditContact } from './HomeScreens/EditContact';
 
 export {
   // Auth Screens
@@ -62,4 +63,5 @@ export {
   SafeWord,
   EntryWord,
   SafeWordTraining,
+  EditContact,
 };

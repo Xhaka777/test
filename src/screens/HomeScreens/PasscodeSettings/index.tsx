@@ -134,16 +134,16 @@ const styles = StyleSheet.create({
     marginBottom: Metrix.VerticalSize(5),
   },
   premiumIcon: {
-    width: Metrix.HorizontalSize(35),
-    height: Metrix.VerticalSize(35),
+    width: Metrix.HorizontalSize(40),
+    height: Metrix.VerticalSize(40),
     marginRight: Metrix.HorizontalSize(5),
-    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+    tintColor: '#57b5fa',
   },
   textHeading: {
-    fontSize: normalizeFont(18),
+    fontSize: normalizeFont(25),
     letterSpacing: 0.7,
     fontWeight: '600',
-    lineHeight: 20,
+    // lineHeight: 10,
     color: Utills.selectedThemeColors().PrimaryTextColor,
   },
   textSubheading: {

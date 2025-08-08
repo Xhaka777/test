@@ -8,7 +8,7 @@ import {
   PrimaryButton,
   VolumeAnimatedIcon,
 } from '../../../components';
-import { PasscodeInput, getPasscodeFromStorage, verifyStoredPasscode } from '../../../components';
+import { PasscodeInput, getPasscodeFromStorage } from '../../../components';
 import { Images, Metrix, Utills, NavigationService, RouteNames } from '../../../config';
 import { Image } from 'react-native';
 import { normalizeFont } from '../../../config/metrix';
@@ -28,46 +28,46 @@ export const SafeWord: React.FC<SafeWordProps> = ({ }) => {
   const [passcodeError, setPasscodeError] = useState(false);
 
   useEffect(() => {
-    checkPasscodeExists();
+    checkInitialSetup();
+  }, []);
+
+  // Add focus listener to refresh data when returning from PasscodeInput
+  useEffect(() => {
+    const unsubscribe = NavigationService.addListener?.('focus', () => {
+      checkInitialSetup();
+    });
+
+    return unsubscribe;
   }, []);
 
   const checkInitialSetup = async () => {
+    setIsCheckingPasscode(true);
     try {
       const existingPasscode = await getPasscodeFromStorage();
       const existingSafeWord = await getSafeWordFromStorage();
 
-      setHasPasscode(!!existingPasscode);
+      console.log('Passcode exists:', !!existingPasscode);
+      console.log('Safe word exists:', !!existingSafeWord);
+
+      // If no passcode exists, immediately redirect to PasscodeSettings
+      if (!existingPasscode) {
+        console.log('No passcode found, redirecting to PasscodeSettings...');
+        NavigationService.navigate(RouteNames.HomeRoutes.PasscodeSettings);
+        return;
+      }
+
+      // Only set state if passcode exists
+      setHasPasscode(true);
       setHasSafeWord(!!existingSafeWord);
       setSafeWord(existingSafeWord || '');
+
     } catch (error) {
       console.error('Error checking setup:', error);
-      setHasPasscode(false);
-      setHasSafeWord(false);
+      // On error, also redirect to PasscodeSettings to be safe
+      NavigationService.navigate(RouteNames.HomeRoutes.PasscodeSettings);
+      return;
     } finally {
       setIsCheckingPasscode(false);
-    }
-  }
-
-  const checkPasscodeExists = async () => {
-    try {
-      const existingPasscode = await getPasscodeFromStorage();
-      setHasPasscode(!!existingPasscode);
-    } catch (error) {
-      console.error('Error checking passcode:', error);
-      setHasPasscode(false);
-    } finally {
-      setIsCheckingPasscode(false);
-    }
-  };
-
-  // Read the passcode from storage
-  const getPasscodeFromStorage = async (): Promise<string | null> => {
-    try {
-      const passcode = await AsyncStorage.getItem(PASSCODE_KEY);
-      return passcode;
-    } catch (error) {
-      console.error('Error getting passcode:', error);
-      return null;
     }
   };
 
@@ -81,20 +81,23 @@ export const SafeWord: React.FC<SafeWordProps> = ({ }) => {
     }
   };
 
+  // Add the missing verifyStoredPasscode function
+  const verifyStoredPasscode = async (inputPasscode: string): Promise<boolean> => {
+    try {
+      const storedPasscode = await AsyncStorage.getItem(PASSCODE_KEY);
+      console.log('Verifying passcode...');
+      console.log('Input:', inputPasscode);
+      console.log('Stored:', storedPasscode);
+      console.log('Match:', storedPasscode === inputPasscode);
+      return storedPasscode === inputPasscode;
+    } catch (error) {
+      console.error('Error verifying passcode:', error);
+      return false;
+    }
+  };
+
   const handleUpdateSafeWord = async () => {
-    if (!hasPasscode) {
-      // Navigate to passcode setup first
-      NavigationService.navigate('PasscodeSettings');
-      return;
-    }
-
-    if(!hasSafeWord) {
-      //Navigate to safe word training screen
-        NavigationService.navigate(RouteNames.HomeRoutes.SafeWordTraining);
-      return;
-    }
-
-    // Validate the 4-digit passcode input
+    // Since we only reach here if hasPasscode is true, validate the entered passcode
     if (passcodeInput.length !== 4) {
       Utills.showToast('Please enter a 4-digit passcode');
       setPasscodeError(true);
@@ -102,24 +105,35 @@ export const SafeWord: React.FC<SafeWordProps> = ({ }) => {
       return;
     }
 
-    // Check if the passcode is correct
-    const isValid = await verifyStoredPasscode(passcodeInput);
+    setIsVerifyingPasscode(true);
 
-    if (isValid) {
-      // Passcode is correct, proceed to safe word update
-      Utills.showToast('Passcode verified!');
-      setPasscodeInput(''); // Clear the input
+    try {
+      const isValid = await verifyStoredPasscode(passcodeInput);
 
-      // Navigate to safe word input/update screen after short delay
-      setTimeout(() => {
-        NavigationService.navigate('SafeWordInput');
-      }, 1000);
-    } else {
-      // Passcode is incorrect
-      Utills.showToast('Incorrect passcode. Please try again.');
+      if (isValid) {
+        // Passcode is correct, proceed to safe word training
+        Utills.showToast('Passcode verified!', null, 'success');
+        setPasscodeInput(''); // Clear the input
+        setPasscodeError(false);
+
+        // Navigate to safe word training after short delay
+        setTimeout(() => {
+          NavigationService.navigate(RouteNames.HomeRoutes.SafeWordTraining);
+        }, 1000);
+      } else {
+        // Passcode is incorrect
+        Utills.showToast('Incorrect passcode. Please try again.', null, 'error');
+        setPasscodeError(true);
+        setPasscodeInput(''); // Clear the input
+        setTimeout(() => setPasscodeError(false), 2000);
+      }
+    } catch (error) {
+      console.error('Error verifying passcode:', error);
+      Utills.showToast('Error verifying passcode. Please try again.', null, 'error');
       setPasscodeError(true);
-      setPasscodeInput(''); // Clear the input
       setTimeout(() => setPasscodeError(false), 2000);
+    } finally {
+      setIsVerifyingPasscode(false);
     }
   };
 
@@ -156,10 +170,6 @@ export const SafeWord: React.FC<SafeWordProps> = ({ }) => {
   return (
     <MainContainer>
       <View style={styles.container}>
-        {/* <VolumeAnimatedIcon
-          baseSize={80}
-          maxSize={120}
-        /> */}
         <View style={styles.cardContainer}>
           <View style={styles.titleContainer}>
             <Image
@@ -172,78 +182,83 @@ export const SafeWord: React.FC<SafeWordProps> = ({ }) => {
             </CustomText.RegularText>
           </View>
           <View style={styles.line} />
+
           <CustomText.MediumText customStyle={styles.textSubheading}>
-            {hasPasscode
-              ? `Voice profile trained and safe word set to:`
-              : "Safe word setup requires passcode protection:"
-            }
+            Voice profile trained and safe word set to:
           </CustomText.MediumText>
 
-          {hasPasscode && (
-            <>
-              {/* TextInput to type the passcode with eye icon */}
-              <View style={[styles.passcodeInputContainerAbsolute, passcodeError && styles.passcodeInputError]}>
-                <TextInput
-                  style={styles.passcodeTextInputAbsolute}
-                  value={passcodeInput}
-                  onChangeText={handlePasscodeInputChange}
-                  placeholder="••••"
-                  placeholderTextColor="#888888"
-                  secureTextEntry={!isPasswordVisible}
-                  keyboardType="numeric"
-                  maxLength={4}
-                  textAlign="center"
-                />
-                <TouchableOpacity
-                  style={styles.eyeButtonAbsolute}
-                  onPress={togglePasswordVisibility}
-                >
-                  <Image
-                    source={isPasswordVisible ? Images.Eye : Images.Eye}
-                    style={styles.eyeIcon}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <CustomText.RegularText customStyle={styles.boldSubheading}>
-                This phrase will activate Rove even if your phone is locked. Say it during an emergency to start livestreaming and alert your responders.
+          {/* Display current safe word if it exists */}
+          {hasSafeWord && (
+            <View style={styles.currentSafeWordContainer}>
+              <CustomText.RegularText customStyle={styles.currentSafeWordLabel}>
+                Current Safe Word:
               </CustomText.RegularText>
-
-              <View style={styles.proTipContainer}>
-                <CustomText.RegularText customStyle={styles.proTipEmoji}>
-                  👉  <CustomText.RegularText customStyle={styles.proTipText}>
-                    <CustomText.RegularText customStyle={styles.proTipBold}>
-                      Pro tip:
-                    </CustomText.RegularText>
-                    {' '}You can also try it in a safe setting to see how it responds.
-                  </CustomText.RegularText>
-                </CustomText.RegularText>
-              </View>
-            </>
-          )}
-
-          {!hasPasscode && (
-            <View style={styles.noPasscodeContainer}>
-              <Image
-                source={Images.Lock}
-                style={styles.lockIcon}
-                resizeMode="contain"
-              />
-              <CustomText.RegularText customStyle={styles.noPasscodeText}>
-                Create a passcode to protect your safe word
+              <CustomText.RegularText customStyle={styles.currentSafeWord}>
+                "{safeWord}"
               </CustomText.RegularText>
             </View>
           )}
 
+          {/* Passcode input for verification */}
+          <CustomText.RegularText customStyle={styles.passcodePromptText}>
+            Enter your 4-digit passcode to {hasSafeWord ? 'update' : 'set'} safe word:
+          </CustomText.RegularText>
+
+          <View style={[styles.passcodeInputContainerAbsolute, passcodeError && styles.passcodeInputError]}>
+            <TextInput
+              style={styles.passcodeTextInputAbsolute}
+              value={passcodeInput}
+              onChangeText={handlePasscodeInputChange}
+              placeholder="••••"
+              placeholderTextColor="#888888"
+              secureTextEntry={!isPasswordVisible}
+              keyboardType="numeric"
+              maxLength={4}
+              textAlign="center"
+              editable={!isVerifyingPasscode}
+            />
+            <TouchableOpacity
+              style={styles.eyeButtonAbsolute}
+              onPress={togglePasswordVisibility}
+              disabled={isVerifyingPasscode}
+            >
+              <Image
+                source={isPasswordVisible ? Images.EyeAbleIcon : Images.EyeDisableIcon}
+                style={styles.eyeIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <CustomText.RegularText customStyle={styles.boldSubheading}>
+            This phrase will activate Rove even if your phone is locked. Say it during an emergency to start livestreaming and alert your responders.
+          </CustomText.RegularText>
+
+          <View style={styles.proTipContainer}>
+            <CustomText.RegularText customStyle={styles.proTipEmoji}>
+              👉  <CustomText.RegularText customStyle={styles.proTipText}>
+                <CustomText.RegularText customStyle={styles.proTipBold}>
+                  Pro tip:
+                </CustomText.RegularText>
+                {' '}You can also try it in a safe setting to see how it responds.
+              </CustomText.RegularText>
+            </CustomText.RegularText>
+          </View>
+
+          {/* Button */}
           <PrimaryButton
-            title={hasPasscode ? "Update safe word" : "Create passcode first"}
-            onPress={ () => NavigationService.navigate(RouteNames.HomeRoutes.SafeWordTraining)}
+            title={
+              isVerifyingPasscode
+                ? "Verifying..."
+                : `${hasSafeWord ? 'Update' : 'Set'} safe word`
+            }
+            onPress={handleUpdateSafeWord}
             customStyles={[
               styles.setPasscodeButton,
-              !hasPasscode && styles.createPasscodeButton
+              isVerifyingPasscode && styles.disabledButton
             ]}
             customTextStyle={styles.buttonText}
+            disabled={isVerifyingPasscode}
           />
         </View>
       </View>
@@ -273,7 +288,7 @@ const styles = StyleSheet.create({
     width: Metrix.HorizontalSize(40),
     height: Metrix.VerticalSize(40),
     marginRight: Metrix.HorizontalSize(5),
-    tintColor: Utills.selectedThemeColors().PrimaryTextColor,
+    tintColor: '#57b5fa',
   },
   line: {
     width: '100%',
@@ -282,12 +297,12 @@ const styles = StyleSheet.create({
     marginBottom: 14
   },
   textHeading: {
-    fontSize: normalizeFont(20),
+    fontSize: normalizeFont(25),
     letterSpacing: 0.7,
     fontWeight: '600',
-    lineHeight: 20,
+    // lineHeight: 20,
     color: Utills.selectedThemeColors().PrimaryTextColor,
-    marginTop: 5,
+    // marginTop: 5,
   },
   textSubheading: {
     fontSize: normalizeFont(17),
@@ -297,6 +312,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: Utills.selectedThemeColors().PrimaryTextColor,
   },
+  currentSafeWordContainer: {
+    backgroundColor: '#2d2d2d',
+    borderRadius: Metrix.HorizontalSize(12),
+    paddingHorizontal: Metrix.HorizontalSize(15),
+    paddingVertical: Metrix.VerticalSize(15),
+    marginBottom: Metrix.VerticalSize(20),
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  currentSafeWordLabel: {
+    fontSize: normalizeFont(14),
+    color: '#CCCCCC',
+    marginBottom: Metrix.VerticalSize(5),
+  },
+  currentSafeWord: {
+    fontSize: normalizeFont(18),
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
   passcodePromptText: {
     fontSize: normalizeFont(14),
     letterSpacing: 0.7,
@@ -304,26 +338,6 @@ const styles = StyleSheet.create({
     marginBottom: Metrix.VerticalSize(10),
     lineHeight: 18,
     color: Utills.selectedThemeColors().PrimaryTextColor,
-  },
-  passcodeInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#303030',
-    borderRadius: Metrix.HorizontalSize(12),
-    borderWidth: 2,
-    borderColor: 'transparent',
-    marginBottom: Metrix.VerticalSize(20),
-  },
-  passcodeInputError: {
-    borderColor: '#ff3b30',
-  },
-  passcodeTextInput: {
-    flex: 1,
-    paddingHorizontal: Metrix.HorizontalSize(15),
-    paddingVertical: Metrix.VerticalSize(15),
-    fontSize: normalizeFont(18),
-    color: Utills.selectedThemeColors().PrimaryTextColor,
-    letterSpacing: 8,
   },
   passcodeInputContainerAbsolute: {
     position: 'relative',
@@ -333,7 +347,10 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     marginBottom: Metrix.VerticalSize(20),
   },
-
+  passcodeInputError: {
+    borderColor: '#ff3b30',
+    backgroundColor: '#ff3b301a',
+  },
   passcodeTextInputAbsolute: {
     paddingHorizontal: Metrix.HorizontalSize(15),
     paddingVertical: Metrix.VerticalSize(15),
@@ -354,10 +371,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  eyeButton: {
-    padding: Metrix.HorizontalSize(15),
-  },
   eyeIcon: {
     width: Metrix.HorizontalSize(24),
     height: Metrix.VerticalSize(24),
@@ -365,7 +378,6 @@ const styles = StyleSheet.create({
   },
   boldSubheading: {
     fontSize: normalizeFont(17),
-    // letterSpacing: 0.7,
     fontWeight: '400',
     marginBottom: Metrix.VerticalSize(15),
     lineHeight: 20,
@@ -383,35 +395,43 @@ const styles = StyleSheet.create({
   },
   proTipText: {
     fontSize: normalizeFont(17),
-    // letterSpacing: ,
     fontWeight: '400',
     lineHeight: 22,
     color: Utills.selectedThemeColors().PrimaryTextColor,
     flex: 1,
   },
   proTipBold: {
-    fontWeight: '400',
-    fontSize: normalizeFont(18),
+    fontWeight: '600',
+    fontSize: normalizeFont(17),
   },
+  // Updated no passcode container styles
   noPasscodeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4A4A4A',
-    borderRadius: Metrix.HorizontalSize(12),
-    paddingHorizontal: Metrix.HorizontalSize(15),
-    paddingVertical: Metrix.VerticalSize(20),
     marginBottom: Metrix.VerticalSize(20),
   },
+  noPasscodeContent: {
+    alignItems: 'center',
+    paddingVertical: Metrix.VerticalSize(30),
+  },
   lockIcon: {
-    width: Metrix.HorizontalSize(24),
-    height: Metrix.VerticalSize(24),
-    tintColor: '#CCCCCC',
-    marginRight: Metrix.HorizontalSize(12),
+    width: Metrix.HorizontalSize(50),
+    height: Metrix.VerticalSize(50),
+    tintColor: '#666',
+    marginBottom: Metrix.VerticalSize(15),
+    opacity: 0.7,
+  },
+  noPasscodeTitle: {
+    fontSize: normalizeFont(18),
+    color: Utills.selectedThemeColors().PrimaryTextColor,
+    fontWeight: '600',
+    marginBottom: Metrix.VerticalSize(10),
+    textAlign: 'center',
   },
   noPasscodeText: {
     fontSize: normalizeFont(15),
     color: '#CCCCCC',
-    flex: 1,
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: Metrix.HorizontalSize(20),
   },
   setPasscodeButton: {
     marginTop: Metrix.VerticalSize(5),
@@ -422,6 +442,10 @@ const styles = StyleSheet.create({
   },
   createPasscodeButton: {
     backgroundColor: '#FF6B35',
+  },
+  disabledButton: {
+    backgroundColor: '#4A4A4A',
+    opacity: 0.6,
   },
   buttonText: {
     color: '#FFFFFF',

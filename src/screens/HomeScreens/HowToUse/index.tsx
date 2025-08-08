@@ -69,10 +69,11 @@ export const HowToUse: React.FC<HowToUseProps> = ({ }) => {
           resizeMode="contain"
         >
           <LinearGradient
-            colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)', 'rgba(0,0,0,1)']}
-            locations={[0, 0.7, 1]}
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.8)', 'rgba(0,0,0,1)']}
+            locations={[0, 0.5, 0.9, 1]}
             style={styles.backgroundGradient}
           />
+
         </ImageBackground>
       </View>
 
@@ -81,25 +82,25 @@ export const HowToUse: React.FC<HowToUseProps> = ({ }) => {
 
       {/* Content overlay */}
       <SafeAreaView style={styles.safeArea}>
-          {/* Header Section */}
-          <View style={styles.headerSection}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                {/* <View style={styles.logoIcon} /> */}
-                <Image
-                  source={Images.Premium}
-                  style={styles.premiumIcon}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.headerTitle}>How to use</Text>
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logo}>
+              {/* <View style={styles.logoIcon} /> */}
+              <Image
+                source={Images.Premium}
+                style={styles.premiumIcon}
+                resizeMode="contain"
+              />
             </View>
+            <Text style={styles.headerTitle}>How to use</Text>
           </View>
+        </View>
 
-          {/* Replay Quick Tour Button */}
-          <TouchableOpacity style={styles.replayButton}>
-            <Text style={styles.replayButtonText}>Replay Quick tour</Text>
-          </TouchableOpacity>
+        {/* Replay Quick Tour Button */}
+        <TouchableOpacity style={styles.replayButton}>
+          <Text style={styles.replayButtonText}>Replay Quick tour</Text>
+        </TouchableOpacity>
 
         <ScrollView
           style={styles.scrollView}
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     zIndex: 1,
-    marginTop: 130,
+    marginTop: 80,
   },
   scrollView: {
     flex: 1,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '700',
   },
   replayButton: {

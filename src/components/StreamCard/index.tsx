@@ -79,27 +79,27 @@ export const StreamCard: React.FC<StreamCardProps> = ({ incident, onDelete, onDo
         });
     };
 
-// Inside your StreamCard component
-const handleFeedbackSubmit = async (feedbackText: string) => {
-    try {
-      console.log('Submitting feedback for incident:', incident.id);
-      
-      // Create the body object
-      const body = {
-        incident_id: incident.id,
-        feedback_text: feedbackText
-      };
-      
-      // Call your existing sendFeedback function with the body
-      const response = await HomeAPIS.sendFeedback(body);
-      
-      console.log('Feedback submitted successfully:', response);
-      
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      throw error;
-    }
-  };
+    // Inside your StreamCard component
+    const handleFeedbackSubmit = async (feedbackText: string) => {
+        try {
+            console.log('Submitting feedback for incident:', incident.id);
+
+            // Create the body object
+            const body = {
+                incident_id: incident.id,
+                feedback_text: feedbackText
+            };
+
+            // Call your existing sendFeedback function with the body
+            const response = await HomeAPIS.sendFeedback(body);
+
+            console.log('Feedback submitted successfully:', response);
+
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+            throw error;
+        }
+    };
 
 
     const resolveStreetName = async () => {
@@ -568,6 +568,8 @@ const handleFeedbackSubmit = async (feedbackText: string) => {
                 </View>
             )}
 
+            <View style={{ width: '100%', height: 1, backgroundColor: '#5f626b' }} />
+
             {/* Passcode Input Modal */}
             <Modal
                 visible={showPasscodeModal}
@@ -591,7 +593,7 @@ const handleFeedbackSubmit = async (feedbackText: string) => {
                 visible={showFeedbackModal}
                 onClose={() => setShowFeedbackModal(false)}
                 incidentId={incident.id}
-                onSubmit={handleFeedbackSubmit} 
+                onSubmit={handleFeedbackSubmit}
             />
         </View>
     );
@@ -602,8 +604,8 @@ const styles = StyleSheet.create({
         backgroundColor: Utills.selectedThemeColors().Base,
         borderRadius: Metrix.HorizontalSize(16),
         marginBottom: Metrix.VerticalSize(24),
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        // borderWidth: 1,
+        // borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     header: {
         flexDirection: 'row',
@@ -670,9 +672,12 @@ const styles = StyleSheet.create({
     audioContainer: {
         width: '100%',
         height: '100%',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: '#000',
         justifyContent: 'center',
         alignItems: 'center',
+         borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+
     },
     audioIconContainer: {
         width: Metrix.HorizontalSize(80),

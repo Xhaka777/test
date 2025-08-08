@@ -7,11 +7,12 @@ import {
   Dimensions,
   Vibration,
   Platform,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import { CustomText } from '../index';
-import { Metrix, Utills, Images } from '../../config';
+import { Metrix, Utills, Images, NavigationService } from '../../config';
 import { normalizeFont } from '../../config/metrix';
 import { Image } from 'react-native';
 
@@ -152,7 +153,6 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
       }
     }
   };
-
   const handleDelete = () => {
     if (passcode.length > 0) {
       setPasscode(passcode.slice(0, -1));
@@ -182,7 +182,7 @@ export const PasscodeInput: React.FC<PasscodeInputProps> = ({
                 borderColor: Utills.selectedThemeColors().PrimaryTextColor,
               },
               isError && {
-                borderColor: '#ff3b30',
+                borderColor: '#5f626b',
                 backgroundColor: 'transparent',
               },
             ]}

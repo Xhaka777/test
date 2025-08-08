@@ -20,8 +20,8 @@ interface VolumeAnimatedIconProps {
 
 export default function VolumeAnimatedIcon({
   icon,
-  baseSize = 100, // Increased from 80 to 100
-  maxSize = 150, // Increased from 120 to 150
+  baseSize = 100,
+  maxSize = 150,
   volume: externalVolume
 }: VolumeAnimatedIconProps) {
   const [currentVolume, setCurrentVolume] = useState(0);
@@ -50,7 +50,7 @@ export default function VolumeAnimatedIcon({
   // New shared value for background glow breathing animation
   const backgroundGlowScale = useSharedValue(0);
 
-  // Main animation logic based on volume
+  // Main animation logic based on volume - NOW RESPONDS IMMEDIATELY
   useEffect(() => {
     // Cancel any existing animations
     cancelAnimation(scale);
@@ -65,7 +65,7 @@ export default function VolumeAnimatedIcon({
 
     // Breathing intensity and speed based on volume
     const breathingIntensity = 0.1 + (effectiveVolume * 0.3); // 0.1 to 0.4 (more dramatic)
-    const breathingDuration = 2000 - (effectiveVolume * 800); // 2000ms to 1200ms
+    const breathingDuration = Math.max(800, 2000 - (effectiveVolume * 1200)); // 2000ms to 800ms (faster response)
 
     // Icon opacity based on volume (0.6 to 1.0)
     const targetOpacity = 0.6 + (effectiveVolume * 0.4);
@@ -73,20 +73,20 @@ export default function VolumeAnimatedIcon({
     // Glow opacity based on volume (0.3 to 0.8)
     const targetGlowOpacity = 0.3 + (effectiveVolume * 0.5);
 
-    // Set initial values
+    // Set initial values with faster response time
     scale.value = withTiming(baseScale, {
-      duration: 300,
-      easing: Easing.out(Easing.quad),
+      duration: 200, // Reduced from 300ms to 200ms for faster response
+      easing: Easing.out(Easing.cubic),
     });
 
     opacity.value = withTiming(targetOpacity, {
-      duration: 300,
-      easing: Easing.out(Easing.quad),
+      duration: 200, // Faster response
+      easing: Easing.out(Easing.cubic),
     });
 
     glowOpacity.value = withTiming(targetGlowOpacity, {
-      duration: 300,
-      easing: Easing.out(Easing.quad),
+      duration: 200, // Faster response
+      easing: Easing.out(Easing.cubic),
     });
 
     // Start breathing animation for background glow
@@ -107,7 +107,7 @@ export default function VolumeAnimatedIcon({
       true
     );
 
-    // Start dramatic breathing animation after initial transition
+    // Start dramatic breathing animation after initial transition (reduced delay)
     setTimeout(() => {
       // Scale animation: expand -> shrink (zoom-out -> zoom-in)
       scale.value = withRepeat(
@@ -144,9 +144,9 @@ export default function VolumeAnimatedIcon({
         -1,
         true
       );
-    }, 300);
+    }, 200); // Reduced delay from 300ms to 200ms
 
-  }, [effectiveVolume]);
+  }, [effectiveVolume]); // This dependency ensures immediate response to volume changes
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -226,12 +226,15 @@ export default function VolumeAnimatedIcon({
         )}
       </Animated.View>
 
-      {/* Volume Indicator */}
+      {/* Volume Indicator - Now more responsive */}
       <View style={styles.volumeIndicator}>
-        <View
+        <Animated.View
           style={[
             styles.volumeBar,
-            { width: `${effectiveVolume * 100}%` }
+            useAnimatedStyle(() => ({
+              width: `${effectiveVolume * 100}%`,
+              transform: [{ scaleX: withTiming(1, { duration: 100 }) }], // Smooth width animation
+            }))
           ]}
         />
       </View>
@@ -241,15 +244,15 @@ export default function VolumeAnimatedIcon({
 
 const styles = StyleSheet.create({
   container: {
-    width: 220, // Increased container width
-    height: 240, // Increased container height
+    width: 220,
+    height: 240,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ffffff', // Changed to white
+    shadowColor: '#ffffff',
     shadowOffset: {
       width: 0,
       height: 8,
@@ -260,10 +263,10 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   defaultIcon: {
-    backgroundColor: 'transparent', // Made transparent instead of blue
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ffffff', // Changed to white
+    shadowColor: '#ffffff',
     shadowOffset: {
       width: 0,
       height: 0,
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
   backgroundGlow: {
     position: 'absolute',
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#ffffff', // Changed to white
+    shadowColor: '#ffffff',
     shadowOffset: {
       width: 0,
       height: 0,
@@ -288,15 +291,10 @@ const styles = StyleSheet.create({
   glowRing: {
     position: 'absolute',
     borderWidth: 1,
-    // borderColor: '#fff', // Changed to white with transparency
     zIndex: 2,
   },
-  glowRing1: {
-    // borderColor: 'rgba(255, 255, 255, 0.4)', // Changed to white with transparency
-  },
-  glowRing2: {
-    // borderColor: 'rgba(255, 255, 255, 0.2)', // Changed to white with transparency
-  },
+  glowRing1: {},
+  glowRing2: {},
   volumeIndicator: {
     position: 'absolute',
     bottom: 0,
@@ -307,7 +305,7 @@ const styles = StyleSheet.create({
   },
   volumeBar: {
     height: '100%',
-    backgroundColor: '#4A90E2', // Keeping the volume bar blue for contrast
+    backgroundColor: '#4A90E2',
     borderRadius: 3,
     shadowColor: '#4A90E2',
     shadowOffset: {

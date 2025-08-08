@@ -35,6 +35,19 @@ import ContactImageDB from '../../../config/utills/ContactImageDB';
 
 const { width } = Dimensions.get('window');
 
+// Add the alertServices array same as EditContact
+const alertServices = [
+  {
+    id: '1',
+    service: 'WhatsApp',
+    icon: Images.Whatsapp,
+  },
+  {
+    id: '2',
+    service: 'SMS',
+    icon: Images.Sms,
+  },
+];
 
 export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
   const [loading, setLoading] = useState(false);
@@ -89,13 +102,16 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
             finalAvatar = item.avatar;
           }
 
+          // Debug log to check what service type we're getting
+          console.log(`Contact: ${item?.name}, Service Type: ${item?.alert_to}`);
+
           array.push({
             id: item?.id,
             name: item?.name,
             phone: item?.phone_number,
             abbreviate: item?.name?.charAt(0)?.toUpperCase() || '?',
-            serviceType: item?.alert_to,
-            avatar: finalAvatar, // Will be null if no valid avatar found
+            serviceType: item?.alert_to || 'WhatsApp', // Default to WhatsApp if undefined
+            avatar: finalAvatar,
           });
         });
         setData(array?.reverse());
@@ -139,6 +155,12 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
     });
   };
 
+  const handleEditContact = (contact: any) => {
+    // Navigate to the edit contact screen
+    NavigationService.navigate(RouteNames.HomeRoutes.EditContact, {
+      contactData: contact,
+    });
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -149,98 +171,83 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
     }, []),
   );
 
-  const renderContactListItem = ({ item }: any) => {
-    const hasValidAvatar = !!item?.avatar && item.avatar !== 'null' && item.avatar !== '';
-  
-    // Derive fallback initial safely
-    const fallbackLetter = (item?.name?.trim()?.charAt(0) || '?').toUpperCase();
-  
+  const getServiceIcon = (serviceType: string) => {
+    // Debug log to see what service type is being processed
+    console.log('Getting icon for service type:', serviceType);
+    
+    // Find the service in alertServices array
+    const service = alertServices.find(s => 
+      s.service.toLowerCase() === serviceType?.toLowerCase()
+    );
+    
+    const icon = service ? service.icon : Images.Whatsapp; // Default to WhatsApp
+    console.log('Returning icon:', icon);
+    
+    return icon;
+  };
+
+  const renderContactListItem = ({ item, index }: { item: any; index: number }) => {
     return (
-      <View key={item?.id} style={styles.card}>
-        <View style={styles.leftBox}>
-          {hasValidAvatar ? (
-            <Image
-              source={{ uri: item.avatar }}
-              style={styles.contactAvatar}
-              onError={() => {
-                console.log('Failed to load avatar for contact:', item?.name);
-              }}
-            />
-          ) : (
-            <View style={styles.circularView}>
-              <CustomText.LargeBoldText customStyle={styles.circularText}>
-                {fallbackLetter}
-              </CustomText.LargeBoldText>
-            </View>
-          )}
-        </View>
-  
-        <View style={styles.rightBox}>
-          <CustomText.MediumText
-            numberOfLines={1}
-            customStyle={styles.rightText}>
-            {item?.name}
-          </CustomText.MediumText>
-        </View>
-  
-        <View style={styles.editBox}>
-          <TouchableOpacity
+      <View>
+        <View key={item?.id} style={styles.card}>
+          {/* Contact Name - Clickable */}
+          <TouchableOpacity 
+            style={styles.nameContainer}
             activeOpacity={0.7}
-            onPress={() => {
-              NavigationService.navigate(RouteNames.HomeRoutes.AddContacts, {
-                from: 'edit',
-                userInfo: item,
-              });
-            }}>
-            <RoundImageContainer
-              resizeMode="contain"
-              circleWidth={28}
-              source={Images.Edit}
-            />
+            onPress={() => handleEditContact(item)}
+          >
+            <CustomText.MediumText
+              numberOfLines={1}
+              customStyle={styles.contactName}>
+              {item?.name}
+            </CustomText.MediumText>
           </TouchableOpacity>
-  
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              Alert.alert('Are you sure?', 'You want to delete this contact', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'OK', onPress: () => deleteContact(item?.id) },
-              ]);
-            }}>
-            <RoundImageContainer
-              styles={{ width: Metrix.HorizontalSize(34), height: Metrix.VerticalSize(35) }}
-              resizeMode="contain"
-              circleWidth={30}
-              source={Images.Delete}
-            />
-          </TouchableOpacity>
-  
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.testStreamButton}
-            onPress={() => handleTestStream(item)}>
-            <CustomText.SmallText customStyle={styles.testStreamText}>
-              Test{'\n'}stream
-            </CustomText.SmallText>
-          </TouchableOpacity>
+
+          {/* Buttons Container */}
+          <View style={styles.buttonsContainer}>
+            {/* Service Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.serviceButton}>
+              <Image
+                source={getServiceIcon(item?.serviceType)}
+                style={styles.serviceIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            {/* Test Stream Button */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.testStreamButton}
+              onPress={() => handleTestStream(item)}>
+              <CustomText.SmallText customStyle={styles.testStreamText}>
+                Test{'\n'}stream
+              </CustomText.SmallText>
+            </TouchableOpacity>
+          </View>
         </View>
+        
+        {/* White Separator Line */}
+        {index < data.length - 1 && <View style={styles.separator} />}
       </View>
     );
   };
-  
-
 
   return (
     <MainContainer>
-      <View style={styles.titleContainer}>
+      {/* Premium icon back with title */}
+      <View style={styles.iconWrapper}>
         <Image
           source={Images.Premium}
           style={styles.premiumIcon}
         />
+      </View>
+      <View style={styles.titleWrapper}>
         <Text style={styles.title}>Responders</Text>
       </View>
 
-      {/* Add the subtitle text here */}
+      {/* Subtitle text */}
       <CustomText.RegularText
         customStyle={{
           marginTop: Metrix.VerticalSize(15),
@@ -252,12 +259,9 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
       <View style={{ flex: 1, marginTop: Metrix.VerticalSize(20) }}>
         <PrimaryButton
           title={'Add Contact'}
-          width={'97%'}
+          width={'100%'}
           customStyles={{ alignSelf: 'center' }}
           onPress={() => {
-            // 🚨 Deliberate crash for testing
-            // throw new Error('Test crash: Intentional crash from Add Contact button');
-
             NavigationService.navigate(RouteNames.HomeRoutes.AddContacts);
           }}
         />
@@ -285,115 +289,91 @@ export const TrustedContacts: React.FC<TrustedContactsProps> = ({ }) => {
 };
 
 const styles = StyleSheet.create({
-  headingContainer: {
-    paddingHorizontal: Metrix.HorizontalSize(15),
-    paddingVertical: Metrix.HorizontalSize(20),
-  },
   flatlist: {
     paddingHorizontal: Metrix.VerticalSize(5),
     alignSelf: 'center',
   },
   card: {
     width: '100%',
-    // paddingHorizontal: Metrix.HorizontalSize(10),    
-    paddingVertical: Metrix.VerticalSize(5),
-    borderRadius: Metrix.HorizontalSize(10),
-    height: Metrix.VerticalSize(70),
-    marginVertical: Metrix.VerticalSize(10),
-    // backgroundColor: Utills.selectedThemeColors().Primary,
-    // ...createShadow,
-    // shadowColor: Utills.selectedThemeColors().NotFocussed,
+    paddingVertical: Metrix.VerticalSize(15),
+    paddingHorizontal: Metrix.HorizontalSize(10),
     flexDirection: 'row',
-  },
-  leftBox: {
-    marginRight: Metrix.HorizontalSize(10),
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  circularView: {
-    width: Metrix.HorizontalSize(35),
+  nameContainer: {
+    flex: 1,
+    paddingRight: Metrix.HorizontalSize(10),
+  },
+  contactName: {
+    color: Utills.selectedThemeColors().PrimaryTextColor,
+    fontSize: normalizeFont(18),
+    fontWeight: '600',
+    textAlign: 'left',
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Metrix.HorizontalSize(12),
+  },
+  serviceButton: {
+    width: Metrix.HorizontalSize(50),
     height: Metrix.VerticalSize(35),
-    backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-    borderRadius: Metrix.HorizontalSize(100),
+    backgroundColor: 'transparent', // Transparent background like EditContact
+    borderRadius: Metrix.HorizontalSize(4),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circularText: {
-    // marginVertical: Metrix.VerticalSize(0),
-    color: Utills.selectedThemeColors().Base,
-    fontSize: normalizeFont(24),
-  },
-  rightBox: {
-    width: '45%',
-    justifyContent: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(8),
-    paddingLeft: Metrix.HorizontalSize(5),
-  },
-  editBox: {
-    width: '38%',
-    justifyContent: 'center', // Changed from 'space-between'
-    alignItems: 'center',
-    paddingHorizontal: Metrix.HorizontalSize(5), // Added padding
-    flexDirection: 'row',
-    gap: Metrix.HorizontalSize(8), // Added consistent gap between buttons
-    // backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-  },
-  rightText: {
-    marginBottom: Metrix.VerticalSize(3),
-    fontWeight: '700',
-    textAlign: 'left'
-  },
-  addContact: {
-    position: 'absolute',
-    bottom: '5%',
-    right: '7%',
-    borderRadius: Metrix.HorizontalSize(100),
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Utills.selectedThemeColors().PrimaryTextColor,
-
-    padding: Metrix.HorizontalSize(10),
-    flexDirection: 'row',
+  serviceIcon: {
+    width: 40, // Same size as EditContact
+    height: 40, // Same size as EditContact
   },
   testStreamButton: {
+    width: Metrix.HorizontalSize(60),
+    height: Metrix.VerticalSize(35),
     paddingHorizontal: Metrix.HorizontalSize(10),
-    paddingVertical: Metrix.VerticalSize(7),
+    paddingVertical: Metrix.VerticalSize(6),
     borderRadius: Metrix.HorizontalSize(4),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FF0005'
   },
   testStreamText: {
-    color: Utills.selectedThemeColors().PrimaryTextColor,
-    fontSize: normalizeFont(12),
+    color: '#fff',
+    fontSize: normalizeFont(11),
     fontWeight: '600',
     textAlign: 'center',
     lineHeight: 12,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8, // Space between icon and text
+  separator: {
+    height: 1,
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    marginVertical: Metrix.VerticalSize(2),
   },
-  premiumIcon: {
-    tintColor: '#fff', // Black color
-    resizeMode: 'contain',
-    width: Metrix.HorizontalSize(35),
-    height: Metrix.VerticalSize(35),
+  titleWrapper: {
+    paddingLeft: Metrix.HorizontalSize(40), // Leave space for the icon
+    marginBottom: Metrix.VerticalSize(10),
+    marginTop: 5,
   },
   title: {
-    fontSize: Math.min(width * 0.045, 18), // Responsive font size
+    fontSize: normalizeFont(25),
+    letterSpacing: 0.7,
     fontWeight: '600',
-    color: '#fff',
-    textAlign: 'left',
-    flex: 1, // Take remaining space
+    color: Utills.selectedThemeColors().PrimaryTextColor,
   },
-  contactAvatar: {
-    width: Metrix.HorizontalSize(35),
-    height: Metrix.VerticalSize(35),
-    borderRadius: Metrix.HorizontalSize(17.5), // Half of width/height for perfect circle
-    // borderWidth: 1,
-    // borderColor: Utills.selectedThemeColors().PrimaryTextColor,
+  iconWrapper: {
+    position: 'absolute',
+    left: 0,
+    top: Metrix.VerticalSize(20),
+    marginLeft: 10,
+    zIndex: 1,
   },
-
+  premiumIcon: {
+    tintColor: '#fff', // White color
+    resizeMode: 'contain',
+    width: Metrix.HorizontalSize(40),
+    height: Metrix.VerticalSize(40),
+    marginLeft: 0
+  },
 });

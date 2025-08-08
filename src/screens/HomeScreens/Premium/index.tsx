@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
-import {StyleSheet, View, ScrollView, TouchableOpacity} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import {
   CustomText,
   MainContainer,
   RoundImageContainer,
 } from '../../../components';
-import {Images, Metrix, Utills} from '../../../config';
-import {PremiumProps} from '../../propTypes';
+import { Images, Metrix, Utills } from '../../../config';
+import { PremiumProps } from '../../propTypes';
 
 const subscriptionPlans = [
   {
@@ -20,6 +20,7 @@ const subscriptionPlans = [
       'Safe word trigger',
       '7 day cloud storage',
       'Manual or safe word activated livestream (max 2/month)',
+      '1 Fail-safe broadcast: If one channel fails (e.g no internet), Rove falls back to SMS to alert your responder with a warning and location.'
     ],
     isCurrentPlan: true,
     hasEverythingFrom: null,
@@ -30,6 +31,7 @@ const subscriptionPlans = [
     price: '€5.99/month',
     priceAmount: '€5.99',
     features: [
+      'Unlimited fail-safe broadcasts',
       'Smartwatch integration (works by itself if sim-activated)',
       'Neck-worn bodycam with automatic assault detection',
       '10 manual or safe word activated livestreams/month',
@@ -53,7 +55,7 @@ const subscriptionPlans = [
   },
 ];
 
-export const Premium: React.FC<PremiumProps> = ({}) => {
+export const Premium: React.FC<PremiumProps> = ({ }) => {
   const [selectedPlan, setSelectedPlan] = useState('basic');
 
   const renderPlanCard = (plan: any) => (
@@ -65,7 +67,7 @@ export const Premium: React.FC<PremiumProps> = ({}) => {
       ]}
       onPress={() => setSelectedPlan(plan.id)}
       activeOpacity={0.8}>
-      
+
       {/* Plan Header */}
       <View style={styles.planHeader}>
         <View style={styles.planIconContainer}>
@@ -88,12 +90,12 @@ export const Premium: React.FC<PremiumProps> = ({}) => {
         <CustomText.LargeBoldText customStyle={styles.planName}>
           {plan.name}
         </CustomText.LargeBoldText>
-        <CustomText.RegularText 
+        <CustomText.RegularText
           customStyle={styles.planPrice}
           isSecondaryColor>
           {plan.price}
         </CustomText.RegularText>
-        
+
         {/* Horizontal line under price */}
         <View style={styles.priceUnderline} />
       </View>
@@ -125,10 +127,10 @@ export const Premium: React.FC<PremiumProps> = ({}) => {
 
   return (
     <MainContainer customeStyle={styles.mainContainer}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerIcon}>
@@ -155,7 +157,7 @@ export const Premium: React.FC<PremiumProps> = ({}) => {
         <CustomText.LargeSemiBoldText customStyle={styles.availablePlansText}>
           Available plans
         </CustomText.LargeSemiBoldText>
-        
+
         {/* Plans */}
         {subscriptionPlans.map(renderPlanCard)}
 

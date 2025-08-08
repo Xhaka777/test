@@ -9,6 +9,7 @@ export default class Action {
   static IN_SAFE_ZONE = 'IN_SAFE_ZONE';
   static THREAT_DETECTED = 'THREAT_DETECTED';
   static STREAM_STOPPED = 'STREAM_STOPPED';
+  static HEADS_UP_FIRST_TIME = 'HEADS_UP_FIRST_TIME';
 
   //Tutorial constants
   static SET_TUTORIAL_COMPLETED = 'SET_TUTORIAL_COMPLETED';
@@ -71,6 +72,13 @@ export default class Action {
       type: Action.STREAM_STOPPED,
       payload,
     };
+  }
+
+  static setHeadsUpFirstTime(payload: boolean) {
+    return {
+      type: Action.HEADS_UP_FIRST_TIME,
+      payload,
+    }
   }
 
   //Tutorial actions

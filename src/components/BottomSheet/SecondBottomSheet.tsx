@@ -11,7 +11,7 @@ interface SecondBottomSheetProps {
 
 const SecondBottomSheet = forwardRef<BottomSheet, SecondBottomSheetProps>(
     ({ onYes, onNo, onChange }, ref) => {
-        const snapPoints = useMemo(() => ['40%'], []);
+        const snapPoints = useMemo(() => ['15%'], []);
 
         return (
             <BottomSheet
@@ -24,13 +24,6 @@ const SecondBottomSheet = forwardRef<BottomSheet, SecondBottomSheetProps>(
                 handleIndicatorStyle={styles.handleIndicator}
             >
                 <BottomSheetView style={styles.contentContainer}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Report an incident?</Text>
-                        <Text style={styles.subtitle}>
-                            Help keep your community safe by reporting what you see
-                        </Text>
-                    </View>
-
                     <View style={styles.actionButtons}>
                         <TouchableOpacity
                             style={[styles.actionButton, styles.cancelButton]}

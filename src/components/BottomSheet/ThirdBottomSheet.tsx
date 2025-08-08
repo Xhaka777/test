@@ -1,9 +1,13 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Image, TextInput, Platform, Keyboard, Alert } from 'react-native';
 import BottomSheet, { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
-import { Camera, Mic, Plus, Send, X } from 'lucide-react-native';
-import ImagePicker from 'react-native-image-crop-picker'; // Use the same library as EditProfile
-import _ from 'lodash'; // Use the same library as EditProfile
+import { Camera, Mic, Plus, Send, X, Square } from 'lucide-react-native';
+import ImagePicker from 'react-native-image-crop-picker';
+import _ from 'lodash';
+import Voice from '@react-native-voice/voice';
+import { useDispatch } from 'react-redux';
+import { HomeActions } from '../../redux/actions';
+import { Images } from '../../config';
 
 interface ThirdBottomSheetProps {
   onComplete: (additionalDetails: string, image?: string) => void;
@@ -23,6 +27,7 @@ interface Message {
 
 const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
   ({ onComplete, onChange, selectedThreat, onThreatConfirmed }, ref) => {
+    const dispatch = useDispatch();
     const snapPoints = useMemo(() => ['50%'], []);
 
     const scrollViewRef = useRef<ScrollView>(null);
@@ -32,11 +37,16 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [hideTextInput, setHideTextInput] = useState(false);
 
+    // Voice recognition states
+    const [isRecording, setIsRecording] = useState(false);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [textBeforeVoice, setTextBeforeVoice] = useState(''); // Store text that was there before voice started
+
     useEffect(() => {
       // Add initial bot message when component mounts
       const initialMessage: Message = {
         id: '1',
-        text: 'Your community update is anonymous. Only moderators can view it. False reports of serious events may be reviewed and escalated.',
+        text: 'Your community update is anonymous. Only moderators can view it.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         isBot: true,
         type: 'info'
@@ -44,16 +54,126 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
       setMessages([initialMessage]);
     }, []);
 
-    // Dismiss keyboard when bottom sheet visibility changes
+    // Clean up voice when component unmounts
     useEffect(() => {
-      const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-        // Handle keyboard dismissal if needed
-      });
-
       return () => {
-        keyboardDidHideListener?.remove();
+        if (isRecording) {
+          Voice.stop().catch(console.error);
+        }
       };
-    }, []);
+    }, [isRecording]);
+
+    const handleSheetChange = useCallback((index: number) => {
+      const isOpen = index !== -1;
+      setIsSheetOpen(isOpen);
+
+      if (isOpen) {
+        // Sheet opened - pause safe word detection
+        dispatch(HomeActions.setSafeWord({ isSafeWord: false, safeWord: 'Activate' }));
+      } else {
+        // Sheet closed - resume safe word detection and stop any voice recording
+        dispatch(HomeActions.setSafeWord({ isSafeWord: true, safeWord: 'Activate' }));
+        if (isRecording) {
+          Voice.stop().catch(console.error);
+          setIsRecording(false);
+        }
+      }
+
+      onChange(index);
+    }, [dispatch, onChange, isRecording]);
+
+    const startVoiceRecognition = async () => {
+      if (isRecording) {
+        // Stop recording and finalize the voice session
+        try {
+          await Voice.stop();
+          setIsRecording(false);
+          // Don't clear textBeforeVoice here - let it stay for future voice sessions
+        } catch (error) {
+          console.error('Error stopping voice:', error);
+        }
+        return;
+      }
+
+      // Start recording - save the current text as "before voice"
+      setTextBeforeVoice(inputText);
+
+      // Start recording using the same pattern as TabStack
+      try {
+        // Clear any previous listeners and setup new ones like TabStack
+        Voice.removeAllListeners();
+
+        Voice.onSpeechStart = (e) => {
+          console.log('onSpeechStart: ', e);
+          setIsRecording(true);
+        };
+
+        Voice.onSpeechRecognized = (e) => {
+          console.log('onSpeechRecognized: ', e);
+        };
+
+        Voice.onSpeechEnd = (e) => {
+          console.log('onSpeechEnd: ', e);
+          // Don't stop recording here - let it continue like TabStack
+          if (isRecording) {
+            // Restart listening to continue capturing speech like TabStack does
+            setTimeout(() => {
+              if (isRecording) {
+                Voice.start('en-US').catch(console.error);
+              }
+            }, 100);
+          }
+        };
+
+        Voice.onSpeechResults = (e) => {
+          console.log('onSpeechResults: ', e);
+          if (e.value && e.value.length > 0) {
+            const latestResult = e.value[0];
+            console.log('Latest speech result:', latestResult);
+
+            // Simply combine the text before voice + latest speech result
+            const newText = textBeforeVoice + (textBeforeVoice ? ' ' : '') + latestResult;
+            console.log('Updated input text:', newText);
+            setInputText(newText);
+          }
+        };
+
+        Voice.onSpeechPartialResults = (e) => {
+          console.log('onSpeechPartialResults: ', e);
+          // Handle partial results for real-time feedback like TabStack
+          if (e.value && e.value.length > 0) {
+            const partialText = e.value[0];
+            console.log('Partial result:', partialText);
+          }
+        };
+
+        Voice.onSpeechError = (e) => {
+          console.log('onSpeechError: ', e);
+
+          // Only show error for actual errors, not normal operation
+          if (e.error &&
+            !e.error.message?.includes('No speech input') &&
+            !e.error.message?.includes('Client side error') &&
+            !e.error.message?.includes('7/No match')) {
+            console.error('Actual speech error:', e.error);
+            Alert.alert('Voice Error', 'Could not recognize speech. Please try again.');
+            setIsRecording(false);
+          }
+        };
+
+        Voice.onSpeechVolumeChanged = (e) => {
+          console.log('onSpeechVolumeChanged: ', e);
+        };
+
+        await Voice.start('en-US');
+        console.log('Voice recognition started successfully');
+
+      } catch (error) {
+        console.error('Error starting voice recognition:', error);
+        setIsRecording(false);
+        Alert.alert('Voice Error', 'Could not start voice recognition. Please check microphone permissions.');
+      }
+    };
 
     const handleClose = useCallback(() => {
       Keyboard.dismiss();
@@ -61,10 +181,17 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
       setInputText('');
       setSelectedImage(null);
       setHideTextInput(false);
-      onComplete('');
-    }, [onComplete]);
 
-    // Use the exact same image picker function as EditProfile
+      // Stop voice and clean up
+      if (isRecording) {
+        Voice.stop().catch(console.error);
+        setIsRecording(false);
+        setTextBeforeVoice(''); // Clear saved text
+      }
+
+      onComplete('');
+    }, [onComplete, isRecording]);
+
     const imagePicker = async () => {
       try {
         const image = await ImagePicker?.openPicker({
@@ -75,7 +202,7 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
           Alert.alert('Error', 'Upload image field required.');
           return;
         } else {
-          console.log('Selected image path:', image?.path); // Debug log
+          console.log('Selected image path:', image?.path);
           setSelectedImage(image?.path);
         }
       } catch (error: any) {
@@ -86,17 +213,13 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
       }
     };
 
-    // Remove selected image
     const removeSelectedImage = () => {
       setSelectedImage(null);
     };
 
-    // 100 character minimum requirement with alert
     const sendMessage = () => {
-      // Check if there's no content at all
       if (!inputText.trim() && !selectedImage) return;
 
-      // Check if text is less than 100 characters (only check text, images can be sent without text)
       if (inputText.trim().length > 0 && inputText.trim().length < 100) {
         Alert.alert(
           'Message too short',
@@ -107,12 +230,7 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
         return;
       }
 
-      // Allow sending if: 
-      // 1. Text is 100+ characters, OR
-      // 2. Just an image with no text, OR  
-      // 3. Text is 100+ characters AND an image
       if ((inputText.trim().length >= 100) || (selectedImage && inputText.trim().length === 0)) {
-        // Dismiss keyboard and blur text input
         Keyboard.dismiss();
         textInputRef.current?.blur();
 
@@ -129,7 +247,6 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
         setInputText('');
         setSelectedImage(null);
 
-        // Auto-reply from bot
         setTimeout(() => {
           const botReply: Message = {
             id: (Date.now() + 1).toString(),
@@ -139,17 +256,14 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
           };
           setMessages(prev => [...prev, botReply]);
 
-          // Show threat on map after bot reply
           if (selectedThreat && onThreatConfirmed) {
             setTimeout(() => {
               onThreatConfirmed(selectedThreat);
             }, 500);
           }
 
-          // Hide text input after this specific bot message
           setHideTextInput(true);
 
-          // Complete the reporting process
           setTimeout(() => {
             onComplete(inputText, selectedImage || undefined);
           }, 2000);
@@ -201,19 +315,17 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
         ref={ref}
         index={-1}
         snapPoints={snapPoints}
-        onChange={onChange}
+        onChange={handleSheetChange}
         enablePanDownToClose
         backgroundStyle={styles.chatBottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}
       >
         <BottomSheetView style={styles.chatContainer}>
           <View style={styles.chatGradient}>
-            {/* Header */}
             <View style={styles.chatHeader}>
               <Text style={styles.chatHeaderTitle}>Short description</Text>
             </View>
 
-            {/* Messages */}
             <ScrollView
               ref={scrollViewRef}
               style={styles.messagesContainer}
@@ -224,11 +336,11 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
               {messages.map(renderMessage)}
             </ScrollView>
 
-            {/* Input Area */}
             {!hideTextInput && (
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                keyboardVerticalOffset={0}
+                style={styles.keyboardAvoidingView}
               >
                 <View style={styles.inputContainer}>
                   {selectedImage && (
@@ -242,14 +354,10 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
                       </TouchableOpacity>
                     </View>
                   )}
-
                   <View style={styles.inputRow}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.inputActionButton}
-                      onPress={() => {
-                        console.log('Plus button pressed'); // Debug log
-                        imagePicker(); // Use the same function as EditProfile
-                      }}
+                      onPress={imagePicker}
                     >
                       <Plus size={24} color="#666" />
                     </TouchableOpacity>
@@ -268,10 +376,8 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
                         onSubmitEditing={sendMessage}
                         blurOnSubmit={false}
                       />
-                      {/* Character counter */}
                       <Text style={[
                         styles.characterCounter,
-                        // Show red if text exists but less than 100 chars, green if 100+
                         inputText.length > 0 && inputText.length < 100 && { color: '#ff4444' },
                         inputText.length >= 100 && { color: '#4ade80' }
                       ]}>
@@ -279,29 +385,44 @@ const ThirdBottomSheet = forwardRef<BottomSheet, ThirdBottomSheetProps>(
                       </Text>
                     </View>
 
-                    <TouchableOpacity
-                      style={styles.inputActionButton}
-                      onPress={() => {
-                        console.log('Camera button pressed'); // Debug log
-                        imagePicker(); // Use the same function as EditProfile
-                      }}
-                    >
-                      <Camera size={24} color="#666" />
-                    </TouchableOpacity>
+                    {/* Only show camera icon when not typing */}
+                    {inputText.trim().length === 0 && (
+                      <TouchableOpacity
+                        style={styles.inputActionButton}
+                        onPress={imagePicker}
+                      >
+                        <Camera size={24} color="#666" />
+                      </TouchableOpacity>
+                    )}
 
-                    <TouchableOpacity style={styles.inputActionButton}>
-                      <Mic size={24} color="#666" />
-                    </TouchableOpacity>
+                    {/* Only show mic icon when not typing */}
+                    {inputText.trim().length === 0 && (
+                      <TouchableOpacity
+                        style={[
+                          styles.inputActionButton,
+                          isRecording && styles.recordingButton
+                        ]}
+                        onPress={startVoiceRecognition}
+                      >
+                        {isRecording ? (
+                          <Square size={20} color="#ff4444" fill="#ff4444" />
+                        ) : (
+                          <Mic size={24} color="#666" />
+                        )}
+                      </TouchableOpacity>
+                    )}
 
                     <TouchableOpacity
                       style={[
                         styles.sendButton,
-                        // Show active state if: 100+ chars OR (image with no text) OR (image with 100+ chars)
                         ((inputText.trim().length >= 100) || (selectedImage && inputText.trim().length === 0)) && styles.sendButtonActive
                       ]}
                       onPress={sendMessage}
                     >
-                      <Send size={20} color="#fff" />
+                      <Image
+                        source={Images.SendMessage}
+                        style={{ width: 16, height: 16 }}
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -393,7 +514,7 @@ const styles = StyleSheet.create({
   },
   infoMessageContainer: {
     alignSelf: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f2eb',
     borderRadius: 12,
     padding: 16,
     marginVertical: 12,
@@ -478,10 +599,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 40,
   },
+  recordingButton: {
+    backgroundColor: '#ffebee',
+    borderRadius: 20,
+  },
+    keyboardAvoidingView: {
+    // Remove any extra spacing/padding
+    margin: 0,
+    padding: 0,
+  },
   textInputContainer: {
     flex: 1,
     position: 'relative',
     justifyContent: 'center',
+
+    marginVertical: 0,
+    paddingVertical: 0,
   },
   textInput: {
     minHeight: 40,
@@ -493,6 +626,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     paddingRight: 50,
     textAlignVertical: 'center',
+
+    margin: 0,
+    marginBottom: 0,
+    marginTop: 0,
+    includeFontPadding: false, 
+
   },
   characterCounter: {
     position: 'absolute',
@@ -507,13 +646,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   sendButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#1dab61',
     borderRadius: 20,
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    height: 40,
-    width: 40,
+    height: 33,
+    width: 33,
   },
   sendButtonActive: {
     backgroundColor: '#4ade80',

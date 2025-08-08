@@ -33,5 +33,6 @@ export const RouteNames = {
     HowToUse: 'HowToUse',
     SafeWord: 'SafeWord',
     SafeWordTraining: 'SafeWordTraining',
+    EditContact: 'EditContact',
   },
 };

@@ -33,6 +33,7 @@ import SecondBottomSheet from '../../../components/BottomSheet/SecondBottomSheet
 import ThirdBottomSheet from '../../../components/BottomSheet/ThirdBottomSheet';
 import ThreatDetailsBottomSheet from '../../../components/BottomSheet/ThreadDetails';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { HomeActions } from '../../../redux/actions';
 
 // Define threat type interface
 interface SelectedThreat {
@@ -60,6 +61,7 @@ const { width, height } = Dimensions.get('window');
 
 
 export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
+  const dispatch = useDispatch();
 
   const mapRef = useRef<any>(null);
   const isFocus = useIsFocused();
@@ -68,9 +70,11 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
     (state: RootState) => state.home.userLocation,
   );
 
+  const headsUpFirstTime = useSelector((state: RootState) => state.home.headsUpfirstTime);
+
   const [loading, setLoading] = useState(false);
   const [threats, setThreats] = useState<any[]>([]);
-  const [showDramaModal, setShowDramaModal] = useState(true);
+  const [showDramaModal, setShowDramaModal] = useState(headsUpFirstTime);
 
   // State to track the currently selected threat
   const [selectedThreat, setSelectedThreat] = useState<SelectedThreat | null>(null);
@@ -119,14 +123,31 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
     },
   ];
 
+  useEffect(() => {
+    if (isFocus) {
+      if (headsUpFirstTime) {
+        //
+        setShowDramaModal(true);
+      } else {
+        setTimeout(() => {
+          setActiveSheet('first');
+          firstBottomSheetRef.current?.expand();
+        }, 300);
+      }
+    }
+  }, [isFocus, headsUpFirstTime]);
+
   // Function to start the flow
   const startFlow = useCallback(() => {
     setShowDramaModal(false);
+    //
+    dispatch(HomeActions.setHeadsUpFirstTime(false));
+    //
     setTimeout(() => {
       setActiveSheet('first');
       firstBottomSheetRef.current?.expand();
     }, 300);
-  }, []);
+  }, [dispatch]);
 
   // Function to get threat icon by type
   const getThreatIcon = (threatType: string) => {
@@ -168,7 +189,11 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
       };
 
       setSelectedThreatDetails(threatDetails);
-      threatDetailsBottomSheetRef.current?.expand();
+      setTimeout(() => {
+        console.log('Opening threat details sheet');
+        threatDetailsBottomSheetRef.current?.expand();
+      }, 100);
+
     }
   };
 
@@ -591,47 +616,50 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
       </View>
 
       {/* Cut the Drama Modal */}
-      <CustomModal
-        visible={showDramaModal}
-        smallModal
-        onClose={() => setShowDramaModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.firstTimeModalContainer}>
-            <View style={styles.modalContent}>
-              <View style={styles.titleRow}>
-                <Image
-                  source={Images.Premium}
-                  style={{ width: 34, height: 28 }}
-                />
-                <Text style={styles.modalTitle}>Cut the drama</Text>
+      {headsUpFirstTime && (
+        <CustomModal
+          visible={showDramaModal}
+          smallModal
+          onClose={() => setShowDramaModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.firstTimeModalContainer}>
+              <View style={styles.modalContent}>
+                <View style={styles.titleRow}>
+                  <Image
+                    source={Images.Premium}
+                    style={{ width: 34, height: 28 }}
+                  />
+                  <Text style={styles.modalTitle}>Cut the drama</Text>
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.descriptionContainer}>
+                  <Text style={styles.modalDescription}>
+                    We're not here to fuel paranoia or keep you scrolling into the night.
+                  </Text>
+                  <Text style={[styles.modalDescription, styles.descriptionSpacing]}>
+                    But if it's real and it helps keep someone safe, let the community know!
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.gotchaButton}
+                  onPress={startFlow}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.gotchaButtonText}>Gotcha!</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.separator} />
-              <View style={styles.descriptionContainer}>
-                <Text style={styles.modalDescription}>
-                  We're not here to fuel paranoia or keep you scrolling into the night.
-                </Text>
-                <Text style={[styles.modalDescription, styles.descriptionSpacing]}>
-                  But if it's real and it helps keep someone safe, let the community know!
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.gotchaButton}
-                onPress={startFlow}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.gotchaButtonText}>Gotcha!</Text>
-              </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </CustomModal>
+        </CustomModal>
+      )}
+
 
       {/* First Bottom Sheet */}
       <FirstBottomSheet
         ref={firstBottomSheetRef}
         onYes={moveToSecondSheet}
         onNo={closeAllSheets}
-        onThreatSelect={handleTempThreatSelection} // New prop for threat selection
+        onThreatSelect={handleTempThreatSelection}
         onChange={(index) => handleSheetChange(index, 'first')}
       />
 
@@ -640,7 +668,7 @@ export const HeadsUp: React.FC<HeadsUpProps> = ({ }) => {
         ref={secondBottomSheetRef}
         onYes={moveToThirdSheet}
         onNo={closeAllSheets}
-        selectedThreat={tempThreatData} // Pass selected threat info
+        selectedThreat={tempThreatData}
         onChange={(index) => handleSheetChange(index, 'second')}
       />
 

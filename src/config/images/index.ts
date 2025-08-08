@@ -171,7 +171,8 @@ const Images = {
   Fullscreen: require('../../assets/icons/fullscreen.png'),
   RedDelete: require('../../assets/icons/red_delete.png'),
   Checked: require('../../assets/icons/check.png'),
-  LogoGray: require('../../assets/icons/logo_grey.png')
+  LogoGray: require('../../assets/icons/logo_grey.png'),
+  SendMessage: require('../../assets/icons/send-message.png')
 
 };
 

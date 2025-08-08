@@ -18,68 +18,68 @@ function App(): JSX.Element {
   const toastConfig = {
     info: (props: ToastProps) => (
       <BaseToast
-      {...props}
-      style={{
-        borderLeftColor: Utills.selectedThemeColors().BlackOpacity('0.7'),
-        borderRadius: Metrix.HorizontalSize(10),
-        width: '90%',
-      }}
-      text1Style={{
-        fontSize: 14,
-        fontWeight: '600',
-      }}
-      text2Style={{
-        fontSize: 12,
-      }}
-      text1NumberOfLines={2}
+        {...props}
+        style={{
+          borderLeftColor: Utills.selectedThemeColors().BlackOpacity('0.7'),
+          borderRadius: Metrix.HorizontalSize(10),
+          width: '90%',
+        }}
+        text1Style={{
+          fontSize: 14,
+          fontWeight: '600',
+        }}
+        text2Style={{
+          fontSize: 12,
+        }}
+        text1NumberOfLines={2}
       />
     ),
     success: (props: ToastProps) => (
       <BaseToast
-      {...props}
-      style={{
-        borderLeftColor: 'lightgreen',
-        width: '80%',
-        borderLeftWidth: 6,
-      }}
-      text1Style={{
-        fontSize: 14,
-        fontWeight: '600',
-      }}
-      text2Style={{
-        fontSize: 12,
-      }}
-      text1NumberOfLines={2}
+        {...props}
+        style={{
+          borderLeftColor: 'lightgreen',
+          width: '80%',
+          borderLeftWidth: 6,
+        }}
+        text1Style={{
+          fontSize: 14,
+          fontWeight: '600',
+        }}
+        text2Style={{
+          fontSize: 12,
+        }}
+        text1NumberOfLines={2}
       />
     ),
     error: (props: ToastProps) => (
       <ErrorToast
-      {...props}
-      style={{
-        borderLeftColor: Utills.selectedThemeColors().ErrorTextColor,
-        width: '80%',
-      }}
-      text1Style={{
-        fontSize: 13,
-        fontWeight: '600',
-      }}
-      text2Style={{
-        fontSize: 12,
-      }}
+        {...props}
+        style={{
+          borderLeftColor: Utills.selectedThemeColors().ErrorTextColor,
+          width: '80%',
+        }}
+        text1Style={{
+          fontSize: 13,
+          fontWeight: '600',
+        }}
+        text2Style={{
+          fontSize: 12,
+        }}
       />
     ),
   };
-  
+
   useEffect(() => {
     // Hide the native splash screen immediately
     SplashScreen.hide();
-    
+
     // Launch Bugsee
     const launchBugsee = async () => {
       let appToken = '36c1101e-8278-4b0c-a65b-ec367335af31';
       await Bugsee.launch(appToken);
     };
-    
+
     launchBugsee();
   }, []);
 

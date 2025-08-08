@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
     },
     title: {
         fontSize: 24,
@@ -107,7 +106,7 @@ const styles = StyleSheet.create({
         // maxHeight: 400, // Add this to limit scroll container height
     },
     contentText: {
-        fontSize: 16,
+        fontSize: 18,
         lineHeight: 24,
         color: '#FFFFFF',
         marginBottom: 16,

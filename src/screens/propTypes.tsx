@@ -84,3 +84,6 @@ export type SafeWordProps = {};
 export type EntryWordProps = {};
 
 export type SafeWordTrainingProps = {};
+
+export type EditContactProps = {};
+

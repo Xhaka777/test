@@ -12,6 +12,7 @@ interface AppState {
   threatDetected: boolean;
   streamStopped?: any;
   //
+  headsUpfirstTime?: boolean;
   tutorialCompleted?: boolean;
   currentTutorialStep?: number;
   tutorialActive?: boolean;
@@ -34,6 +35,7 @@ const initialState: ImmutableObject<AppState> = Immutable<AppState>({
   threatDetected: false,
   streamStopped: false,
   //
+  headsUpfirstTime: true,
   tutorialCompleted: false,
   currentTutorialStep: 1,
   tutorialActive: false,
@@ -98,6 +100,12 @@ export default (state = initialState, action: { type: any; payload: any }) => {
       return Immutable(state).merge({
         tutorialCompleted: action.payload,
         tutorialActive: !action.payload,
+      });
+    }
+
+    case Action.HEADS_UP_FIRST_TIME: {
+      return Immutable(state).merge({
+        headsUpfirstTime: action.payload,
       });
     }
 

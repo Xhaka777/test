@@ -333,6 +333,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Metrix.VerticalSize(5),
+    // borderWidth: 1,
+    // borderColor: '#fff'
   },
   premiumIcon: {
     width: Metrix.HorizontalSize(35),
@@ -340,10 +342,10 @@ const styles = StyleSheet.create({
     tintColor: Utills.selectedThemeColors().PrimaryTextColor,
   },
   textHeading: {
-    fontSize: normalizeFont(18),
+    fontSize: normalizeFont(35),
     letterSpacing: 0.7,
     fontWeight: '600',
-    lineHeight: 20,
+    // lineHeight: 20,
     color: Utills.selectedThemeColors().PrimaryTextColor,
   },
 });

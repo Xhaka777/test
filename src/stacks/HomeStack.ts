@@ -16,6 +16,7 @@ import {
   HowToUse,
   SafeWord,
   SafeWordTraining,
+  EditContact,
 } from '../screens';
 import { TabStack } from './TabStack';
 
@@ -109,5 +110,10 @@ export const HomeStack: HomeScreenStacksTypes = [
     name: RouteNames.HomeRoutes.SafeWordTraining,
     component: SafeWordTraining,
     key: RouteNames.HomeRoutes.SafeWordTraining,
+  },
+  {
+    name: RouteNames.HomeRoutes.EditContact,
+    component: EditContact,
+    key: RouteNames.HomeRoutes.EditContact
   }
 ];

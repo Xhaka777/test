@@ -9,7 +9,7 @@ import { normalizeFont } from '../../../config/metrix';
 import { SafeWordTrainingProps } from '../../propTypes';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import navigationService from '../../../config/navigationService';
+// import navigationService from '../../../config/navigationService/index'
 import SystemSetting from 'react-native-system-setting';
 
 
@@ -152,7 +152,7 @@ const SafeWordTraining: React.FC<SafeWordTrainingProps> = ({ route, navigation }
     };
 
     const handleCancel = () => {
-        navigationService.goBack();
+        NavigationService.goBack();
     };
 
     const saveSafeWord = async () => {
@@ -168,7 +168,7 @@ const SafeWordTraining: React.FC<SafeWordTrainingProps> = ({ route, navigation }
     };
 
     const handleComplete = () => {
-        navigationService.goBack();
+        NavigationService.goBack();
     };
 
     const currentTrainingStep = TRAINING_STEPS[currentStep - 1];
