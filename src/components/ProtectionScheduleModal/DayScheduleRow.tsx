@@ -21,7 +21,7 @@ export function DayScheduleRow({ day, schedule, onUpdateSchedule }: DayScheduleR
   const [timePickerType, setTimePickerType] = useState<'start' | 'end'>('start');
 
   // Calculate responsive dimensions
-  const dayLabelWidth = Math.max(width * 0.12, 45); // Minimum 45px, 12% of screen width
+  const dayLabelWidth = Math.max(width * 0.13, 45); // Minimum 45px, 12% of screen width
   const timeButtonMinWidth = Math.max(width * 0.18, 80); // Minimum 80px, 18% of screen width
   const horizontalMargin = Math.max(width * 0.03, 12); // Minimum 12px, 3% of screen width
   const separatorMargin = Math.max(width * 0.02, 8); // Minimum 8px, 2% of screen width
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   dayLabel: {
     color: '#000',
     fontWeight: '400',
-    textAlign: 'left',
+    textAlign: 'center',
   },
   timeContainer: {
     flex: 1,

@@ -100,7 +100,7 @@ export function ProtectionScheduleModal({ visible, onClose }: ProtectionSchedule
         >
             <View style={styles.modalOverlay}>
                 <View style={[styles.modalContent, { width: modalWidth }]}>
-                    <View style={[styles.header, { padding: modalPadding }]}>
+                    <View style={[styles.header]}>
                         <View style={styles.titleContainer}>
                             <Image 
                                 source={Images.Premium} 
@@ -115,7 +115,7 @@ export function ProtectionScheduleModal({ visible, onClose }: ProtectionSchedule
                         paddingHorizontal: modalPadding,
                         paddingBottom: modalPadding * 0.5,
                     }]}>
-                        Schedule auto monitoring only during key times to reduce background activity and save battery.
+                        Schedule auto monitoring only during key times to save battery.
                     </Text>
 
                     <ScrollView 
@@ -184,6 +184,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8, // Space between icon and text
+        marginLeft: 10,
+        marginBottom: 10,
+        marginTop: 10,
     },
     premiumIcon: {
         tintColor: '#000000', // Black color
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
         height: Metrix.VerticalSize(35),
     },
     title: {
-        fontSize: Math.min(width * 0.045, 18), // Responsive font size
+        fontSize: 20,
         fontWeight: '600',
         color: '#000',
         textAlign: 'left',
